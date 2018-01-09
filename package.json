@@ -1,0 +1,27 @@
+{
+  "name": "Linnia-Smart-Contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "start": "ganache-cli -p 7545 -i 5777",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anujshah108/Linnia-Smart-Contracts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anujshah108/Linnia-Smart-Contracts/issues"
+  },
+  "homepage": "https://github.com/anujshah108/Linnia-Smart-Contracts#readme",
+  "devDependencies": {
+    "ganache-cli": "^6.0.3"
+  }
+}
