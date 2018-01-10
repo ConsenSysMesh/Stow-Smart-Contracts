@@ -16,7 +16,8 @@ contract Owned {
         }
     }
 
-    function changeAdmin(address newAdmin) onlyAdmin public {
+    function changeAdmin(address newAdmin) onlyAdmin public returns (bool) {
         admin = newAdmin;
+        return true;
     }
 }

@@ -15,29 +15,36 @@ contract LinniaRoles is Owned {
     }
 
     // registerPatient allows any user to self register as a patient
-    function registerPatient() public {
+    function registerPatient() public returns (bool) {
         require(roles[msg.sender] == Role.Nil);
         roles[msg.sender] = Role.Patient;
         PatientRegistered(msg.sender);
+        return true;
     }
 
     // registerDoctor allows admin to register a doctor
-    function registerDoctor(address user) onlyAdmin public {
+    function registerDoctor(address user) onlyAdmin public returns (bool) {
         require(roles[user] == Role.Nil);
         roles[user] = Role.Doctor;
         DoctorRegistered(user);
+        return true;
     }
 
     // registerProvider allows admin to register a provider
-    function registerProvider(address user) onlyAdmin public {
+    function registerProvider(address user) onlyAdmin public returns (bool) {
         require(roles[user] == Role.Nil);
         roles[user] = Role.Provider;
         ProviderRegistered(user);
+        return true;
     }
 
     // updateRole allows admin to update any role
-    function updateRole(address user, Role newRole) onlyAdmin public {
+    function updateRole(address user, Role newRole) onlyAdmin
+        public
+        returns (bool)
+    {
         roles[user] = newRole;
         RoleUpdated(user, newRole);
+        return true;
     }
 }
