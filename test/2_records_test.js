@@ -48,14 +48,16 @@ contract('LinniaRecords', (accounts) => {
       assert.equal(tx.logs[0].args.patient, patient)
       assert.equal(tx.logs[0].args.doctor, doctor1)
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
-      const storedRecord = await instance.records(testFileHash);
-      assert.equal(storedRecord[0], patient);
-      assert.equal(storedRecord[1], doctor1);
-      assert.equal(storedRecord[2], 1);
-      assert.equal(storedRecord[3], testIpfsHashDecoded);
-      assert.equal(storedRecord[4], eutil.bufferToHex(rsv.r));
-      assert.equal(storedRecord[5], eutil.bufferToHex(rsv.s));
-      assert.equal(storedRecord[6], rsv.v);
+      const storedRecord = await instance.records(testFileHash)
+      assert.equal(storedRecord[0], patient)
+      assert.equal(storedRecord[1], doctor1)
+      assert.equal(storedRecord[2], 1)
+      assert.equal(storedRecord[3], testIpfsHashDecoded)
+      assert.equal(storedRecord[4], eutil.bufferToHex(rsv.r))
+      assert.equal(storedRecord[5], eutil.bufferToHex(rsv.s))
+      assert.equal(storedRecord[6], rsv.v)
+      const storedFileHash = await instance.ipfsRecords(testIpfsHashDecoded)
+      assert.equal(storedFileHash, testFileHash)
     })
     it("should reject if the sig rsv of the file is invalid", async () => {
       // the file is signed by doctor2
@@ -70,6 +72,22 @@ contract('LinniaRecords', (accounts) => {
       } catch (err) {
         // ok
         helper.assertRevert(err)
+      }
+    })
+    it("should not allow doctor to upload same file twice", async () => {
+      const rsv = eutil.fromRpcSig(web3.eth.sign(doctor1, testFileHash))
+      await instance.uploadRecord(testFileHash, patient, 1,
+        testIpfsHashDecoded, eutil.bufferToHex(rsv.r),
+        eutil.bufferToHex(rsv.s), rsv.v,
+        { from: doctor1 })
+      try {
+        await instance.uploadRecord(testFileHash, patient, 1,
+          testIpfsHashDecoded, eutil.bufferToHex(rsv.r),
+          eutil.bufferToHex(rsv.s), rsv.v,
+          { from: doctor1 })
+      } catch (err) {
+        // ok
+        helper.assertRevert(err);
       }
     })
   })
