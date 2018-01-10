@@ -1,4 +1,6 @@
-var LinniaRoles = artifacts.require("./LinniaRoles.sol");
+const LinniaRoles = artifacts.require("./LinniaRoles.sol")
+
+const helper = require("./helper")
 
 contract('LinniaRoles', (accounts) => {
   describe("constructor", () => {
@@ -37,6 +39,7 @@ contract('LinniaRoles', (accounts) => {
           assert.fail("user has registered twice")
         } catch (err) {
           // ok
+          helper.assertRevert(err)
         }
       })
   })
@@ -55,6 +58,7 @@ contract('LinniaRoles', (accounts) => {
         assert.fail("non admin has registered a doctor")
       } catch (err) {
         // ok
+        helper.assertRevert(err)
       }
     })
   })
@@ -73,6 +77,7 @@ contract('LinniaRoles', (accounts) => {
         assert.fail("non admin has registered a provider")
       } catch (err) {
         // ok
+        helper.assertRevert(err)
       }
     })
   })
@@ -93,6 +98,7 @@ contract('LinniaRoles', (accounts) => {
         assert.fail("role is updated by non-admin")
       } catch (err) {
         // ok
+        helper.assertRevert(err)
       }
     })
   })
@@ -106,10 +112,11 @@ contract('LinniaRoles', (accounts) => {
     it("should not allow non admin to change admin", async () => {
       const instance = await LinniaRoles.new({ from: accounts[0] })
       try {
-        await instance.updateRole(accounts[1], { from: accounts[1] })
+        await instance.changeAdmin(accounts[1], { from: accounts[1] })
         assert.fail("admin is changed by non-admin")
       } catch (err) {
         // ok
+        helper.assertRevert(err)
       }
     })
   })
