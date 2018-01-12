@@ -2,6 +2,7 @@ const LinniaRoles = artifacts.require("./LinniaRoles.sol")
 const LinniaRecords = artifacts.require("./LinniaRecords.sol")
 
 const bs58 = require("bs58")
+const crypto = require("crypto")
 const eutil = require("ethereumjs-util")
 const multihashes = require("multihashes")
 const helper = require("./helper")
@@ -37,6 +38,22 @@ contract('LinniaRecords', (accounts) => {
         accounts[0], { from: accounts[0] })
       const storedRolesAddress = await instance.rolesContract()
       assert.equal(storedRolesAddress, rolesInstance.address)
+    })
+  })
+  describe("recover", () => {
+    it("should recover the signer address if sig is valid", async () => {
+      const msgHash = eutil.bufferToHex(eutil.sha3(crypto.randomBytes(2000)))
+      const rsv = eutil.fromRpcSig(web3.eth.sign(doctor1, msgHash))
+      const recoveredAddr = await instance.recover(msgHash,
+        eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s), rsv.v)
+      assert.equal(recoveredAddr, doctor1)
+    })
+    it("should recover zero address if sig is bad", async () => {
+      const msgHash = eutil.bufferToHex(eutil.sha3(crypto.randomBytes(2000)))
+      const recoveredAddr = await instance.recover(msgHash,
+        eutil.bufferToHex(new Buffer(64)),
+        eutil.bufferToHex(new Buffer(64)), 27)
+        assert.equal(recoveredAddr, 0)
     })
   })
   describe("upload record", () => {
