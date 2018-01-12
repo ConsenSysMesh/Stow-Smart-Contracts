@@ -14,9 +14,11 @@ const testIpfsHashDecoded = eutil.bufferToHex(
   multihashes.decode(bs58.decode(testIpfsHash)).digest)
 
 contract('LinniaRecords', (accounts) => {
+  const admin = accounts[0];
   const patient = accounts[1];
   const doctor1 = accounts[2];
   const doctor2 = accounts[3];
+  let instance;
   let rolesInstance;
 
   before("set up LinniaRoles contract", async () => {
@@ -25,6 +27,10 @@ contract('LinniaRecords', (accounts) => {
     rolesInstance.registerDoctor(doctor1, { from: accounts[0] })
     rolesInstance.registerDoctor(doctor2, { from: accounts[0] })
   });
+  beforeEach("deploy a new LinniaRecords contract", async () => {
+    instance = await LinniaRecords.new(rolesInstance.address,
+      accounts[0], { from: accounts[0] })
+  })
   describe("constructor", () => {
     it("should set LinniaRoles contract address correctly", async () => {
       const instance = await LinniaRecords.new(rolesInstance.address,
@@ -34,11 +40,6 @@ contract('LinniaRecords', (accounts) => {
     })
   })
   describe("upload record", () => {
-    let instance
-    beforeEach("deploy a new LinniaRecords contract", async () => {
-      instance = await LinniaRecords.new(rolesInstance.address,
-        accounts[0], { from: accounts[0] })
-    })
     it("should allow a doctor to upload a patient record", async () => {
       const rsv = eutil.fromRpcSig(web3.eth.sign(doctor1, testFileHash))
       const tx = await instance.uploadRecord(testFileHash, patient, 1,
@@ -89,6 +90,73 @@ contract('LinniaRecords', (accounts) => {
         // ok
         helper.assertRevert(err);
       }
+    })
+  })
+  describe("update record by admin", () => {
+    it("should allow admin to upload a record", async () => {
+      const rsv = eutil.fromRpcSig(web3.eth.sign(doctor1, testFileHash))
+      const tx = await instance.updateRecordByAdmin(testFileHash, patient,
+        doctor1, 1, testIpfsHashDecoded, eutil.bufferToHex(rsv.r),
+        eutil.bufferToHex(rsv.s), rsv.v,
+        { from: admin })
+      assert.equal(tx.logs[0].args.patient, patient)
+      assert.equal(tx.logs[0].args.doctor, doctor1)
+      assert.equal(tx.logs[0].args.fileHash, testFileHash)
+      const storedRecord = await instance.records(testFileHash)
+      assert.equal(storedRecord[0], patient)
+      assert.equal(storedRecord[1], doctor1)
+      assert.equal(storedRecord[2], 1)
+      assert.equal(storedRecord[3], testIpfsHashDecoded)
+      assert.equal(storedRecord[4], eutil.bufferToHex(rsv.r))
+      assert.equal(storedRecord[5], eutil.bufferToHex(rsv.s))
+      assert.equal(storedRecord[6], rsv.v)
+      const storedFileHash = await instance.ipfsRecords(testIpfsHashDecoded)
+      assert.equal(storedFileHash, testFileHash)
+    })
+    it("should not allow non-admin to upload a record", async () => {
+      const rsv = eutil.fromRpcSig(web3.eth.sign(doctor1, testFileHash))
+      try {
+        await instance.updateRecordByAdmin(testFileHash, patient, doctor1, 1,
+          testIpfsHashDecoded, eutil.bufferToHex(rsv.r),
+          eutil.bufferToHex(rsv.s), rsv.v,
+          { from: doctor1 })
+      } catch (err) {
+        // ok
+        helper.assertRevert(err)
+      }
+    })
+    it("should not allow admin to upload a record with bad sig", async () => {
+      // file is signed by doctor2
+      const rsv = eutil.fromRpcSig(web3.eth.sign(doctor2, testFileHash))
+      try {
+        // we upload the file claiming it's signed by doctor1
+        await instance.updateRecordByAdmin(testFileHash, patient, doctor1, 1,
+          testIpfsHashDecoded, eutil.bufferToHex(rsv.r),
+          eutil.bufferToHex(rsv.s), rsv.v,
+          { from: doctor1 })
+      } catch (err) {
+        // ok
+        helper.assertRevert(err)
+      }
+    })
+    it("should allow admin to update an existing record", async () => {
+      const rsv1 = eutil.fromRpcSig(web3.eth.sign(doctor1, testFileHash))
+      const tx1 = await instance.updateRecordByAdmin(testFileHash, patient,
+        doctor1, 1, testIpfsHashDecoded, eutil.bufferToHex(rsv1.r),
+        eutil.bufferToHex(rsv1.s), rsv1.v,
+        { from: admin })
+      assert.equal(tx1.logs[0].args.patient, patient)
+      assert.equal(tx1.logs[0].args.doctor, doctor1)
+      assert.equal(tx1.logs[0].args.fileHash, testFileHash)
+      // update the record with sig from doctor2
+      const rsv2 = eutil.fromRpcSig(web3.eth.sign(doctor2, testFileHash))
+      const tx2 = await instance.updateRecordByAdmin(testFileHash, patient,
+        doctor2, 1, testIpfsHashDecoded, eutil.bufferToHex(rsv2.r),
+        eutil.bufferToHex(rsv2.s), rsv2.v,
+        { from: admin })
+      assert.equal(tx2.logs[0].args.patient, patient)
+      assert.equal(tx2.logs[0].args.doctor, doctor2)
+      assert.equal(tx2.logs[0].args.fileHash, testFileHash)
     })
   })
 });
