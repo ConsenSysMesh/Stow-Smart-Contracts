@@ -56,6 +56,7 @@ contract LinniaRecords is Owned {
         bytes32 r, bytes32 s, uint8 v)
         onlyDoctor
         public
+        returns (bool)
     {
         require(recordType != 0);
         // the record must be new
@@ -64,6 +65,7 @@ contract LinniaRecords is Owned {
         require(_updateRecord(fileHash, patient, msg.sender, recordType,
             ipfsHash, r, s, v));
         RecordUploaded(patient, msg.sender, fileHash);
+        return true;
     }
 
     function updateRecordByAdmin(bytes32 fileHash, address patient,
@@ -71,10 +73,12 @@ contract LinniaRecords is Owned {
         bytes32 r, bytes32 s, uint8 v)
         onlyAdmin
         public
+        returns (bool)
     {
         require(_updateRecord(fileHash, patient, doctor, recordType, ipfsHash,
             r, s, v));
         RecordUpdatedByAdmin(patient, doctor, fileHash);
+        return true;
     }
 
     function _updateRecord(bytes32 fileHash, address patient,
