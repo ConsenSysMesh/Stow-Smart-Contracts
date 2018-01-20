@@ -1,43 +1,54 @@
+const LinniaHub = artifacts.require("./LinniaHub.sol")
 const LinniaRoles = artifacts.require("./LinniaRoles.sol")
 const LinniaRecords = artifacts.require("./LinniaRecords.sol")
+const LinniaHTH = artifacts.require("./LinniaHTH.sol")
 
 const bs58 = require("bs58")
 const crypto = require("crypto")
 const eutil = require("ethereumjs-util")
 const multihashes = require("multihashes")
-const helper = require("./helper")
+const { assertRevert } = require("./helper")
 
 // assume this is the ipfs hash of the encrypted file
-const testFileContent = `{foo:"bar",baz:42}`;
-const testFileHash = eutil.bufferToHex(eutil.sha3(testFileContent));
-const testIpfsHash = "QmXJdGeZyk8Ae7L9Ca2aLo6qGCX49tC3nnPuyahXDUCUzy";
+const testFileContent = `{foo:"bar",baz:42}`
+const testFileHash = eutil.bufferToHex(eutil.sha3(testFileContent))
+const testIpfsHash = "QmXJdGeZyk8Ae7L9Ca2aLo6qGCX49tC3nnPuyahXDUCUzy"
 const testIpfsHashDecoded = eutil.bufferToHex(
   multihashes.decode(bs58.decode(testIpfsHash)).digest)
 
-contract('LinniaRecords', (accounts) => {
-  const admin = accounts[0];
-  const patient = accounts[1];
-  const doctor1 = accounts[2];
-  const doctor2 = accounts[3];
-  let instance;
-  let rolesInstance;
+contract("LinniaRecords", (accounts) => {
+  const admin = accounts[0]
+  const patient = accounts[1]
+  const doctor1 = accounts[2]
+  const doctor2 = accounts[3]
+  let hub
+  let instance
 
-  before("set up LinniaRoles contract", async () => {
-    rolesInstance = await LinniaRoles.new()
+  before("set up a LinniaHub contract", async () => {
+    hub = await LinniaHub.new()
+  })
+  before("set up a LinniaRoles contract", async () => {
+    const rolesInstance = await LinniaRoles.new(hub.address, accounts[0])
+    await hub.setRolesContract(rolesInstance.address)
     rolesInstance.registerPatient({ from: patient })
     rolesInstance.registerDoctor(doctor1, { from: accounts[0] })
     rolesInstance.registerDoctor(doctor2, { from: accounts[0] })
-  });
+  })
+  beforeEach("deploy a new LinniaHTH contract", async () => {
+    // HTH isn't reusable in the test, we must deploy a new one per test
+    const hthInstance = await LinniaHTH.new(hub.address, accounts[0])
+    await hub.setHTHContract(hthInstance.address)
+  })
   beforeEach("deploy a new LinniaRecords contract", async () => {
-    instance = await LinniaRecords.new(rolesInstance.address,
+    instance = await LinniaRecords.new(hub.address,
       accounts[0], { from: accounts[0] })
+    await hub.setRecordsContract(instance.address)
   })
   describe("constructor", () => {
-    it("should set LinniaRoles contract address correctly", async () => {
-      const instance = await LinniaRecords.new(rolesInstance.address,
+    it("should set hub address correctly", async () => {
+      const instance = await LinniaRecords.new(hub.address,
         accounts[0], { from: accounts[0] })
-      const storedRolesAddress = await instance.rolesContract()
-      assert.equal(storedRolesAddress, rolesInstance.address)
+      assert.equal(await instance.hub(), hub.address)
     })
   })
   describe("recover", () => {
@@ -53,7 +64,7 @@ contract('LinniaRecords', (accounts) => {
       const recoveredAddr = await instance.recover(msgHash,
         eutil.bufferToHex(new Buffer(64)),
         eutil.bufferToHex(new Buffer(64)), 27)
-        assert.equal(recoveredAddr, 0)
+      assert.equal(recoveredAddr, 0)
     })
   })
   describe("upload record", () => {
@@ -89,7 +100,7 @@ contract('LinniaRecords', (accounts) => {
         assert.fail("file sig is invalid, but is not rejected")
       } catch (err) {
         // ok
-        helper.assertRevert(err)
+        assertRevert(err)
       }
     })
     it("should not allow doctor to upload same file twice", async () => {
@@ -105,8 +116,19 @@ contract('LinniaRecords', (accounts) => {
           { from: doctor1 })
       } catch (err) {
         // ok
-        helper.assertRevert(err);
+        assertRevert(err);
       }
+    })
+    it("should increment HTH score if HTH is set", async () => {
+      const hthInstance = LinniaHTH.at(await hub.hthContract())
+      const prevScore = await hthInstance.score(patient)
+      const rsv = eutil.fromRpcSig(web3.eth.sign(doctor1, testFileHash))
+      const tx = await instance.uploadRecord(testFileHash, patient, 1,
+        testIpfsHashDecoded, eutil.bufferToHex(rsv.r),
+        eutil.bufferToHex(rsv.s), rsv.v,
+        { from: doctor1 })
+      assert.equal((await hthInstance.score(patient)).toString(),
+        prevScore.add(1).toString())
     })
   })
   describe("update record by admin", () => {
@@ -139,7 +161,7 @@ contract('LinniaRecords', (accounts) => {
           { from: doctor1 })
       } catch (err) {
         // ok
-        helper.assertRevert(err)
+        assertRevert(err)
       }
     })
     it("should not allow admin to upload a record with bad sig", async () => {
@@ -153,7 +175,7 @@ contract('LinniaRecords', (accounts) => {
           { from: doctor1 })
       } catch (err) {
         // ok
-        helper.assertRevert(err)
+        assertRevert(err)
       }
     })
     it("should allow admin to update an existing record", async () => {
@@ -176,4 +198,4 @@ contract('LinniaRecords', (accounts) => {
       assert.equal(tx2.logs[0].args.fileHash, testFileHash)
     })
   })
-});
+})

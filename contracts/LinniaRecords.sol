@@ -1,7 +1,9 @@
 pragma solidity 0.4.18;
 
 import "./Owned.sol";
+import "./LinniaHub.sol";
 import "./LinniaRoles.sol";
+import "./LinniaHTH.sol";
 
 contract LinniaRecords is Owned {
     struct FileRecord {
@@ -18,25 +20,25 @@ contract LinniaRecords is Owned {
     event RecordUploaded(address indexed patient, address indexed doctor,
         bytes32 fileHash);
 
+    LinniaHub public hub;
     // all linnia records
     // filehash => record mapping
     mapping(bytes32 => FileRecord) public records;
-    // ipfsHash => sha256 fileHash mapping
+    // reverse mapping: ipfsHash => sha256 fileHash
     mapping(bytes32 => bytes32) public ipfsRecords;
-    LinniaRoles public rolesContract;
 
     // modifiers
     modifier onlyDoctor() {
-        require(rolesContract.roles(msg.sender) == LinniaRoles.Role.Doctor);
+        require(hub.rolesContract().roles(msg.sender) == LinniaRoles.Role.Doctor);
         _;
     }
 
     // Constructor
-    function LinniaRecords(LinniaRoles _rolesContract, address initialAdmin)
+    function LinniaRecords(LinniaHub _hub, address initialAdmin)
         Owned(initialAdmin)
         public
     {
-        rolesContract = _rolesContract;
+        hub = _hub;
     }
 
     /// Adds metadata to a medical record uploaded to ipfs
@@ -63,6 +65,11 @@ contract LinniaRecords is Owned {
         require(_updateRecord(fileHash, patient, msg.sender, recordType,
             ipfsHash, r, s, v));
         RecordUploaded(patient, msg.sender, fileHash);
+        // update hth score if hth contract is set
+        LinniaHTH hthContract = hub.hthContract();
+        if (address(hthContract) != 0) {
+            require(hthContract.addPoints(patient, 1));
+        }
         return true;
     }
 
@@ -79,12 +86,16 @@ contract LinniaRecords is Owned {
         return true;
     }
 
+    // Private functions
     function _updateRecord(bytes32 fileHash, address patient,
         address doctor, uint recordType, bytes32 ipfsHash,
         bytes32 r, bytes32 s, uint8 v)
         private
         returns (bool)
     {
+        // verify roles
+        require(hub.rolesContract().roles(patient) == LinniaRoles.Role.Patient);
+        require(hub.rolesContract().roles(doctor) == LinniaRoles.Role.Doctor);
         // the doctor must sign the file hash
         require(recover(fileHash, r, s, v) == doctor);
         // update the record mapping
@@ -102,6 +113,7 @@ contract LinniaRecords is Owned {
         return true;
     }
 
+    // Constant functions
     function recover(bytes32 message, bytes32 r, bytes32 s, uint8 v)
         public pure returns(address)
     {

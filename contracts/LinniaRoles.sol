@@ -1,6 +1,7 @@
 pragma solidity 0.4.18;
 
 import "./Owned.sol";
+import "./LinniaHub.sol";
 
 contract LinniaRoles is Owned {
     enum Role { Nil, Patient, Doctor, Provider }
@@ -9,9 +10,14 @@ contract LinniaRoles is Owned {
     event ProviderRegistered(address indexed user);
     event RoleUpdated(address indexed user, Role role);
 
+    LinniaHub public hub;
     mapping(address => Role) public roles;
 
-    function LinniaRoles(address initialAdmin) Owned(initialAdmin) public {
+    function LinniaRoles(LinniaHub _hub, address initialAdmin)
+        Owned(initialAdmin)
+        public
+    {
+        hub = _hub;
     }
 
     // registerPatient allows any user to self register as a patient
