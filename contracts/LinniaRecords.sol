@@ -17,8 +17,6 @@ contract LinniaRecords is Owned {
     }
     event RecordUploaded(address indexed patient, address indexed doctor,
         bytes32 fileHash);
-    event RecordUpdatedByAdmin(address indexed patient, address indexed doctor,
-        bytes32 fileHash);
 
     // all linnia records
     // filehash => record mapping
@@ -77,7 +75,7 @@ contract LinniaRecords is Owned {
     {
         require(_updateRecord(fileHash, patient, doctor, recordType, ipfsHash,
             r, s, v));
-        RecordUpdatedByAdmin(patient, doctor, fileHash);
+        RecordUploaded(patient, doctor, fileHash);
         return true;
     }
 
