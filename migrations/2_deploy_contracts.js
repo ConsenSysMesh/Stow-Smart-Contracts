@@ -2,6 +2,7 @@ const LinniaHub = artifacts.require("./LinniaHub.sol")
 const LinniaRoles = artifacts.require("./LinniaRoles.sol")
 const LinniaRecords = artifacts.require("./LinniaRecords.sol")
 const LinniaHTH = artifacts.require("./LinniaHTH")
+const LinniaPermissions = artifacts.require("./LinniaPermissions.sol")
 
 module.exports = (deployer) => {
   let adminAddress
@@ -24,11 +25,16 @@ module.exports = (deployer) => {
     // deploy Records
     return deployer.deploy(LinniaRecords, hubInstance.address, adminAddress)
   }).then(() => {
+    // deploy Permissions
+    return deployer.deploy(LinniaPermissions, hubInstance.address, adminAddress)
+  }).then(() => {
     // set all the addresses in the hub
     return hubInstance.setRolesContract(LinniaRoles.address)
   }).then(() => {
     return hubInstance.setHTHContract(LinniaHTH.address)
   }).then(() => {
     return hubInstance.setRecordsContract(LinniaRecords.address)
+  }).then(() => {
+    return hubInstance.setPermissionsContract(LinniaPermissions.address)
   })
 }

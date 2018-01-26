@@ -43,7 +43,7 @@ contract LinniaRecords is Owned {
 
     /// Adds metadata to a medical record uploaded to ipfs
     /// This function is called by certified doctors
-    /// @param fileHash the hash of the original medical record file
+    /// @param fileHash the hash of the original unencrypted medical record file
     /// @param patient the address of patient of the file
     /// @param recordType type of the record
     /// @param ipfsHash decoded sha2-256 hash of the ipfs hash
@@ -113,12 +113,18 @@ contract LinniaRecords is Owned {
         return true;
     }
 
-    // Constant functions
+    /* Constant functions */
     function recover(bytes32 message, bytes32 r, bytes32 s, uint8 v)
         public pure returns(address)
     {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 prefixedHash = keccak256(prefix, message);
         return ecrecover(prefixedHash, v, r, s);
+    }
+
+    function patientOf(bytes32 fileHash)
+        public view returns(address)
+    {
+        return records[fileHash].patient;
     }
 }
