@@ -80,12 +80,34 @@ contract("LinniaPermissions", (accounts) => {
       assert.equal(perm[0], true)
       assert.equal(perm[1], fakeIpfsHash)
     })
+    it("should not allow non-patient to grant access", async () => {
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
+      try {
+        const tx = await instance.grantAccess(testFileHash1, doctor2,
+          fakeIpfsHash, { from: doctor1 })
+        assert.fail()
+      } catch (err) {
+        assertRevert(err)
+      }
+    })
+    it("should not allow patient to grant access to other patients files", async () => {
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
+      try {
+        await instance.grantAccess(testFileHash1, doctor2,
+          fakeIpfsHash, { from: patient2 })
+        assert.fail()
+      } catch (err) {
+        assertRevert(err)
+      }
+    })
   })
   describe("remoke access", () => {
-    it("should allow patient to revoke access to their files", async () => {
+    beforeEach("grant doctor2 to access patient1's file1", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
       await instance.grantAccess(testFileHash1, doctor2,
         fakeIpfsHash, { from: patient1 })
+    })
+    it("should allow patient to revoke access to their files", async () => {
       const tx = await instance.revokeAccess(testFileHash1,
         doctor2, { from: patient1 })
       assert.equal(tx.logs[0].event, "AccessRevoked")
@@ -95,6 +117,24 @@ contract("LinniaPermissions", (accounts) => {
       const perm = await instance.permissions(testFileHash1, doctor2)
       assert.equal(perm[0], false)
       assert.equal(perm[1], eutil.bufferToHex(eutil.zeros(32)))
+    })
+    it("should not allow non-patient to revoke access to files", async () => {
+      try {
+        await instance.revokeAccess(testFileHash1,
+          doctor2, { from: doctor1 })
+        assert.fail()
+      } catch (err) {
+        assertRevert(err)
+      }
+    })
+    it("should not allow patient to revoke other patients file", async () => {
+      try {
+        await instance.revokeAccess(testFileHash1,
+          doctor2, { from: patient2 })
+        assert.fail()
+      } catch (err) {
+        assertRevert(err)
+      }
     })
   })
 })
