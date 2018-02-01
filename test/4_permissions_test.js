@@ -14,12 +14,12 @@ const testFileContent1 = `{foo:"bar",baz:42}`
 const testFileContent2 = `{"asdf":42}`
 const testFileHash1 = eutil.bufferToHex(eutil.sha3(testFileContent1))
 const testFileHash2 = eutil.bufferToHex(eutil.sha3(testFileContent2))
-const testIpfsHash1 = "QmXJdGeZyk8Ae7L9Ca2aLo6qGCX49tC3nnPuyahXDUCUzy"
-const testIpfsHash2 = "QmUoCHEZqSuYhr9fV1c2b4gLASG2hPpC2moQXQ6qzy697d"
-const testIpfsHashDecoded1 = eutil.bufferToHex(
-  multihashes.decode(bs58.decode(testIpfsHash1)).digest)
-const testIpfsHashDecoded2 = eutil.bufferToHex(
-  multihashes.decode(bs58.decode(testIpfsHash2)).digest)
+const testIpfsHash1 = eutil.bufferToHex(
+  multihashes.decode(
+    bs58.decode("QmXJdGeZyk8Ae7L9Ca2aLo6qGCX49tC3nnPuyahXDUCUzy")).digest)
+const testIpfsHash2 = eutil.bufferToHex(
+  multihashes.decode(
+    bs58.decode("QmUoCHEZqSuYhr9fV1c2b4gLASG2hPpC2moQXQ6qzy697d")).digest)
 
 contract("LinniaPermissions", (accounts) => {
   const admin = accounts[0]
@@ -45,14 +45,10 @@ contract("LinniaPermissions", (accounts) => {
       accounts[0], { from: accounts[0] })
     await hub.setRecordsContract(recordsInstance.address)
     // upload 2 records, one for patient1 and one for patient2
-    const rsv1 = eutil.fromRpcSig(web3.eth.sign(doctor1, testFileHash1))
-    await recordsInstance.uploadRecord(testFileHash1, patient1, 1,
-      testIpfsHashDecoded1, eutil.bufferToHex(rsv1.r),
-      eutil.bufferToHex(rsv1.s), rsv1.v, { from: doctor1 })
-    const rsv2 = eutil.fromRpcSig(web3.eth.sign(doctor2, testFileHash2))
-    await recordsInstance.uploadRecord(testFileHash2, patient2, 2,
-      testIpfsHashDecoded2, eutil.bufferToHex(rsv2.r),
-      eutil.bufferToHex(rsv2.s), rsv2.v, { from: doctor2 })
+    await recordsInstance.addRecordByPatient(testFileHash1,
+      1, testIpfsHash1, { from: patient1 })
+    await recordsInstance.addRecordByDoctor(testFileHash2,
+      patient2, 2, testIpfsHash2, { from: doctor2 })
   })
   beforeEach("deploy a new LinniaPermissions contract", async () => {
     instance = await LinniaPermissions.new(hub.address,
