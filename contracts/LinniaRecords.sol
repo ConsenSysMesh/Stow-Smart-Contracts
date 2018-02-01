@@ -14,6 +14,7 @@ contract LinniaRecords is Owned {
         // 0 nil, 1 Blood Pressure, 2 A1C, 3 HDL, 4 Triglycerides, 5 Weight
         uint recordType;
         bytes32 ipfsHash; // ipfs hash of the encrypted file
+        uint timestamp; // time the file is added
     }
     event RecordAdded(bytes32 indexed fileHash, address indexed patient);
     event RecordSigAdded(bytes32 indexed fileHash, address indexed doctor);
@@ -139,7 +140,8 @@ contract LinniaRecords is Owned {
             patient: patient,
             sigCount: 0,
             recordType: recordType,
-            ipfsHash: ipfsHash
+            ipfsHash: ipfsHash,
+            timestamp: block.timestamp
         });
         // add the reverse mapping
         ipfsRecords[ipfsHash] = fileHash;
