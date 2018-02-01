@@ -148,7 +148,7 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[1].args.fileHash, testFileHash)
       assert.equal(tx.logs[1].args.doctor, doctor1)
       const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
-      .timestamp
+        .timestamp
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
