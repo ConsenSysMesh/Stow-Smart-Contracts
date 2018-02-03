@@ -77,12 +77,15 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[0].event, "RecordAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.patient, patient)
+      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
+        .timestamp
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 0) // sig count
       assert.equal(storedRecord[2], 1) // record type
       assert.equal(storedRecord[3], testIpfsHash)
+      assert.equal(storedRecord[4], timestamp)
       assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
     })
     it("should now allow patient to add same record twice", async () => {
@@ -144,12 +147,15 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[1].event, "RecordSigAdded")
       assert.equal(tx.logs[1].args.fileHash, testFileHash)
       assert.equal(tx.logs[1].args.doctor, doctor1)
+      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
+        .timestamp
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 1) // sig count
       assert.equal(storedRecord[2], 1) // record type
       assert.equal(storedRecord[3], testIpfsHash)
+      assert.equal(storedRecord[4], timestamp)
       assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
       assert.equal(await instance.sigExists(testFileHash, doctor1),
         true)
