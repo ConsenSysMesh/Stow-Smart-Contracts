@@ -30,7 +30,7 @@ contract("LinniaPermissions", (accounts) => {
   let hub, instance
 
   before("set up a LinniaHub contract", async () => {
-    hub = await LinniaHub.new()
+    hub = await LinniaHub.new(admin)
   })
   before("set up a LinniaRoles contract", async () => {
     const rolesInstance = await LinniaRoles.new(hub.address, accounts[0])

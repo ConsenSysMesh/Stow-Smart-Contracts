@@ -4,7 +4,7 @@ const { assertRevert } = require("./helper")
 contract("LinniaHub", (accounts) => {
   let instance
   beforeEach("deploy a new LinniaHub contract", async () => {
-    instance = await LinniaHub.new()
+    instance = await LinniaHub.new(accounts[0])
   })
 
   describe("constructor", () => {
