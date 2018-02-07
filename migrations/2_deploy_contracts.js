@@ -4,18 +4,14 @@ const LinniaRecords = artifacts.require("./LinniaRecords.sol")
 const LinniaHTH = artifacts.require("./LinniaHTH")
 const LinniaPermissions = artifacts.require("./LinniaPermissions.sol")
 
-module.exports = (deployer) => {
-  let adminAddress
+module.exports = (deployer, network, accounts) => {
+  const adminAddress = accounts[0]
   let hubInstance
-  // deploy the hub first
-  deployer.deploy(LinniaHub).then(() => {
+  // deploy the hub
+  deployer.deploy(LinniaHub, adminAddress).then(() => {
     return LinniaHub.deployed()
   }).then((_hubInstace) => {
-    // get the admin of the hub
     hubInstance = _hubInstace
-    return hubInstance.admin()
-  }).then((_adminAddress) => {
-    adminAddress = _adminAddress
     // deploy Roles
     return deployer.deploy(LinniaRoles, hubInstance.address, adminAddress)
   }).then(() => {
