@@ -1,5 +1,7 @@
 const LinniaHub = artifacts.require("./LinniaHub.sol")
-const { assertRevert } = require("./helper")
+const expectThrow = require("./helpers/expectThrow")
+
+console.log(typeof assertThrow)
 
 contract("LinniaHub", (accounts) => {
   let instance
@@ -27,12 +29,7 @@ contract("LinniaHub", (accounts) => {
       assert.equal(await instance.rolesContract(), 42)
     })
     it("should not allow non-admin to set Roles address", async () => {
-      try {
-        await instance.setRolesContract(42, { from: accounts[1] })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      await expectThrow(instance.setRolesContract(42, { from: accounts[1] }))
     })
   })
   describe("set HTH contract", () => {
