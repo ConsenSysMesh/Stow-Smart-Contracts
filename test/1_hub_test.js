@@ -1,8 +1,6 @@
 const LinniaHub = artifacts.require("./LinniaHub.sol")
 const expectThrow = require("./helpers/expectThrow")
 
-console.log(typeof assertThrow)
-
 contract("LinniaHub", (accounts) => {
   let instance
   beforeEach("deploy a new LinniaHub contract", async () => {
