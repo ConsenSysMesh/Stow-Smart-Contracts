@@ -1,31 +1,30 @@
 pragma solidity ^0.4.18;
 
-import "./Owned.sol";
+import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
 import "./LinniaRoles.sol";
 import "./LinniaRecords.sol";
 
-contract LinniaHTH is Owned {
+
+contract LinniaHTH is Ownable {
     event PointsAdded(address indexed user, uint points, uint total);
 
     LinniaHub public hub;
     // points can only be added by admin or RecordsContract
     mapping(address => uint) public score;
 
-    // Modifiers
+    /* Modifiers */
     modifier onlyFromRecordsContract() {
         require(msg.sender == address(hub.recordsContract()));
         _;
     }
 
-    // Constructor
-    function LinniaHTH(LinniaHub _hub, address initialAdmin)
-        Owned(initialAdmin)
-        public
-    {
+    /* Constructor */
+    function LinniaHTH(LinniaHub _hub) public {
         hub = _hub;
     }
 
+    /* Public functions */
     function addPoints(address user, uint pointsToAdd)
         onlyFromRecordsContract
         public
@@ -37,7 +36,7 @@ contract LinniaHTH is Owned {
     }
 
     function addPointsByAdmin(address user, uint pointsToAdd)
-        onlyAdmin
+        onlyOwner
         public
         returns (bool)
     {

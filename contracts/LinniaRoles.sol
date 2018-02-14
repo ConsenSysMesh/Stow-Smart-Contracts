@@ -1,9 +1,10 @@
 pragma solidity ^0.4.18;
 
-import "./Owned.sol";
+import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
 
-contract LinniaRoles is Owned {
+
+contract LinniaRoles is Ownable {
     enum Role { Nil, Patient, Doctor, Provider }
     event PatientRegistered(address indexed user);
     event DoctorRegistered(address indexed user);
@@ -13,10 +14,7 @@ contract LinniaRoles is Owned {
     LinniaHub public hub;
     mapping(address => Role) public roles;
 
-    function LinniaRoles(LinniaHub _hub, address initialAdmin)
-        Owned(initialAdmin)
-        public
-    {
+    function LinniaRoles(LinniaHub _hub) public {
         hub = _hub;
     }
 
@@ -29,7 +27,7 @@ contract LinniaRoles is Owned {
     }
 
     // registerDoctor allows admin to register a doctor
-    function registerDoctor(address user) onlyAdmin public returns (bool) {
+    function registerDoctor(address user) onlyOwner public returns (bool) {
         require(roles[user] == Role.Nil);
         roles[user] = Role.Doctor;
         DoctorRegistered(user);
@@ -37,7 +35,7 @@ contract LinniaRoles is Owned {
     }
 
     // registerProvider allows admin to register a provider
-    function registerProvider(address user) onlyAdmin public returns (bool) {
+    function registerProvider(address user) onlyOwner public returns (bool) {
         require(roles[user] == Role.Nil);
         roles[user] = Role.Provider;
         ProviderRegistered(user);
@@ -45,7 +43,7 @@ contract LinniaRoles is Owned {
     }
 
     // updateRole allows admin to update any role
-    function updateRole(address user, Role newRole) onlyAdmin
+    function updateRole(address user, Role newRole) onlyOwner
         public
         returns (bool)
     {

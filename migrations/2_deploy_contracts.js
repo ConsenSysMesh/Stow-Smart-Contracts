@@ -8,21 +8,21 @@ module.exports = (deployer, network, accounts) => {
   const adminAddress = accounts[0]
   let hubInstance
   // deploy the hub
-  deployer.deploy(LinniaHub, adminAddress).then(() => {
+  deployer.deploy(LinniaHub).then(() => {
     return LinniaHub.deployed()
   }).then((_hubInstace) => {
     hubInstance = _hubInstace
     // deploy Roles
-    return deployer.deploy(LinniaRoles, hubInstance.address, adminAddress)
+    return deployer.deploy(LinniaRoles, hubInstance.address)
   }).then(() => {
     // deploy HTH
-    return deployer.deploy(LinniaHTH, hubInstance.address, adminAddress)
+    return deployer.deploy(LinniaHTH, hubInstance.address)
   }).then(() => {
     // deploy Records
-    return deployer.deploy(LinniaRecords, hubInstance.address, adminAddress)
+    return deployer.deploy(LinniaRecords, hubInstance.address)
   }).then(() => {
     // deploy Permissions
-    return deployer.deploy(LinniaPermissions, hubInstance.address, adminAddress)
+    return deployer.deploy(LinniaPermissions, hubInstance.address)
   }).then(() => {
     // set all the addresses in the hub
     return hubInstance.setRolesContract(LinniaRoles.address)

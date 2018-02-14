@@ -7,7 +7,8 @@ const bs58 = require("bs58")
 const crypto = require("crypto")
 const eutil = require("ethereumjs-util")
 const multihashes = require("multihashes")
-const expectThrow = require("./helpers/expectThrow")
+
+import expectThrow from "zeppelin-solidity/test/helpers/expectThrow"
 
 // assume this is the ipfs hash of the encrypted files
 const testFileContent1 = `{foo:"bar",baz:42}`
@@ -30,10 +31,10 @@ contract("LinniaPermissions", (accounts) => {
   let hub, instance
 
   before("set up a LinniaHub contract", async () => {
-    hub = await LinniaHub.new(admin)
+    hub = await LinniaHub.new()
   })
   before("set up a LinniaRoles contract", async () => {
-    const rolesInstance = await LinniaRoles.new(hub.address, accounts[0])
+    const rolesInstance = await LinniaRoles.new(hub.address)
     await hub.setRolesContract(rolesInstance.address)
     rolesInstance.registerPatient({ from: patient1 })
     rolesInstance.registerPatient({ from: patient2 })
@@ -41,8 +42,7 @@ contract("LinniaPermissions", (accounts) => {
     rolesInstance.registerDoctor(doctor2, { from: accounts[0] })
   })
   before("set up a LinniaRecords contract", async () => {
-    const recordsInstance = await LinniaRecords.new(hub.address,
-      accounts[0], { from: accounts[0] })
+    const recordsInstance = await LinniaRecords.new(hub.address)
     await hub.setRecordsContract(recordsInstance.address)
     // upload 2 records, one for patient1 and one for patient2
     await recordsInstance.addRecordByPatient(testFileHash1,
@@ -52,14 +52,14 @@ contract("LinniaPermissions", (accounts) => {
   })
   beforeEach("deploy a new LinniaPermissions contract", async () => {
     instance = await LinniaPermissions.new(hub.address,
-      accounts[0], { from: accounts[0] })
+      { from: accounts[0] })
     await hub.setPermissionsContract(instance.address)
   })
 
   describe("constructor", () => {
     it("should set hub address correctly", async () => {
       const instance = await LinniaRecords.new(hub.address,
-        accounts[0], { from: accounts[0] })
+        { from: accounts[0] })
       assert.equal(await instance.hub(), hub.address)
     })
   })

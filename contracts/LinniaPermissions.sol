@@ -1,20 +1,21 @@
 pragma solidity ^0.4.18;
 
-import "./Owned.sol";
+import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
 import "./LinniaRecords.sol";
 
-contract LinniaPermissions is Owned {
-    event AccessGranted(address indexed patient, address indexed viewer,
-        bytes32 fileHash);
-    event AccessRevoked(address indexed patient, address indexed viewer,
-        bytes32 fileHash);
 
+contract LinniaPermissions is Ownable {
     struct Permission {
         bool canAccess;
         // IPFS hash of the file, encrypted to the viewer
         bytes32 ipfsHash;
     }
+
+    event AccessGranted(address indexed patient, address indexed viewer,
+    bytes32 fileHash);
+    event AccessRevoked(address indexed patient, address indexed viewer,
+    bytes32 fileHash);
 
     LinniaHub public hub;
     // filehash => viewer => permission mapping
@@ -27,10 +28,7 @@ contract LinniaPermissions is Owned {
     }
 
     /* Constructor */
-    function LinniaPermissions(LinniaHub _hub, address initialAdmin)
-        Owned(initialAdmin)
-        public
-    {
+    function LinniaPermissions(LinniaHub _hub) public {
         hub = _hub;
     }
 
