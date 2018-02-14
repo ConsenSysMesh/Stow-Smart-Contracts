@@ -1,16 +1,17 @@
 const LinniaHub = artifacts.require("./LinniaHub.sol")
-const expectThrow = require("./helpers/expectThrow")
+
+import expectThrow from "zeppelin-solidity/test/helpers/expectThrow"
 
 contract("LinniaHub", (accounts) => {
   let instance
   beforeEach("deploy a new LinniaHub contract", async () => {
-    instance = await LinniaHub.new(accounts[0])
+    instance = await LinniaHub.new()
   })
 
   describe("constructor", () => {
-    it("should set admin correctly if explicitly given", async () => {
-      const instance = await LinniaHub.new(accounts[1])
-      assert.equal(await instance.admin(), accounts[1])
+    it("should set admin correctly", async () => {
+      const instance = await LinniaHub.new()
+      assert.equal(await instance.owner(), accounts[0])
     })
     it("should initialize roles, hth, records addresss to zero",
       async () => {

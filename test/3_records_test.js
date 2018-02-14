@@ -7,7 +7,8 @@ const bs58 = require("bs58")
 const crypto = require("crypto")
 const eutil = require("ethereumjs-util")
 const multihashes = require("multihashes")
-const expectThrow = require("./helpers/expectThrow")
+
+import expectThrow from "zeppelin-solidity/test/helpers/expectThrow"
 
 // assume this is the ipfs hash of the encrypted file
 const testFileContent = `{foo:"bar",baz:42}`
@@ -27,10 +28,10 @@ contract("LinniaRecords", (accounts) => {
   let instance
 
   before("set up a LinniaHub contract", async () => {
-    hub = await LinniaHub.new(admin)
+    hub = await LinniaHub.new()
   })
   before("set up a LinniaRoles contract", async () => {
-    const rolesInstance = await LinniaRoles.new(hub.address, accounts[0])
+    const rolesInstance = await LinniaRoles.new(hub.address)
     await hub.setRolesContract(rolesInstance.address)
     rolesInstance.registerPatient({ from: patient })
     rolesInstance.registerDoctor(doctor1, { from: accounts[0] })
@@ -38,18 +39,16 @@ contract("LinniaRecords", (accounts) => {
   })
   beforeEach("deploy a new LinniaHTH contract", async () => {
     // HTH isn't reusable in the test, we must deploy a new one per test
-    const hthInstance = await LinniaHTH.new(hub.address, accounts[0])
+    const hthInstance = await LinniaHTH.new(hub.address)
     await hub.setHTHContract(hthInstance.address)
   })
   beforeEach("deploy a new LinniaRecords contract", async () => {
-    instance = await LinniaRecords.new(hub.address,
-      accounts[0], { from: accounts[0] })
+    instance = await LinniaRecords.new(hub.address)
     await hub.setRecordsContract(instance.address)
   })
   describe("constructor", () => {
     it("should set hub address correctly", async () => {
-      const instance = await LinniaRecords.new(hub.address,
-        accounts[0], { from: accounts[0] })
+      const instance = await LinniaRecords.new(hub.address)
       assert.equal(await instance.hub(), hub.address)
     })
   })

@@ -1,12 +1,13 @@
 pragma solidity ^0.4.18;
 
-import "./Owned.sol";
+import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaRoles.sol";
 import "./LinniaHTH.sol";
 import "./LinniaRecords.sol";
 import "./LinniaPermissions.sol";
 
-contract LinniaHub is Owned {
+
+contract LinniaHub is Ownable {
     LinniaRoles public rolesContract;
     LinniaHTH public hthContract;
     LinniaRecords public recordsContract;
@@ -17,13 +18,10 @@ contract LinniaHub is Owned {
     event RecordsContractUpdated(address from, address to);
     event PermissionsContractUpdated(address from, address to);
 
-    function LinniaHub(address initialAdmin)
-        Owned(initialAdmin)
-        public
-    { }
+    function LinniaHub() public { }
 
     function setRolesContract(LinniaRoles _rolesContract)
-        onlyAdmin
+        onlyOwner
         public
         returns (bool)
     {
@@ -34,7 +32,7 @@ contract LinniaHub is Owned {
     }
 
     function setHTHContract(LinniaHTH _hthContract)
-        onlyAdmin
+        onlyOwner
         public
         returns (bool)
     {
@@ -45,7 +43,7 @@ contract LinniaHub is Owned {
     }
 
     function setRecordsContract(LinniaRecords _recordsContract)
-        onlyAdmin
+        onlyOwner
         public
         returns (bool)
     {
@@ -56,7 +54,7 @@ contract LinniaHub is Owned {
     }
 
     function setPermissionsContract(LinniaPermissions _permissionsContract)
-        onlyAdmin
+        onlyOwner
         public
         returns (bool)
     {

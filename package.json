@@ -1,5 +1,5 @@
 {
-  "name": "Linnia-Smart-Contracts",
+  "name": "linnia-smart-contracts",
   "version": "1.0.0",
   "description": "",
   "main": "truffle-config.js",
@@ -7,24 +7,36 @@
     "test": "test"
   },
   "scripts": {
-    "start": "ganache-cli -p 7545 -i 5777",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm run start:testrpc",
+    "start:testrpc": "ganache-cli -p 7545 -i 5777",
+    "test": "truffle test",
+    "lint:sol": "solium -d ."
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anujshah108/Linnia-Smart-Contracts.git"
+    "url": "git+https://github.com/ConsenSys/Linnia-Smart-Contracts.git"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/anujshah108/Linnia-Smart-Contracts/issues"
+    "url": "https://github.com/ConsenSys/Linnia-Smart-Contracts/issues"
   },
-  "homepage": "https://github.com/anujshah108/Linnia-Smart-Contracts#readme",
+  "homepage": "https://github.com/ConsenSys/Linnia-Smart-Contracts",
   "devDependencies": {
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "babel-register": "^6.26.0",
     "bs58": "^4.0.1",
     "ethereumjs-util": "^5.1.3",
     "ganache-cli": "^6.0.3",
-    "multihashes": "^0.4.13"
+    "multihashes": "^0.4.13",
+    "solium": "^1.1.3",
+    "truffle": "^4.0.6"
+  },
+  "dependencies": {
+    "zeppelin-solidity": "1.6.0"
   }
 }

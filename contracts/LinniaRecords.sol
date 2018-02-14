@@ -1,11 +1,12 @@
 pragma solidity ^0.4.18;
 
-import "./Owned.sol";
+import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
 import "./LinniaRoles.sol";
 import "./LinniaHTH.sol";
 
-contract LinniaRecords is Owned {
+
+contract LinniaRecords is Ownable {
     struct FileRecord {
         address patient;
         uint sigCount;
@@ -16,6 +17,7 @@ contract LinniaRecords is Owned {
         bytes32 ipfsHash; // ipfs hash of the encrypted file
         uint timestamp; // time the file is added
     }
+
     event RecordAdded(bytes32 indexed fileHash, address indexed patient);
     event RecordSigAdded(bytes32 indexed fileHash, address indexed doctor);
 
@@ -28,30 +30,54 @@ contract LinniaRecords is Owned {
 
     /* Modifiers */
     modifier onlyFromDoctor() {
-        require(hub.rolesContract().roles(msg.sender) == LinniaRoles.Role.Doctor);
+        require(
+            hub.rolesContract().roles(msg.sender) == LinniaRoles.Role.Doctor
+        );
         _;
     }
 
     modifier onlyFromPatient() {
-        require(hub.rolesContract().roles(msg.sender) == LinniaRoles.Role.Patient);
+        require(
+            hub.rolesContract().roles(msg.sender) == LinniaRoles.Role.Patient
+        );
         _;
     }
 
     /* Constructor */
-    function LinniaRecords(LinniaHub _hub, address initialAdmin)
-        Owned(initialAdmin)
-        public
-    {
+    function LinniaRecords(LinniaHub _hub) public {
         hub = _hub;
     }
+
+    /* Constant functions */
+    function recover(bytes32 message, bytes32 r, bytes32 s, uint8 v)
+        public pure returns (address)
+    {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedHash = keccak256(prefix, message);
+        return ecrecover(prefixedHash, v, r, s);
+    }
+
+    function patientOf(bytes32 fileHash)
+        public view returns (address)
+    {
+        return records[fileHash].patient;
+    }
+
+    function sigExists(bytes32 fileHash, address doctor)
+        public view returns (bool)
+    {
+        return records[fileHash].signatures[doctor];
+    }
+
+    /* Public functions */
 
     /// Add metadata to a medical record uploaded to IPFS by the patient,
     /// without any doctor's signatures.
     /// @param fileHash the hash of the original unencrypted file
     /// @param recordType the type of the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
-    function addRecordByPatient(bytes32 fileHash,
-        uint recordType, bytes32 ipfsHash)
+    function addRecordByPatient(
+        bytes32 fileHash, uint recordType, bytes32 ipfsHash)
         onlyFromPatient
         public
         returns (bool)
@@ -65,8 +91,8 @@ contract LinniaRecords is Owned {
     /// @param patient the address of the patient
     /// @param recordType the type of the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
-    function addRecordByDoctor(bytes32 fileHash,
-        address patient, uint recordType, bytes32 ipfsHash)
+    function addRecordByDoctor(
+        bytes32 fileHash, address patient, uint recordType, bytes32 ipfsHash)
         onlyFromDoctor
         public
         returns (bool)
@@ -108,10 +134,10 @@ contract LinniaRecords is Owned {
         return true;
     }
 
-    function addRecordByAdmin(bytes32 fileHash,
-        address patient, address doctor,
-        uint recordType, bytes32 ipfsHash)
-        onlyAdmin
+    function addRecordByAdmin(
+        bytes32 fileHash, address patient, address doctor, uint recordType,
+        bytes32 ipfsHash)
+        onlyOwner
         public
         returns (bool)
     {
@@ -123,24 +149,28 @@ contract LinniaRecords is Owned {
     }
 
     /* Private functions */
-    function _addRecord(bytes32 fileHash, address patient,
-        uint recordType, bytes32 ipfsHash)
+    function _addRecord(
+        bytes32 fileHash, address patient, uint recordType, bytes32 ipfsHash)
         private
         returns (bool)
     {
         // validate input
         require(fileHash != 0 && recordType != 0 && ipfsHash != 0);
         // the file must be new
-        require(records[fileHash].recordType == 0 &&
-            ipfsRecords[ipfsHash] == 0);
+        require(
+            records[fileHash].recordType == 0 && ipfsRecords[ipfsHash] == 0
+        );
         // verify patient role
-        require(hub.rolesContract().roles(patient) == LinniaRoles.Role.Patient);
+        require(
+            hub.rolesContract().roles(patient) == LinniaRoles.Role.Patient
+        );
         // add record
         records[fileHash] = FileRecord({
             patient: patient,
             sigCount: 0,
             recordType: recordType,
             ipfsHash: ipfsHash,
+            // solium-disable-next-line security/no-block-members
             timestamp: block.timestamp
         });
         // add the reverse mapping
@@ -171,26 +201,5 @@ contract LinniaRecords is Owned {
         // emit event
         RecordSigAdded(fileHash, doctor);
         return true;
-    }
-
-    /* Constant functions */
-    function recover(bytes32 message, bytes32 r, bytes32 s, uint8 v)
-        public pure returns (address)
-    {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedHash = keccak256(prefix, message);
-        return ecrecover(prefixedHash, v, r, s);
-    }
-
-    function patientOf(bytes32 fileHash)
-        public view returns (address)
-    {
-        return records[fileHash].patient;
-    }
-
-    function sigExists(bytes32 fileHash, address doctor)
-        public view returns (bool)
-    {
-        return records[fileHash].signatures[doctor];
     }
 }
