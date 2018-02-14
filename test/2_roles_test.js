@@ -1,7 +1,7 @@
 const LinniaHub = artifacts.require("./LinniaHub.sol")
 const LinniaRoles = artifacts.require("./LinniaRoles.sol")
 
-const { assertRevert } = require("./helper")
+const expectThrow = require("./helpers/expectThrow")
 
 contract("LinniaRoles", (accounts) => {
   let hub
@@ -42,15 +42,9 @@ contract("LinniaRoles", (accounts) => {
     it("should not allow non admin to change admin", async () => {
       const instance = await LinniaRoles.new(hub.address,
         accounts[0], { from: accounts[0] })
-      try {
-        await instance.changeAdmin(accounts[1], {
-          from: accounts[1]
-        })
-        assert.fail("admin is changed by non-admin")
-      } catch (err) {
-        // ok
-        assertRevert(err)
-      }
+      await expectThrow(instance.changeAdmin(accounts[1], {
+        from: accounts[1]
+      }))
     })
   })
   describe("register patient", () => {
@@ -64,13 +58,9 @@ contract("LinniaRoles", (accounts) => {
       async () => {
         const tx = await instance.registerPatient({ from: accounts[1] })
         assert.equal(tx.logs[0].args.user, accounts[1])
-        try {
-          await instance.registerPatient({ from: accounts[1] })
-          assert.fail("user has registered twice")
-        } catch (err) {
-          // ok
-          assertRevert(err)
-        }
+        await expectThrow(
+          instance.registerPatient({ from: accounts[1] })
+        )
       })
   })
   describe("register doctor", () => {
@@ -80,13 +70,9 @@ contract("LinniaRoles", (accounts) => {
       assert.equal(await instance.roles(accounts[1]), 2)
     })
     it("should not allow non admin to register a doctor", async () => {
-      try {
-        await instance.registerDoctor(accounts[1], { from: accounts[1] })
-        assert.fail("non admin has registered a doctor")
-      } catch (err) {
-        // ok
-        assertRevert(err)
-      }
+      await expectThrow(
+        instance.registerDoctor(accounts[1], { from: accounts[1] })
+      )
     })
   })
   describe("register provider", () => {
@@ -96,13 +82,9 @@ contract("LinniaRoles", (accounts) => {
       assert.equal(await instance.roles(accounts[1]), 3)
     })
     it("should not allow non admin to register a provider", async () => {
-      try {
-        await instance.registerProvider(accounts[1], { from: accounts[1] })
-        assert.fail("non admin has registered a provider")
-      } catch (err) {
-        // ok
-        assertRevert(err)
-      }
+      await expectThrow(
+        instance.registerProvider(accounts[1], { from: accounts[1] })
+      )
     })
   })
   describe("update role", () => {
@@ -114,13 +96,9 @@ contract("LinniaRoles", (accounts) => {
       assert.equal(await instance.roles(accounts[1]), 2)
     })
     it("should not allow non admin to update roles", async () => {
-      try {
-        await instance.updateRole(accounts[1], 2, { from: accounts[1] })
-        assert.fail("role is updated by non-admin")
-      } catch (err) {
-        // ok
-        assertRevert(err)
-      }
+      await expectThrow(
+        instance.updateRole(accounts[1], 2, { from: accounts[1] })
+      )
     })
   })
 })

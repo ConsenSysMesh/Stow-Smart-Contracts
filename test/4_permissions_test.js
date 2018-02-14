@@ -7,7 +7,7 @@ const bs58 = require("bs58")
 const crypto = require("crypto")
 const eutil = require("ethereumjs-util")
 const multihashes = require("multihashes")
-const { assertRevert } = require("./helper")
+const expectThrow = require("./helpers/expectThrow")
 
 // assume this is the ipfs hash of the encrypted files
 const testFileContent1 = `{foo:"bar",baz:42}`
@@ -78,23 +78,17 @@ contract("LinniaPermissions", (accounts) => {
     })
     it("should not allow non-patient to grant access", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
-      try {
-        const tx = await instance.grantAccess(testFileHash1, doctor2,
+      await expectThrow(
+        instance.grantAccess(testFileHash1, doctor2,
           fakeIpfsHash, { from: doctor1 })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
     it("should not allow patient to grant access to other patients files", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
-      try {
-        await instance.grantAccess(testFileHash1, doctor2,
+      await expectThrow(
+        instance.grantAccess(testFileHash1, doctor2,
           fakeIpfsHash, { from: patient2 })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
   })
   describe("remoke access", () => {
@@ -115,22 +109,16 @@ contract("LinniaPermissions", (accounts) => {
       assert.equal(perm[1], eutil.bufferToHex(eutil.zeros(32)))
     })
     it("should not allow non-patient to revoke access to files", async () => {
-      try {
-        await instance.revokeAccess(testFileHash1,
+      await expectThrow(
+        instance.revokeAccess(testFileHash1,
           doctor2, { from: doctor1 })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
     it("should not allow patient to revoke other patients file", async () => {
-      try {
-        await instance.revokeAccess(testFileHash1,
+      await expectThrow(
+        instance.revokeAccess(testFileHash1,
           doctor2, { from: patient2 })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
   })
 })

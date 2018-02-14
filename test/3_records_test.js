@@ -7,7 +7,7 @@ const bs58 = require("bs58")
 const crypto = require("crypto")
 const eutil = require("ethereumjs-util")
 const multihashes = require("multihashes")
-const { assertRevert } = require("./helper")
+const expectThrow = require("./helpers/expectThrow")
 
 // assume this is the ipfs hash of the encrypted file
 const testFileContent = `{foo:"bar",baz:42}`
@@ -92,48 +92,33 @@ contract("LinniaRecords", (accounts) => {
       await instance.addRecordByPatient(testFileHash, 1,
         testIpfsHash, { from: patient })
       // try submitting the file again
-      try {
-        await instance.addRecordByPatient(testFileHash, 2,
+      await expectThrow(
+        instance.addRecordByPatient(testFileHash, 2,
           testIpfsHash, { from: patient })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
     it("should not allow non-patients to call", async () => {
-      try {
-        await instance.addRecordByPatient(testFileHash, 1,
+      await expectThrow(
+        instance.addRecordByPatient(testFileHash, 1,
           testIpfsHash, { from: nonUser })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
     it("should reject if hash is zero or record type is zero", async () => {
       // try zero record type
-      try {
-        await instance.addRecordByPatient(testFileHash, 0,
+      await expectThrow(
+        instance.addRecordByPatient(testFileHash, 0,
           testIpfsHash, { from: patient })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
       // try zero file hash
-      try {
-        await instance.addRecordByPatient(0, 1,
+      await expectThrow(
+        instance.addRecordByPatient(0, 1,
           testIpfsHash, { from: patient })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
       // try zero ipfs hash
-      try {
-        await instance.addRecordByPatient(0, 1,
+      await expectThrow(
+        instance.addRecordByPatient(0, 1,
           0, { from: patient })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
   })
   describe("add record by doctor", () => {
@@ -163,31 +148,22 @@ contract("LinniaRecords", (accounts) => {
     it("should now allow doctor to add a record twice", async () => {
       await instance.addRecordByDoctor(testFileHash, patient, 1,
         testIpfsHash, { from: doctor1 })
-      try {
-        await instance.addRecordByDoctor(testFileHash,
+      await expectThrow(
+        instance.addRecordByDoctor(testFileHash,
           patient, 2, testIpfsHash, { from: doctor1 })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
     it("should not allow doctor to add a record for non-patient", async () => {
-      try {
-        await instance.addRecordByDoctor(testFileHash, doctor2, 2,
+      await expectThrow(
+        instance.addRecordByDoctor(testFileHash, doctor2, 2,
           testIpfsHash, { from: doctor1 })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
     it("should not allow non-doctor to call", async () => {
-      try {
-        await instance.addRecordByDoctor(testFileHash, patient, 1,
+      await expectThrow(
+        instance.addRecordByDoctor(testFileHash, patient, 1,
           testIpfsHash, { from: patient })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
     it("should increment HTH score if HTH is set", async () => {
       const hthInstance = LinniaHTH.at(await hub.hthContract())
@@ -226,14 +202,11 @@ contract("LinniaRecords", (accounts) => {
       await instance.addSig(testFileHash,
         eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
         rsv.v, { from: nonUser })
-      try {
-        await instance.addSig(testFileHash,
+      await expectThrow(
+        instance.addSig(testFileHash,
           eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
           rsv.v, { from: nonUser })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
     it("should increment HTH score if HTH is set", async () => {
       const hthInstance = LinniaHTH.at(await hub.hthContract())
@@ -294,14 +267,11 @@ contract("LinniaRecords", (accounts) => {
         testIpfsHash, { from: patient })
       const rsv = eutil.fromRpcSig(web3.eth.sign(doctor1, testFileHash))
       // flip S and V
-      try {
-        await instance.addSig(testFileHash,
+      await expectThrow(
+        instance.addSig(testFileHash,
           eutil.bufferToHex(rsv.s), eutil.bufferToHex(rsv.v),
           rsv.v, { from: nonUser })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
   })
   describe("add record by admin", () => {
@@ -343,14 +313,11 @@ contract("LinniaRecords", (accounts) => {
         true)
     })
     it("should not allow non admin to call", async () => {
-      try {
-        await instance.addRecordByAdmin(testFileHash,
+      await expectThrow(
+        instance.addRecordByAdmin(testFileHash,
           patient, doctor1,
           1, testIpfsHash, { from: doctor1 })
-        assert.fail()
-      } catch (err) {
-        assertRevert(err)
-      }
+      )
     })
     it("should increment HTH score if HTH is set", async () => {
       const hthInstance = LinniaHTH.at(await hub.hthContract())
