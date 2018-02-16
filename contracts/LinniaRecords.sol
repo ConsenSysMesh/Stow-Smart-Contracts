@@ -19,7 +19,7 @@ contract LinniaRecords is Ownable {
     }
 
     event RecordAdded(bytes32 indexed fileHash, address indexed patient);
-    event RecordSigAdded(bytes32 indexed fileHash, address indexed doctor);
+    event RecordSigAdded(bytes32 indexed fileHash, address indexed provider);
 
     LinniaHub public hub;
     // all linnia records
@@ -29,9 +29,9 @@ contract LinniaRecords is Ownable {
     mapping(bytes32 => bytes32) public ipfsRecords;
 
     /* Modifiers */
-    modifier onlyFromDoctor() {
+    modifier onlyFromProvider() {
         require(
-            hub.rolesContract().roles(msg.sender) == LinniaRoles.Role.Doctor
+            hub.rolesContract().roles(msg.sender) == LinniaRoles.Role.Provider
         );
         _;
     }
@@ -63,16 +63,16 @@ contract LinniaRecords is Ownable {
         return records[fileHash].patient;
     }
 
-    function sigExists(bytes32 fileHash, address doctor)
+    function sigExists(bytes32 fileHash, address provider)
         public view returns (bool)
     {
-        return records[fileHash].signatures[doctor];
+        return records[fileHash].signatures[provider];
     }
 
     /* Public functions */
 
     /// Add metadata to a medical record uploaded to IPFS by the patient,
-    /// without any doctor's signatures.
+    /// without any provider's signatures.
     /// @param fileHash the hash of the original unencrypted file
     /// @param recordType the type of the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
@@ -86,29 +86,29 @@ contract LinniaRecords is Ownable {
         return true;
     }
 
-    /// Add metadata to a medical record uploaded to IPFS by a doctor
+    /// Add metadata to a medical record uploaded to IPFS by a provider
     /// @param fileHash the hash of the original unencrypted file
     /// @param patient the address of the patient
     /// @param recordType the type of the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
-    function addRecordByDoctor(
+    function addRecordByProvider(
         bytes32 fileHash, address patient, uint recordType, bytes32 ipfsHash)
-        onlyFromDoctor
+        onlyFromProvider
         public
         returns (bool)
     {
         // add the file first
         require(_addRecord(fileHash, patient, recordType, ipfsHash));
-        // add doctor's sig to the file
+        // add provider's sig to the file
         require(_addSig(fileHash, msg.sender));
         return true;
     }
 
-    /// Add a doctor's signature to an existing file
-    /// This function is only callable by a doctor
+    /// Add a provider's signature to an existing file
+    /// This function is only callable by a provider
     /// @param fileHash the hash of the original file
-    function addSigByDoctor(bytes32 fileHash)
-        onlyFromDoctor
+    function addSigByProvider(bytes32 fileHash)
+        onlyFromProvider
         public
         returns (bool)
     {
@@ -116,9 +116,9 @@ contract LinniaRecords is Ownable {
         return true;
     }
 
-    /// Add a doctor's signature to an existing file.
+    /// Add a provider's signature to an existing file.
     /// This function can be called by anyone. As long as the signatures are
-    /// indeed from a doctor, the sig will be added to the file record
+    /// indeed from a provider, the sig will be added to the file record
     /// @param fileHash the hash of the original file
     /// @param r signature: R
     /// @param s signature: S
@@ -127,23 +127,23 @@ contract LinniaRecords is Ownable {
         public
         returns (bool)
     {
-        // recover the doctor's address from signature
-        address doctor = recover(fileHash, r, s, v);
+        // recover the provider's address from signature
+        address provider = recover(fileHash, r, s, v);
         // add sig
-        require(_addSig(fileHash, doctor));
+        require(_addSig(fileHash, provider));
         return true;
     }
 
     function addRecordByAdmin(
-        bytes32 fileHash, address patient, address doctor, uint recordType,
+        bytes32 fileHash, address patient, address provider, uint recordType,
         bytes32 ipfsHash)
         onlyOwner
         public
         returns (bool)
     {
         require(_addRecord(fileHash, patient, recordType, ipfsHash));
-        if (doctor != 0) {
-            require(_addSig(fileHash, doctor));
+        if (provider != 0) {
+            require(_addSig(fileHash, provider));
         }
         return true;
     }
@@ -180,26 +180,26 @@ contract LinniaRecords is Ownable {
         return true;
     }
 
-    function _addSig(bytes32 fileHash, address doctor)
+    function _addSig(bytes32 fileHash, address provider)
         private
         returns (bool)
     {
         // the file must exist
         require(records[fileHash].recordType != 0);
-        // verify doctor role
-        require(hub.rolesContract().roles(doctor) == LinniaRoles.Role.Doctor);
-        // the doctor must not have signed the file already
-        require(!records[fileHash].signatures[doctor]);
+        // verify provider role
+        require(hub.rolesContract().roles(provider) == LinniaRoles.Role.Provider);
+        // the provider must not have signed the file already
+        require(!records[fileHash].signatures[provider]);
         // add signature
         records[fileHash].sigCount++;
-        records[fileHash].signatures[doctor] = true;
+        records[fileHash].signatures[provider] = true;
         // update HTH if possible
         LinniaHTH hthContract = hub.hthContract();
         if (address(hthContract) != 0) {
             require(hthContract.addPoints(patientOf(fileHash), 1));
         }
         // emit event
-        RecordSigAdded(fileHash, doctor);
+        RecordSigAdded(fileHash, provider);
         return true;
     }
 }
