@@ -5,9 +5,10 @@ import "./LinniaHub.sol";
 
 
 contract LinniaRoles is Ownable {
-    enum Role { Nil, Patient, Doctor, Provider }
+    // Providers represent health care providers such as labs or doctors.
+    // Provider are able to add signature.
+    enum Role { Nil, Patient, Provider }
     event PatientRegistered(address indexed user);
-    event DoctorRegistered(address indexed user);
     event ProviderRegistered(address indexed user);
     event RoleUpdated(address indexed user, Role role);
 
@@ -23,14 +24,6 @@ contract LinniaRoles is Ownable {
         require(roles[msg.sender] == Role.Nil);
         roles[msg.sender] = Role.Patient;
         PatientRegistered(msg.sender);
-        return true;
-    }
-
-    // registerDoctor allows admin to register a doctor
-    function registerDoctor(address user) onlyOwner public returns (bool) {
-        require(roles[user] == Role.Nil);
-        roles[user] = Role.Doctor;
-        DoctorRegistered(user);
         return true;
     }
 

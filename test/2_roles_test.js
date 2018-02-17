@@ -3,6 +3,8 @@ const LinniaRoles = artifacts.require("./LinniaRoles.sol")
 
 import expectThrow from "zeppelin-solidity/test/helpers/expectThrow"
 
+const PatientEnumVal = 1;
+const ProviderEnumVal = 2;
 contract("LinniaRoles", (accounts) => {
   let hub
   let instance
@@ -42,7 +44,8 @@ contract("LinniaRoles", (accounts) => {
       async () => {
         const tx = await instance.registerPatient({ from: accounts[1] })
         assert.equal(tx.logs[0].args.user, accounts[1])
-        assert.equal(await instance.roles(accounts[1]), 1)
+
+        assert.equal(await instance.roles(accounts[1]), PatientEnumVal)
       })
     it("should not allow a user to self register as patient twice",
       async () => {
@@ -53,23 +56,12 @@ contract("LinniaRoles", (accounts) => {
         )
       })
   })
-  describe("register doctor", () => {
-    it("should allow admin to register a doctor", async () => {
-      const tx = await instance.registerDoctor(accounts[1])
-      assert.equal(tx.logs[0].args.user, accounts[1])
-      assert.equal(await instance.roles(accounts[1]), 2)
-    })
-    it("should not allow non admin to register a doctor", async () => {
-      await expectThrow(
-        instance.registerDoctor(accounts[1], { from: accounts[1] })
-      )
-    })
-  })
   describe("register provider", () => {
     it("should allow admin to register a provider", async () => {
       const tx = await instance.registerProvider(accounts[1])
       assert.equal(tx.logs[0].args.user, accounts[1])
-      assert.equal(await instance.roles(accounts[1]), 3)
+
+      assert.equal(await instance.roles(accounts[1]), ProviderEnumVal)
     })
     it("should not allow non admin to register a provider", async () => {
       await expectThrow(
@@ -80,14 +72,15 @@ contract("LinniaRoles", (accounts) => {
   describe("update role", () => {
     it("should allow admin to update an existing role", async () => {
       await instance.registerPatient({ from: accounts[1] })
-      const tx1 = await instance.updateRole(accounts[1], 2)
+
+      const tx1 = await instance.updateRole(accounts[1], ProviderEnumVal)
       assert.equal(tx1.logs[0].args.user, accounts[1])
-      assert.equal(tx1.logs[0].args.role, 2)
-      assert.equal(await instance.roles(accounts[1]), 2)
+      assert.equal(tx1.logs[0].args.role, ProviderEnumVal)
+      assert.equal(await instance.roles(accounts[1]), ProviderEnumVal)
     })
     it("should not allow non admin to update roles", async () => {
       await expectThrow(
-        instance.updateRole(accounts[1], 2, { from: accounts[1] })
+        instance.updateRole(accounts[1], ProviderEnumVal, { from: accounts[1] })
       )
     })
   })
