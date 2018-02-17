@@ -192,6 +192,21 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
     })
+    it("should allow adding valid signature from provider", async () => {
+      // add a file without any sig
+      await instance.addRecordByPatient(testFileHash, 1,
+        testIpfsHash, { from: patient })
+      // have provider1 sign it
+      const tx = await instance.addSigByProvider(testFileHash,{from: provider1})
+      assert.equal(tx.logs.length, 1)
+      assert.equal(tx.logs[0].args.fileHash, testFileHash)
+      assert.equal(tx.logs[0].args.provider, provider1)
+      // check state
+      const storedRecord = await instance.records(testFileHash)
+      assert.equal(storedRecord[1], 1) // sig count
+      assert.equal(await instance.sigExists(testFileHash, provider1),
+        true)
+    })
     it("should not allow adding the same sig twice", async () => {
       // add a file without any sig
       await instance.addRecordByPatient(testFileHash, 1,
