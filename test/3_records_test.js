@@ -1,7 +1,6 @@
 const LinniaHub = artifacts.require("./LinniaHub.sol")
 const LinniaRoles = artifacts.require("./LinniaRoles.sol")
 const LinniaRecords = artifacts.require("./LinniaRecords.sol")
-const LinniaHTH = artifacts.require("./LinniaHTH.sol")
 
 const bs58 = require("bs58")
 const crypto = require("crypto")
@@ -36,11 +35,6 @@ contract("LinniaRecords", (accounts) => {
     rolesInstance.registerPatient({ from: patient })
     rolesInstance.registerProvider(provider1, { from: accounts[0] })
     rolesInstance.registerProvider(provider2, { from: accounts[0] })
-  })
-  beforeEach("deploy a new LinniaHTH contract", async () => {
-    // HTH isn't reusable in the test, we must deploy a new one per test
-    const hthInstance = await LinniaHTH.new(hub.address)
-    await hub.setHTHContract(hthInstance.address)
   })
   beforeEach("deploy a new LinniaRecords contract", async () => {
     instance = await LinniaRecords.new(hub.address)
@@ -82,9 +76,10 @@ contract("LinniaRecords", (accounts) => {
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 0) // sig count
-      assert.equal(storedRecord[2], 1) // record type
-      assert.equal(storedRecord[3], testIpfsHash)
-      assert.equal(storedRecord[4], timestamp)
+      assert.equal(storedRecord[2], 0) // hth score
+      assert.equal(storedRecord[3], 1) // record type
+      assert.equal(storedRecord[4], testIpfsHash)
+      assert.equal(storedRecord[5], timestamp)
       assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
     })
     it("should now allow patient to add same record twice", async () => {
@@ -131,20 +126,22 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[1].event, "RecordSigAdded")
       assert.equal(tx.logs[1].args.fileHash, testFileHash)
       assert.equal(tx.logs[1].args.provider, provider1)
+      assert.equal(tx.logs[1].args.hthScore, 1)
       const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
         .timestamp
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // record type
-      assert.equal(storedRecord[3], testIpfsHash)
-      assert.equal(storedRecord[4], timestamp)
+      assert.equal(storedRecord[2], 1) // hth score
+      assert.equal(storedRecord[3], 1) // record type
+      assert.equal(storedRecord[4], testIpfsHash)
+      assert.equal(storedRecord[5], timestamp)
       assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
     })
-    it("should now allow provider to add a record twice", async () => {
+    it("should not allow provider to add a record twice", async () => {
       await instance.addRecordByProvider(testFileHash, patient, 1,
         testIpfsHash, { from: provider1 })
       await expectThrow(
@@ -164,14 +161,6 @@ contract("LinniaRecords", (accounts) => {
           testIpfsHash, { from: patient })
       )
     })
-    it("should increment HTH score if HTH is set", async () => {
-      const hthInstance = LinniaHTH.at(await hub.hthContract())
-      const prevScore = await hthInstance.score(patient)
-      const tx = await instance.addRecordByProvider(testFileHash,
-        patient, 1, testIpfsHash, { from: provider1 })
-      assert.equal((await hthInstance.score(patient)).toString(),
-        prevScore.add(1).toString())
-    })
   })
   describe("add signature", () => {
     it("should allow adding valid signature", async () => {
@@ -184,11 +173,14 @@ contract("LinniaRecords", (accounts) => {
         eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
         rsv.v, { from: nonUser })
       assert.equal(tx.logs.length, 1)
+      assert.equal(tx.logs[0].event, "RecordSigAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.provider, provider1)
+      assert.equal(tx.logs[0].args.hthScore, 1)
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[1], 1) // sig count
+      assert.equal(storedRecord[2], 1) // hth score
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
     })
@@ -199,11 +191,14 @@ contract("LinniaRecords", (accounts) => {
       // have provider1 sign it
       const tx = await instance.addSigByProvider(testFileHash,{from: provider1})
       assert.equal(tx.logs.length, 1)
+      assert.equal(tx.logs[0].event, "RecordSigAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.provider, provider1)
+      assert.equal(tx.logs[0].args.hthScore, 1)
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[1], 1) // sig count
+      assert.equal(storedRecord[2], 1) // hth score
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
     })
@@ -222,44 +217,43 @@ contract("LinniaRecords", (accounts) => {
           rsv.v, { from: nonUser })
       )
     })
-    it("should increment HTH score if HTH is set", async () => {
-      const hthInstance = LinniaHTH.at(await hub.hthContract())
-      const prevScore = await hthInstance.score(patient)
-      // add a file without any sig
-      await instance.addRecordByPatient(testFileHash, 1,
-        testIpfsHash, { from: patient })
-      // have provider1 sign it
-      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testFileHash))
-      await instance.addSig(testFileHash,
-        eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
-        rsv.v, { from: nonUser })
-      assert.equal((await hthInstance.score(patient)).toString(),
-        prevScore.add(1).toString())
-    })
     it("should allow adding multiple signatures", async () => {
       await instance.addRecordByPatient(testFileHash, 1,
         testIpfsHash, { from: patient })
       // have provider1 sign it
-      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testFileHash))
-      await instance.addSig(testFileHash,
-        eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
-        rsv.v, { from: nonUser })
+      const rsv1 = eutil.fromRpcSig(web3.eth.sign(provider1, testFileHash))
+      const tx1 = await instance.addSig(testFileHash,
+        eutil.bufferToHex(rsv1.r), eutil.bufferToHex(rsv1.s),
+        rsv1.v, { from: nonUser })
+      // check log
+      assert.equal(tx1.logs.length, 1)
+      assert.equal(tx1.logs[0].event, "RecordSigAdded")
+      assert.equal(tx1.logs[0].args.fileHash, testFileHash)
+      assert.equal(tx1.logs[0].args.provider, provider1)
+      assert.equal(tx1.logs[0].args.hthScore, 1)
       // have provider2 sign it
       const rsv2 = eutil.fromRpcSig(web3.eth.sign(provider2, testFileHash))
-      await instance.addSig(testFileHash,
+      const tx2 = await instance.addSig(testFileHash,
         eutil.bufferToHex(rsv2.r), eutil.bufferToHex(rsv2.s),
         rsv2.v, { from: nonUser })
+      // check log
+      assert.equal(tx2.logs.length, 1)
+      assert.equal(tx2.logs[0].event, "RecordSigAdded")
+      assert.equal(tx2.logs[0].args.fileHash, testFileHash)
+      assert.equal(tx2.logs[0].args.provider, provider2)
+      assert.equal(tx2.logs[0].args.hthScore, 2) // hth should increment
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[1], 2) // sig count
+      assert.equal(storedRecord[2], 2) // hth score
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
       assert.equal(await instance.sigExists(testFileHash, provider2),
         true)
     })
     it("should allow adding another sig after provider added file", async () => {
-      await instance.addRecordByProvider(testFileHash, patient, 1,
-        testIpfsHash, { from: provider1 })
+      await instance.addRecordByProvider(testFileHash,
+        patient, 1, testIpfsHash, { from: provider1 })
       // now have provider2 sign it
       const rsv2 = eutil.fromRpcSig(web3.eth.sign(provider2, testFileHash))
       const tx = await instance.addSig(testFileHash,
@@ -268,9 +262,11 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[0].event, "RecordSigAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.provider, provider2)
+      assert.equal(tx.logs[0].args.hthScore, 2)
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[1], 2) // sig count
+      assert.equal(storedRecord[2], 2) // hth score
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
       assert.equal(await instance.sigExists(testFileHash, provider2),
@@ -301,8 +297,9 @@ contract("LinniaRecords", (accounts) => {
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 0) // sig count
-      assert.equal(storedRecord[2], 1) // record type
-      assert.equal(storedRecord[3], testIpfsHash)
+      assert.equal(storedRecord[2], 0) // hth score
+      assert.equal(storedRecord[3], 1) // record type
+      assert.equal(storedRecord[4], testIpfsHash)
       assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
     })
     it("should allow admin to add a record with provider sig", async () => {
@@ -316,12 +313,14 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[1].event, "RecordSigAdded")
       assert.equal(tx.logs[1].args.fileHash, testFileHash)
       assert.equal(tx.logs[1].args.provider, provider1)
+      assert.equal(tx.logs[1].args.hthScore, 1)
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // record type
-      assert.equal(storedRecord[3], testIpfsHash)
+      assert.equal(storedRecord[2], 1) // hth score
+      assert.equal(storedRecord[3], 1) // record type
+      assert.equal(storedRecord[4], testIpfsHash)
       assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
@@ -332,15 +331,6 @@ contract("LinniaRecords", (accounts) => {
           patient, provider1,
           1, testIpfsHash, { from: provider1 })
       )
-    })
-    it("should increment HTH score if HTH is set", async () => {
-      const hthInstance = LinniaHTH.at(await hub.hthContract())
-      const prevScore = await hthInstance.score(patient)
-      const tx = await instance.addRecordByAdmin(testFileHash,
-        patient, provider1,
-        1, testIpfsHash, { from: admin })
-      assert.equal((await hthInstance.score(patient)).toString(),
-        prevScore.add(1).toString())
     })
   })
 })

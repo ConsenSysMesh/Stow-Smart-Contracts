@@ -1,16 +1,19 @@
 pragma solidity ^0.4.18;
 
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "node_modules/zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./LinniaHub.sol";
 import "./LinniaRoles.sol";
-import "./LinniaHTH.sol";
 
 
 contract LinniaRecords is Ownable {
+    using SafeMath for uint;
+
     struct FileRecord {
         address patient;
         uint sigCount;
         mapping (address => bool) signatures;
+        uint hthScore;
         // For now the record types are
         // 0 nil, 1 Blood Pressure, 2 A1C, 3 HDL, 4 Triglycerides, 5 Weight
         uint recordType;
@@ -19,7 +22,7 @@ contract LinniaRecords is Ownable {
     }
 
     event RecordAdded(bytes32 indexed fileHash, address indexed patient);
-    event RecordSigAdded(bytes32 indexed fileHash, address indexed provider);
+    event RecordSigAdded(bytes32 indexed fileHash, address indexed provider, uint hthScore);
 
     LinniaHub public hub;
     // all linnia records
@@ -168,6 +171,7 @@ contract LinniaRecords is Ownable {
         records[fileHash] = FileRecord({
             patient: patient,
             sigCount: 0,
+            hthScore: 0,
             recordType: recordType,
             ipfsHash: ipfsHash,
             // solium-disable-next-line security/no-block-members
@@ -191,15 +195,12 @@ contract LinniaRecords is Ownable {
         // the provider must not have signed the file already
         require(!records[fileHash].signatures[provider]);
         // add signature
-        records[fileHash].sigCount++;
+        records[fileHash].sigCount = records[fileHash].sigCount.add(1);
         records[fileHash].signatures[provider] = true;
-        // update HTH if possible
-        LinniaHTH hthContract = hub.hthContract();
-        if (address(hthContract) != 0) {
-            require(hthContract.addPoints(patientOf(fileHash), 1));
-        }
+        // update HTH score
+        records[fileHash].hthScore = records[fileHash].hthScore.add(1);
         // emit event
-        RecordSigAdded(fileHash, provider);
+        RecordSigAdded(fileHash, provider, records[fileHash].hthScore);
         return true;
     }
 }
