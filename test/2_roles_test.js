@@ -128,11 +128,11 @@ contract("LinniaRoles", (accounts) => {
     it("should return the provenance score of a provider", async () => {
       await instance.registerProvider(accounts[1])
       const provenanceState = (await instance.providers(accounts[1]))[1];
-      assert.equal((await instance.provenanceScore(accounts[1])).toString(),
+      assert.equal((await instance.provenance(accounts[1])).toString(),
         provenanceState.toString());
     })
     it("should return 0 if provider isnt registered", async () => {
-      assert.equal(await instance.provenanceScore(accounts[1]), 0)
+      assert.equal(await instance.provenance(accounts[1]), 0)
     })
   })
 })

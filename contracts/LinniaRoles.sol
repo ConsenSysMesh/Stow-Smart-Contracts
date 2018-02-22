@@ -38,7 +38,7 @@ contract LinniaRoles is Ownable {
         return providers[user].exists;
     }
 
-    function provenanceScore(address user) public view returns (uint) {
+    function provenance(address user) public view returns (uint) {
         if (providers[user].exists) {
             return providers[user].provenance;
         } else {

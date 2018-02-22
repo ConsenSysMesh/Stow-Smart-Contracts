@@ -189,7 +189,7 @@ contract LinniaRecords is Ownable {
         require(hub.rolesContract().isProvider(provider) == true);
         // the provider must not have signed the file already
         require(!record.signatures[provider]);
-        uint provenanceScore = hub.rolesContract().provenanceScore(provider);
+        uint provenanceScore = hub.rolesContract().provenance(provider);
         // add signature
         record.sigCount = record.sigCount.add(provenanceScore);
         record.signatures[provider] = true;
