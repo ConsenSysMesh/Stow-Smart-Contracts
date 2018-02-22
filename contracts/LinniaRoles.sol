@@ -7,41 +7,78 @@ import "./LinniaHub.sol";
 contract LinniaRoles is Ownable {
     // Providers represent health care providers such as labs or doctors.
     // Provider are able to add signature.
-    enum Role { Nil, Patient, Provider }
+    struct Provider {
+        bool exists;
+        uint provenance;
+    }
+
+    struct Patient {
+        bool exists;
+        uint registerBlocktime;
+    }
+
     event PatientRegistered(address indexed user);
     event ProviderRegistered(address indexed user);
-    event RoleUpdated(address indexed user, Role role);
+    event ProviderRemoved(address indexed user);
 
     LinniaHub public hub;
-    mapping(address => Role) public roles;
+    mapping(address => Provider) public providers;
+    mapping(address => Patient) public patients;
 
     function LinniaRoles(LinniaHub _hub) public {
         hub = _hub;
     }
 
+    /* Constant functions */
+    function isPatient(address user) public view returns (bool) {
+        return patients[user].exists;
+    }
+
+    function isProvider(address user) public view returns (bool) {
+        return providers[user].exists;
+    }
+
+    function provenance(address user) public view returns (uint) {
+        if (providers[user].exists) {
+            return providers[user].provenance;
+        } else {
+            return 0;
+        }
+    }
+
+    /* Public functions */
+
     // registerPatient allows any user to self register as a patient
     function registerPatient() public returns (bool) {
-        require(roles[msg.sender] == Role.Nil);
-        roles[msg.sender] = Role.Patient;
+        require(!isPatient(msg.sender));
+        patients[msg.sender] = Patient({
+            exists: true,
+            registerBlocktime: block.number
+        });
         PatientRegistered(msg.sender);
         return true;
     }
 
     // registerProvider allows admin to register a provider
     function registerProvider(address user) onlyOwner public returns (bool) {
-        require(roles[user] == Role.Nil);
-        roles[user] = Role.Provider;
+        require(!isProvider(user));
+        providers[user] = Provider({
+            exists: true,
+            // providers start with 1 provenance score for now
+            provenance: 1
+        });
         ProviderRegistered(user);
         return true;
     }
 
-    // updateRole allows admin to update any role
-    function updateRole(address user, Role newRole) onlyOwner
-        public
-        returns (bool)
-    {
-        roles[user] = newRole;
-        RoleUpdated(user, newRole);
+    // removeProvider allows admin to remove a provider
+    function removeProvider(address user) onlyOwner public returns (bool) {
+        require(isProvider(user));
+        providers[user] = Provider({
+            exists: false,
+            provenance: 0
+        });
+        ProviderRemoved(user);
         return true;
     }
 }

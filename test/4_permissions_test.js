@@ -91,7 +91,7 @@ contract("LinniaPermissions", (accounts) => {
       )
     })
   })
-  describe("remoke access", () => {
+  describe("revoke access", () => {
     beforeEach("grant provider2 to access patient1's file1", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
       await instance.grantAccess(testFileHash1, provider2,
