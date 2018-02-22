@@ -23,7 +23,7 @@ contract LinniaPermissions is Ownable {
 
     /* Modifiers */
     modifier onlyPatient(address user) {
-        require(hub.rolesContract().roles(user) == LinniaRoles.Role.Patient);
+        require(hub.rolesContract().isPatient(user) == true);
         _;
     }
 

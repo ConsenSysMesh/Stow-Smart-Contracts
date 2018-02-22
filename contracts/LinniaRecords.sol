@@ -33,16 +33,12 @@ contract LinniaRecords is Ownable {
 
     /* Modifiers */
     modifier onlyFromProvider() {
-        require(
-            hub.rolesContract().roles(msg.sender) == LinniaRoles.Role.Provider
-        );
+        require(hub.rolesContract().isProvider(msg.sender) == true);
         _;
     }
 
     modifier onlyFromPatient() {
-        require(
-            hub.rolesContract().roles(msg.sender) == LinniaRoles.Role.Patient
-        );
+        require(hub.rolesContract().isPatient(msg.sender) == true);
         _;
     }
 
@@ -164,9 +160,7 @@ contract LinniaRecords is Ownable {
             records[fileHash].recordType == 0 && ipfsRecords[ipfsHash] == 0
         );
         // verify patient role
-        require(
-            hub.rolesContract().roles(patient) == LinniaRoles.Role.Patient
-        );
+        require(hub.rolesContract().isPatient(patient) == true);
         // add record
         records[fileHash] = FileRecord({
             patient: patient,
@@ -188,19 +182,21 @@ contract LinniaRecords is Ownable {
         private
         returns (bool)
     {
+        FileRecord storage record = records[fileHash];
         // the file must exist
-        require(records[fileHash].recordType != 0);
+        require(record.recordType != 0);
         // verify provider role
-        require(hub.rolesContract().roles(provider) == LinniaRoles.Role.Provider);
+        require(hub.rolesContract().isProvider(provider) == true);
         // the provider must not have signed the file already
-        require(!records[fileHash].signatures[provider]);
+        require(!record.signatures[provider]);
+        uint provenanceScore = hub.rolesContract().provenanceScore(provider);
         // add signature
-        records[fileHash].sigCount = records[fileHash].sigCount.add(1);
-        records[fileHash].signatures[provider] = true;
+        record.sigCount = record.sigCount.add(provenanceScore);
+        record.signatures[provider] = true;
         // update HTH score
-        records[fileHash].hthScore = records[fileHash].hthScore.add(1);
+        record.hthScore = record.hthScore.add(provenanceScore);
         // emit event
-        RecordSigAdded(fileHash, provider, records[fileHash].hthScore);
+        RecordSigAdded(fileHash, provider, record.hthScore);
         return true;
     }
 }
