@@ -63,3 +63,6 @@ typings/
 
 # Build
 /build/
+
+# Solidity-coverage
+coverage.json
