@@ -22,7 +22,7 @@ contract LinniaRecords is Ownable {
     }
 
     event RecordAdded(bytes32 indexed fileHash, address indexed patient);
-    event RecordSigAdded(bytes32 indexed fileHash, address indexed provider, uint hthScore);
+    event RecordSigAdded(bytes32 indexed fileHash, address indexed provider, uint irisScore);
 
     LinniaHub public hub;
     // all linnia records
@@ -165,7 +165,7 @@ contract LinniaRecords is Ownable {
         records[fileHash] = FileRecord({
             patient: patient,
             sigCount: 0,
-            hthScore: 0,
+            irisScore: 0,
             recordType: recordType,
             ipfsHash: ipfsHash,
             // solium-disable-next-line security/no-block-members
@@ -193,10 +193,10 @@ contract LinniaRecords is Ownable {
         // add signature
         record.sigCount = record.sigCount.add(provenanceScore);
         record.signatures[provider] = true;
-        // update HTH score
-        record.hthScore = record.hthScore.add(provenanceScore);
+        // update iris score
+        record.irisScore = record.irisScore.add(provenanceScore);
         // emit event
-        RecordSigAdded(fileHash, provider, record.hthScore);
+        RecordSigAdded(fileHash, provider, record.irisScore);
         return true;
     }
 }
