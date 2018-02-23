@@ -13,7 +13,7 @@ contract LinniaRecords is Ownable {
         address patient;
         uint sigCount;
         mapping (address => bool) signatures;
-        uint hthScore;
+        uint irisScore;
         // For now the record types are
         // 0 nil, 1 Blood Pressure, 2 A1C, 3 HDL, 4 Triglycerides, 5 Weight
         uint recordType;
