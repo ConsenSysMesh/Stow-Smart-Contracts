@@ -76,7 +76,7 @@ contract("LinniaRecords", (accounts) => {
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 0) // sig count
-      assert.equal(storedRecord[2], 0) // hth score
+      assert.equal(storedRecord[2], 0) // iris score
       assert.equal(storedRecord[3], 1) // record type
       assert.equal(storedRecord[4], testIpfsHash)
       assert.equal(storedRecord[5], timestamp)
@@ -126,14 +126,14 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[1].event, "RecordSigAdded")
       assert.equal(tx.logs[1].args.fileHash, testFileHash)
       assert.equal(tx.logs[1].args.provider, provider1)
-      assert.equal(tx.logs[1].args.hthScore, 1)
+      assert.equal(tx.logs[1].args.irisScore, 1)
       const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
         .timestamp
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // hth score
+      assert.equal(storedRecord[2], 1) // iris score
       assert.equal(storedRecord[3], 1) // record type
       assert.equal(storedRecord[4], testIpfsHash)
       assert.equal(storedRecord[5], timestamp)
@@ -176,11 +176,11 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[0].event, "RecordSigAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.provider, provider1)
-      assert.equal(tx.logs[0].args.hthScore, 1)
+      assert.equal(tx.logs[0].args.irisScore, 1)
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // hth score
+      assert.equal(storedRecord[2], 1) // iris score
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
     })
@@ -194,11 +194,11 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[0].event, "RecordSigAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.provider, provider1)
-      assert.equal(tx.logs[0].args.hthScore, 1)
+      assert.equal(tx.logs[0].args.irisScore, 1)
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // hth score
+      assert.equal(storedRecord[2], 1) // iris score
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
     })
@@ -230,7 +230,7 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx1.logs[0].event, "RecordSigAdded")
       assert.equal(tx1.logs[0].args.fileHash, testFileHash)
       assert.equal(tx1.logs[0].args.provider, provider1)
-      assert.equal(tx1.logs[0].args.hthScore, 1)
+      assert.equal(tx1.logs[0].args.irisScore, 1)
       // have provider2 sign it
       const rsv2 = eutil.fromRpcSig(web3.eth.sign(provider2, testFileHash))
       const tx2 = await instance.addSig(testFileHash,
@@ -241,11 +241,11 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx2.logs[0].event, "RecordSigAdded")
       assert.equal(tx2.logs[0].args.fileHash, testFileHash)
       assert.equal(tx2.logs[0].args.provider, provider2)
-      assert.equal(tx2.logs[0].args.hthScore, 2) // hth should increment
+      assert.equal(tx2.logs[0].args.irisScore, 2) // iris should increment
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[1], 2) // sig count
-      assert.equal(storedRecord[2], 2) // hth score
+      assert.equal(storedRecord[2], 2) // iris score
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
       assert.equal(await instance.sigExists(testFileHash, provider2),
@@ -262,11 +262,11 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[0].event, "RecordSigAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.provider, provider2)
-      assert.equal(tx.logs[0].args.hthScore, 2)
+      assert.equal(tx.logs[0].args.irisScore, 2)
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[1], 2) // sig count
-      assert.equal(storedRecord[2], 2) // hth score
+      assert.equal(storedRecord[2], 2) // iris score
       assert.equal(await instance.sigExists(testFileHash, provider1),
         true)
       assert.equal(await instance.sigExists(testFileHash, provider2),
@@ -297,7 +297,7 @@ contract("LinniaRecords", (accounts) => {
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 0) // sig count
-      assert.equal(storedRecord[2], 0) // hth score
+      assert.equal(storedRecord[2], 0) // iris score
       assert.equal(storedRecord[3], 1) // record type
       assert.equal(storedRecord[4], testIpfsHash)
       assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
@@ -313,12 +313,12 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs[1].event, "RecordSigAdded")
       assert.equal(tx.logs[1].args.fileHash, testFileHash)
       assert.equal(tx.logs[1].args.provider, provider1)
-      assert.equal(tx.logs[1].args.hthScore, 1)
+      assert.equal(tx.logs[1].args.irisScore, 1)
       // check state
       const storedRecord = await instance.records(testFileHash)
       assert.equal(storedRecord[0], patient)
       assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // hth score
+      assert.equal(storedRecord[2], 1) // iris score
       assert.equal(storedRecord[3], 1) // record type
       assert.equal(storedRecord[4], testIpfsHash)
       assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
