@@ -4,6 +4,8 @@ Linnia Smart Contracts
 
 Smart Contracts for Linnia MVP
 
+[More about the MVP](./docs/mvp.md)
+
 # Overview
 ## Linnia Roles
 A contract that keeps a registry of user roles. Patients can self register while providers are added by the contract admin.
