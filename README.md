@@ -2,7 +2,7 @@ Linnia Smart Contracts
 ---
 > :warning: WIP
 
-This repository contains all the Smart Contracts for the Linnia Protocol.
+Smart Contracts for Linnia MVP
 
 # Overview
 ## Linnia Roles
