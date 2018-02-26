@@ -67,7 +67,7 @@ contract("LinniaRecords", (accounts) => {
       const tx = await instance.addRecordByPatient(testFileHash, 1,
         testIpfsHash, { from: patient })
       assert.equal(tx.logs.length, 1)
-      assert.equal(tx.logs[0].event, "RecordAdded")
+      assert.equal(tx.logs[0].event, "LogRecordAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.patient, patient)
       const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
@@ -120,10 +120,10 @@ contract("LinniaRecords", (accounts) => {
       const tx = await instance.addRecordByProvider(testFileHash, patient, 1,
         testIpfsHash, { from: provider1 })
       assert.equal(tx.logs.length, 2)
-      assert.equal(tx.logs[0].event, "RecordAdded")
+      assert.equal(tx.logs[0].event, "LogRecordAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.patient, patient)
-      assert.equal(tx.logs[1].event, "RecordSigAdded")
+      assert.equal(tx.logs[1].event, "LogRecordSigAdded")
       assert.equal(tx.logs[1].args.fileHash, testFileHash)
       assert.equal(tx.logs[1].args.provider, provider1)
       assert.equal(tx.logs[1].args.irisScore, 1)
@@ -173,7 +173,7 @@ contract("LinniaRecords", (accounts) => {
         eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
         rsv.v, { from: nonUser })
       assert.equal(tx.logs.length, 1)
-      assert.equal(tx.logs[0].event, "RecordSigAdded")
+      assert.equal(tx.logs[0].event, "LogRecordSigAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.provider, provider1)
       assert.equal(tx.logs[0].args.irisScore, 1)
@@ -191,7 +191,7 @@ contract("LinniaRecords", (accounts) => {
       // have provider1 sign it
       const tx = await instance.addSigByProvider(testFileHash,{from: provider1})
       assert.equal(tx.logs.length, 1)
-      assert.equal(tx.logs[0].event, "RecordSigAdded")
+      assert.equal(tx.logs[0].event, "LogRecordSigAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.provider, provider1)
       assert.equal(tx.logs[0].args.irisScore, 1)
@@ -227,7 +227,7 @@ contract("LinniaRecords", (accounts) => {
         rsv1.v, { from: nonUser })
       // check log
       assert.equal(tx1.logs.length, 1)
-      assert.equal(tx1.logs[0].event, "RecordSigAdded")
+      assert.equal(tx1.logs[0].event, "LogRecordSigAdded")
       assert.equal(tx1.logs[0].args.fileHash, testFileHash)
       assert.equal(tx1.logs[0].args.provider, provider1)
       assert.equal(tx1.logs[0].args.irisScore, 1)
@@ -238,7 +238,7 @@ contract("LinniaRecords", (accounts) => {
         rsv2.v, { from: nonUser })
       // check log
       assert.equal(tx2.logs.length, 1)
-      assert.equal(tx2.logs[0].event, "RecordSigAdded")
+      assert.equal(tx2.logs[0].event, "LogRecordSigAdded")
       assert.equal(tx2.logs[0].args.fileHash, testFileHash)
       assert.equal(tx2.logs[0].args.provider, provider2)
       assert.equal(tx2.logs[0].args.irisScore, 2) // iris should increment
@@ -259,7 +259,7 @@ contract("LinniaRecords", (accounts) => {
       const tx = await instance.addSig(testFileHash,
         eutil.bufferToHex(rsv2.r), eutil.bufferToHex(rsv2.s),
         rsv2.v, { from: nonUser })
-      assert.equal(tx.logs[0].event, "RecordSigAdded")
+      assert.equal(tx.logs[0].event, "LogRecordSigAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.provider, provider2)
       assert.equal(tx.logs[0].args.irisScore, 2)
@@ -290,7 +290,7 @@ contract("LinniaRecords", (accounts) => {
         patient, 0,
         1, testIpfsHash, { from: admin })
       assert.equal(tx.logs.length, 1)
-      assert.equal(tx.logs[0].event, "RecordAdded")
+      assert.equal(tx.logs[0].event, "LogRecordAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.patient, patient)
       // check state
@@ -307,10 +307,10 @@ contract("LinniaRecords", (accounts) => {
         patient, provider1,
         1, testIpfsHash, { from: admin })
       assert.equal(tx.logs.length, 2)
-      assert.equal(tx.logs[0].event, "RecordAdded")
+      assert.equal(tx.logs[0].event, "LogRecordAdded")
       assert.equal(tx.logs[0].args.fileHash, testFileHash)
       assert.equal(tx.logs[0].args.patient, patient)
-      assert.equal(tx.logs[1].event, "RecordSigAdded")
+      assert.equal(tx.logs[1].event, "LogRecordSigAdded")
       assert.equal(tx.logs[1].args.fileHash, testFileHash)
       assert.equal(tx.logs[1].args.provider, provider1)
       assert.equal(tx.logs[1].args.irisScore, 1)

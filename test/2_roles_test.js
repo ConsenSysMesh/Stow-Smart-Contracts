@@ -41,7 +41,7 @@ contract("LinniaRoles", (accounts) => {
     it("should allow patient to self register",
       async () => {
         const tx = await instance.registerPatient({ from: accounts[1] })
-        assert.equal(tx.logs[0].event, "PatientRegistered")
+        assert.equal(tx.logs[0].event, "LogPatientRegistered")
         assert.equal(tx.logs[0].args.user, accounts[1])
 
         const storedPatient = await instance.patients(accounts[1])
@@ -60,7 +60,7 @@ contract("LinniaRoles", (accounts) => {
   describe("register provider", () => {
     it("should allow admin to register a provider", async () => {
       const tx = await instance.registerProvider(accounts[1])
-      assert.equal(tx.logs[0].event, "ProviderRegistered")
+      assert.equal(tx.logs[0].event, "LogProviderRegistered")
       assert.equal(tx.logs[0].args.user, accounts[1])
 
       const storedProvider = await instance.providers(accounts[1])
@@ -81,7 +81,7 @@ contract("LinniaRoles", (accounts) => {
       // then remove the provider
       const tx = await instance.removeProvider(accounts[1])
       // check logs
-      assert.equal(tx.logs[0].event, "ProviderRemoved")
+      assert.equal(tx.logs[0].event, "LogProviderRemoved")
       assert.equal(tx.logs[0].args.user, accounts[1])
       // check state
       const storedProvider = await instance.providers(accounts[1])
