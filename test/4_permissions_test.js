@@ -68,7 +68,7 @@ contract("LinniaPermissions", (accounts) => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
       const tx = await instance.grantAccess(testFileHash1, provider2,
         fakeIpfsHash, { from: patient1 })
-      assert.equal(tx.logs[0].event, "AccessGranted")
+      assert.equal(tx.logs[0].event, "LogAccessGranted")
       assert.equal(tx.logs[0].args.fileHash, testFileHash1)
       assert.equal(tx.logs[0].args.patient, patient1)
       assert.equal(tx.logs[0].args.viewer, provider2)
@@ -100,7 +100,7 @@ contract("LinniaPermissions", (accounts) => {
     it("should allow patient to revoke access to their files", async () => {
       const tx = await instance.revokeAccess(testFileHash1,
         provider2, { from: patient1 })
-      assert.equal(tx.logs[0].event, "AccessRevoked")
+      assert.equal(tx.logs[0].event, "LogAccessRevoked")
       assert.equal(tx.logs[0].args.fileHash, testFileHash1)
       assert.equal(tx.logs[0].args.patient, patient1)
       assert.equal(tx.logs[0].args.viewer, provider2)

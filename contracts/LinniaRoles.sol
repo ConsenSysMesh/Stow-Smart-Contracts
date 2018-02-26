@@ -17,9 +17,9 @@ contract LinniaRoles is Ownable {
         uint registerBlocktime;
     }
 
-    event PatientRegistered(address indexed user);
-    event ProviderRegistered(address indexed user);
-    event ProviderRemoved(address indexed user);
+    event LogPatientRegistered(address indexed user);
+    event LogProviderRegistered(address indexed user);
+    event LogProviderRemoved(address indexed user);
 
     LinniaHub public hub;
     mapping(address => Provider) public providers;
@@ -29,7 +29,47 @@ contract LinniaRoles is Ownable {
         hub = _hub;
     }
 
-    /* Constant functions */
+    /* Fallback function */
+    function () public { }
+
+    /* External functions */
+
+    // registerPatient allows any user to self register as a patient
+    function registerPatient() external returns (bool) {
+        require(!isPatient(msg.sender));
+        patients[msg.sender] = Patient({
+            exists: true,
+            registerBlocktime: block.number
+        });
+        LogPatientRegistered(msg.sender);
+        return true;
+    }
+
+    // registerProvider allows admin to register a provider
+    function registerProvider(address user) onlyOwner external returns (bool) {
+        require(!isProvider(user));
+        providers[user] = Provider({
+            exists: true,
+            // providers start with 1 provenance score for now
+            provenance: 1
+        });
+        LogProviderRegistered(user);
+        return true;
+    }
+
+    // removeProvider allows admin to remove a provider
+    function removeProvider(address user) onlyOwner external returns (bool) {
+        require(isProvider(user));
+        providers[user] = Provider({
+            exists: false,
+            provenance: 0
+        });
+        LogProviderRemoved(user);
+        return true;
+    }
+
+    /* Public functions */
+
     function isPatient(address user) public view returns (bool) {
         return patients[user].exists;
     }
@@ -44,41 +84,5 @@ contract LinniaRoles is Ownable {
         } else {
             return 0;
         }
-    }
-
-    /* Public functions */
-
-    // registerPatient allows any user to self register as a patient
-    function registerPatient() public returns (bool) {
-        require(!isPatient(msg.sender));
-        patients[msg.sender] = Patient({
-            exists: true,
-            registerBlocktime: block.number
-        });
-        PatientRegistered(msg.sender);
-        return true;
-    }
-
-    // registerProvider allows admin to register a provider
-    function registerProvider(address user) onlyOwner public returns (bool) {
-        require(!isProvider(user));
-        providers[user] = Provider({
-            exists: true,
-            // providers start with 1 provenance score for now
-            provenance: 1
-        });
-        ProviderRegistered(user);
-        return true;
-    }
-
-    // removeProvider allows admin to remove a provider
-    function removeProvider(address user) onlyOwner public returns (bool) {
-        require(isProvider(user));
-        providers[user] = Provider({
-            exists: false,
-            provenance: 0
-        });
-        ProviderRemoved(user);
-        return true;
     }
 }

@@ -12,9 +12,9 @@ contract LinniaPermissions is Ownable {
         bytes32 ipfsHash;
     }
 
-    event AccessGranted(address indexed patient, address indexed viewer,
+    event LogAccessGranted(address indexed patient, address indexed viewer,
     bytes32 fileHash);
-    event AccessRevoked(address indexed patient, address indexed viewer,
+    event LogAccessRevoked(address indexed patient, address indexed viewer,
     bytes32 fileHash);
 
     LinniaHub public hub;
@@ -32,13 +32,18 @@ contract LinniaPermissions is Ownable {
         hub = _hub;
     }
 
+    /* Fallback function */
+    function () public { }
+
+    /* External functions */
+
     /// Give a viewer access to a medical record owned by a patient
     /// @param fileHash the hash of the unencrypted file
     /// @param viewer the user being allowed to view the file
     /// @param ipfsHash the IPFS hash of the file encrypted to viewer
     function grantAccess(bytes32 fileHash, address viewer, bytes32 ipfsHash)
         onlyPatient(msg.sender)
-        public
+        external
         returns (bool)
     {
         // assert the file hash exists and is indeed owned by patient
@@ -49,7 +54,7 @@ contract LinniaPermissions is Ownable {
             canAccess: true,
             ipfsHash: ipfsHash
         });
-        AccessGranted(msg.sender, viewer, fileHash);
+        LogAccessGranted(msg.sender, viewer, fileHash);
         return true;
     }
 
@@ -59,7 +64,7 @@ contract LinniaPermissions is Ownable {
     /// @param viewer the user being allowed to view the file
     function revokeAccess(bytes32 fileHash, address viewer)
         onlyPatient(msg.sender)
-        public
+        external
         returns (bool)
     {
         require(hub.recordsContract().patientOf(fileHash) == msg.sender);
@@ -69,7 +74,7 @@ contract LinniaPermissions is Ownable {
             canAccess: false,
             ipfsHash: 0
         });
-        AccessRevoked(msg.sender, viewer, fileHash);
+        LogAccessRevoked(msg.sender, viewer, fileHash);
         return true;
     }
 }
