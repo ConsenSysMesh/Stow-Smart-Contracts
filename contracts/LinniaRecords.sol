@@ -180,7 +180,7 @@ contract LinniaRecords is Ownable {
         // add the reverse mapping
         ipfsRecords[ipfsHash] = fileHash;
         // emit event
-        LogRecordAdded(fileHash, patient);
+        emit LogRecordAdded(fileHash, patient);
         return true;
     }
 
@@ -202,7 +202,7 @@ contract LinniaRecords is Ownable {
         // update iris score
         record.irisScore = record.irisScore.add(provenanceScore);
         // emit event
-        LogRecordSigAdded(fileHash, provider, record.irisScore);
+        emit LogRecordSigAdded(fileHash, provider, record.irisScore);
         return true;
     }
 }

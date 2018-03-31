@@ -41,7 +41,7 @@ contract LinniaRoles is Ownable {
             exists: true,
             registerBlocktime: block.number
         });
-        LogPatientRegistered(msg.sender);
+        emit LogPatientRegistered(msg.sender);
         return true;
     }
 
@@ -53,7 +53,7 @@ contract LinniaRoles is Ownable {
             // providers start with 1 provenance score for now
             provenance: 1
         });
-        LogProviderRegistered(user);
+        emit LogProviderRegistered(user);
         return true;
     }
 
@@ -64,7 +64,7 @@ contract LinniaRoles is Ownable {
             exists: false,
             provenance: 0
         });
-        LogProviderRemoved(user);
+        emit LogProviderRemoved(user);
         return true;
     }
 
