@@ -1,4 +1,4 @@
-Linnia Smart Contracts
+# Linnia Smart Contracts ![Build Status](https://circleci.com/gh/ConsenSys/Linnia-Smart-Contracts.png?circle-token=:circle-token&style=shield)
 ---
 > :warning: WIP
 
