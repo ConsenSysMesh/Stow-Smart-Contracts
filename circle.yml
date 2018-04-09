@@ -6,7 +6,9 @@ test:
     - sleep 5
   override:
     - npm test
-
+  post:
+    - bash <(curl -s https://codecov.io/bash)
+    
 machine:
   node:
     version: v8.2.0
