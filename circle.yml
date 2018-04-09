@@ -5,7 +5,7 @@ test:
               background: true
     - sleep 5
   override:
-    - npm test
+    - npm run coverage
   post:
     - bash <(curl -s https://codecov.io/bash)
     
