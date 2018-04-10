@@ -54,7 +54,7 @@ contract LinniaPermissions is Ownable {
             canAccess: true,
             ipfsHash: ipfsHash
         });
-        LogAccessGranted(msg.sender, viewer, fileHash);
+        emit LogAccessGranted(msg.sender, viewer, fileHash);
         return true;
     }
 
@@ -74,7 +74,7 @@ contract LinniaPermissions is Ownable {
             canAccess: false,
             ipfsHash: 0
         });
-        LogAccessRevoked(msg.sender, viewer, fileHash);
+        emit LogAccessRevoked(msg.sender, viewer, fileHash);
         return true;
     }
 }

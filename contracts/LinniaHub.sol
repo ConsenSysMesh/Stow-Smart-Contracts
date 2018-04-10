@@ -26,7 +26,7 @@ contract LinniaHub is Ownable {
     {
         address prev = address(rolesContract);
         rolesContract = _rolesContract;
-        LogRolesContractSet(prev, _rolesContract);
+        emit LogRolesContractSet(prev, _rolesContract);
         return true;
     }
 
@@ -37,7 +37,7 @@ contract LinniaHub is Ownable {
     {
         address prev = address(recordsContract);
         recordsContract = _recordsContract;
-        LogRecordsContractSet(prev, _recordsContract);
+        emit LogRecordsContractSet(prev, _recordsContract);
         return true;
     }
 
@@ -48,7 +48,7 @@ contract LinniaHub is Ownable {
     {
         address prev = address(permissionsContract);
         permissionsContract = _permissionsContract;
-        LogPermissionsContractSet(prev, _permissionsContract);
+        emit LogPermissionsContractSet(prev, _permissionsContract);
         return true;
     }
 }
