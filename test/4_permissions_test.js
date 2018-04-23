@@ -1,5 +1,5 @@
 const LinniaHub = artifacts.require("./LinniaHub.sol")
-const LinniaRoles = artifacts.require("./LinniaRoles.sol")
+const LinniaUsers = artifacts.require("./LinniaUsers.sol")
 const LinniaRecords = artifacts.require("./LinniaRecords.sol")
 const LinniaPermissions = artifacts.require("./LinniaPermissions.sol")
 
@@ -33,22 +33,24 @@ contract("LinniaPermissions", (accounts) => {
   before("set up a LinniaHub contract", async () => {
     hub = await LinniaHub.new()
   })
-  before("set up a LinniaRoles contract", async () => {
-    const rolesInstance = await LinniaRoles.new(hub.address)
-    await hub.setRolesContract(rolesInstance.address)
-    rolesInstance.registerPatient({ from: patient1 })
-    rolesInstance.registerPatient({ from: patient2 })
-    rolesInstance.registerProvider(provider1, { from: accounts[0] })
-    rolesInstance.registerProvider(provider2, { from: accounts[0] })
+  before("set up a LinniaUsers contract", async () => {
+    const usersInstance = await LinniaUsers.new(hub.address)
+    await hub.setUsersContract(usersInstance.address)
+    usersInstance.register({ from: patient1 })
+    usersInstance.register({ from: patient2 })
+    usersInstance.register({ from: provider1 })
+    usersInstance.register({ from: provider2 })
+    usersInstance.setProvenance(provider1, 1, { from: admin })
+    usersInstance.setProvenance(provider2, 1, { from: admin })
   })
   before("set up a LinniaRecords contract", async () => {
     const recordsInstance = await LinniaRecords.new(hub.address)
     await hub.setRecordsContract(recordsInstance.address)
     // upload 2 records, one for patient1 and one for patient2
-    await recordsInstance.addRecordByPatient(testFileHash1,
+    await recordsInstance.addRecord(testFileHash1,
       1, testIpfsHash1, { from: patient1 })
     await recordsInstance.addRecordByProvider(testFileHash2,
-      patient2, 2, testIpfsHash2, { from: provider2 })
+      patient2, 1, testIpfsHash2, { from: provider2 })
   })
   beforeEach("deploy a new LinniaPermissions contract", async () => {
     instance = await LinniaPermissions.new(hub.address,
@@ -70,7 +72,7 @@ contract("LinniaPermissions", (accounts) => {
         fakeIpfsHash, { from: patient1 })
       assert.equal(tx.logs[0].event, "LogAccessGranted")
       assert.equal(tx.logs[0].args.fileHash, testFileHash1)
-      assert.equal(tx.logs[0].args.patient, patient1)
+      assert.equal(tx.logs[0].args.fileOwner, patient1)
       assert.equal(tx.logs[0].args.viewer, provider2)
       const perm = await instance.permissions(testFileHash1, provider2)
       assert.equal(perm[0], true)
@@ -102,7 +104,7 @@ contract("LinniaPermissions", (accounts) => {
         provider2, { from: patient1 })
       assert.equal(tx.logs[0].event, "LogAccessRevoked")
       assert.equal(tx.logs[0].args.fileHash, testFileHash1)
-      assert.equal(tx.logs[0].args.patient, patient1)
+      assert.equal(tx.logs[0].args.fileOwner, patient1)
       assert.equal(tx.logs[0].args.viewer, provider2)
       const perm = await instance.permissions(testFileHash1, provider2)
       assert.equal(perm[0], false)

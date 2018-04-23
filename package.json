@@ -9,6 +9,7 @@
   "scripts": {
     "start": "npm run start:testrpc",
     "start:testrpc": "ganache-cli -p 7545 -i 5777",
+    "migrate": "truffle migrate",
     "test": "truffle test",
     "lint:sol": "solium -d .",
     "coverage": "solidity-coverage"

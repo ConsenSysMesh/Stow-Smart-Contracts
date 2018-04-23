@@ -3,26 +3,26 @@ pragma solidity ^0.4.18;
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "node_modules/zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./LinniaHub.sol";
-import "./LinniaRoles.sol";
+import "./LinniaUsers.sol";
 
 
 contract LinniaRecords is Ownable {
     using SafeMath for uint;
 
     struct FileRecord {
-        address patient;
+        address fileOwner;
         uint sigCount;
-        mapping (address => bool) signatures;
+        mapping (address => bool) sigs;
         uint irisScore;
         // For now the record types are
         // 0 nil, 1 Blood Pressure, 2 A1C, 3 HDL, 4 Triglycerides, 5 Weight
         uint recordType;
-        bytes32 ipfsHash; // ipfs hash of the encrypted file
+        bytes32 ipfsHash; // ipfs path of the encrypted file
         uint timestamp; // time the file is added
     }
 
-    event LogRecordAdded(bytes32 indexed fileHash, address indexed patient);
-    event LogRecordSigAdded(bytes32 indexed fileHash, address indexed provider, uint irisScore);
+    event LogRecordAdded(bytes32 indexed fileHash, address indexed fileOwner);
+    event LogRecordSigAdded(bytes32 indexed fileHash, address indexed attestator, uint irisScore);
 
     LinniaHub public hub;
     // all linnia records
@@ -33,13 +33,13 @@ contract LinniaRecords is Ownable {
 
     /* Modifiers */
 
-    modifier onlyProvider() {
-        require(hub.rolesContract().isProvider(msg.sender) == true);
+    modifier onlyUser() {
+        require(hub.usersContract().isUser(msg.sender) == true);
         _;
     }
 
-    modifier onlyPatient() {
-        require(hub.rolesContract().isPatient(msg.sender) == true);
+    modifier hasProvenance(address user) {
+        require(hub.usersContract().provenanceOf(user) > 0);
         _;
     }
 
@@ -54,29 +54,28 @@ contract LinniaRecords is Ownable {
     /* External functions */
 
     function addRecordByAdmin(
-        bytes32 fileHash, address patient, address provider, uint recordType,
+        bytes32 fileHash, address fileOwner, address attestator, uint recordType,
         bytes32 ipfsHash)
         onlyOwner
         external
         returns (bool)
     {
-        require(_addRecord(fileHash, patient, recordType, ipfsHash));
-        if (provider != 0) {
-            require(_addSig(fileHash, provider));
+        require(_addRecord(fileHash, fileOwner, recordType, ipfsHash));
+        if (attestator != 0) {
+            require(_addSig(fileHash, attestator));
         }
         return true;
     }
 
     /* Public functions */
 
-    /// Add metadata to a medical record uploaded to IPFS by the patient,
-    /// without any provider's signatures.
+    /// Add a record by user without any provider's signatures.
     /// @param fileHash the hash of the original unencrypted file
     /// @param recordType the type of the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
-    function addRecordByPatient(
+    function addRecord(
         bytes32 fileHash, uint recordType, bytes32 ipfsHash)
-        onlyPatient
+        onlyUser
         public
         returns (bool)
     {
@@ -84,19 +83,20 @@ contract LinniaRecords is Ownable {
         return true;
     }
 
-    /// Add metadata to a medical record uploaded to IPFS by a provider
+    /// Add a record by a data provider.
     /// @param fileHash the hash of the original unencrypted file
-    /// @param patient the address of the patient
+    /// @param fileOwner the address of the file owner
     /// @param recordType the type of the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
     function addRecordByProvider(
-        bytes32 fileHash, address patient, uint recordType, bytes32 ipfsHash)
-        onlyProvider
+        bytes32 fileHash, address fileOwner, uint recordType, bytes32 ipfsHash)
+        onlyUser
+        hasProvenance(msg.sender)
         public
         returns (bool)
     {
         // add the file first
-        require(_addRecord(fileHash, patient, recordType, ipfsHash));
+        require(_addRecord(fileHash, fileOwner, recordType, ipfsHash));
         // add provider's sig to the file
         require(_addSig(fileHash, msg.sender));
         return true;
@@ -106,7 +106,7 @@ contract LinniaRecords is Ownable {
     /// This function is only callable by a provider
     /// @param fileHash the hash of the original file
     function addSigByProvider(bytes32 fileHash)
-        onlyProvider
+        hasProvenance(msg.sender)
         public
         returns (bool)
     {
@@ -140,22 +140,22 @@ contract LinniaRecords is Ownable {
         return ecrecover(prefixedHash, v, r, s);
     }
 
-    function patientOf(bytes32 fileHash)
+    function fileOwnerOf(bytes32 fileHash)
         public view returns (address)
     {
-        return records[fileHash].patient;
+        return records[fileHash].fileOwner;
     }
 
     function sigExists(bytes32 fileHash, address provider)
         public view returns (bool)
     {
-        return records[fileHash].signatures[provider];
+        return records[fileHash].sigs[provider];
     }
 
     /* Internal functions */
 
     function _addRecord(
-        bytes32 fileHash, address patient, uint recordType, bytes32 ipfsHash)
+        bytes32 fileHash, address fileOwner, uint recordType, bytes32 ipfsHash)
         internal
         returns (bool)
     {
@@ -165,11 +165,11 @@ contract LinniaRecords is Ownable {
         require(
             records[fileHash].recordType == 0 && ipfsRecords[ipfsHash] == 0
         );
-        // verify patient role
-        require(hub.rolesContract().isPatient(patient) == true);
+        // verify owner
+        require(hub.usersContract().isUser(fileOwner) == true);
         // add record
         records[fileHash] = FileRecord({
-            patient: patient,
+            fileOwner: fileOwner,
             sigCount: 0,
             irisScore: 0,
             recordType: recordType,
@@ -180,25 +180,24 @@ contract LinniaRecords is Ownable {
         // add the reverse mapping
         ipfsRecords[ipfsHash] = fileHash;
         // emit event
-        LogRecordAdded(fileHash, patient);
+        LogRecordAdded(fileHash, fileOwner);
         return true;
     }
 
     function _addSig(bytes32 fileHash, address provider)
+        hasProvenance(provider)
         internal
         returns (bool)
     {
         FileRecord storage record = records[fileHash];
         // the file must exist
         require(record.recordType != 0);
-        // verify provider role
-        require(hub.rolesContract().isProvider(provider) == true);
         // the provider must not have signed the file already
-        require(!record.signatures[provider]);
-        uint provenanceScore = hub.rolesContract().provenance(provider);
+        require(!record.sigs[provider]);
+        uint provenanceScore = hub.usersContract().provenanceOf(provider);
         // add signature
         record.sigCount = record.sigCount.add(provenanceScore);
-        record.signatures[provider] = true;
+        record.sigs[provider] = true;
         // update iris score
         record.irisScore = record.irisScore.add(provenanceScore);
         // emit event

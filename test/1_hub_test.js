@@ -13,22 +13,22 @@ contract("LinniaHub", (accounts) => {
       const instance = await LinniaHub.new()
       assert.equal(await instance.owner(), accounts[0])
     })
-    it("should initialize roles, records addresss to zero",
+    it("should initialize users, records addresss to zero",
       async () => {
-        assert.equal(await instance.rolesContract(), 0)
+        assert.equal(await instance.usersContract(), 0)
         assert.equal(await instance.recordsContract(), 0)
       })
   })
-  describe("set Roles contract", () => {
-    it("should allow admin to set Roles address", async () => {
-      const tx = await instance.setRolesContract(42)
-      assert.equal(tx.logs[0].event, "LogRolesContractSet")
+  describe("set users contract", () => {
+    it("should allow admin to set Users address", async () => {
+      const tx = await instance.setUsersContract(42)
+      assert.equal(tx.logs[0].event, "LogUsersContractSet")
       assert.equal(tx.logs[0].args.from, 0)
       assert.equal(tx.logs[0].args.to, 42)
-      assert.equal(await instance.rolesContract(), 42)
+      assert.equal(await instance.usersContract(), 42)
     })
-    it("should not allow non-admin to set Roles address", async () => {
-      await expectThrow(instance.setRolesContract(42, { from: accounts[1] }))
+    it("should not allow non-admin to set Users address", async () => {
+      await expectThrow(instance.setUsersContract(42, { from: accounts[1] }))
     })
   })
   describe("set Records contract", () => {

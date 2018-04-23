@@ -1,17 +1,17 @@
 pragma solidity ^0.4.18;
 
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./LinniaRoles.sol";
+import "./LinniaUsers.sol";
 import "./LinniaRecords.sol";
 import "./LinniaPermissions.sol";
 
 
 contract LinniaHub is Ownable {
-    LinniaRoles public rolesContract;
+    LinniaUsers public usersContract;
     LinniaRecords public recordsContract;
     LinniaPermissions public permissionsContract;
 
-    event LogRolesContractSet(address from, address to);
+    event LogUsersContractSet(address from, address to);
     event LogRecordsContractSet(address from, address to);
     event LogPermissionsContractSet(address from, address to);
 
@@ -19,14 +19,14 @@ contract LinniaHub is Ownable {
 
     function () public { }
 
-    function setRolesContract(LinniaRoles _rolesContract)
+    function setUsersContract(LinniaUsers _usersContract)
         onlyOwner
         external
         returns (bool)
     {
-        address prev = address(rolesContract);
-        rolesContract = _rolesContract;
-        LogRolesContractSet(prev, _rolesContract);
+        address prev = address(usersContract);
+        usersContract = _usersContract;
+        LogUsersContractSet(prev, _usersContract);
         return true;
     }
 
