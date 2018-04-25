@@ -14,15 +14,17 @@ contract LinniaRecords is Ownable {
         uint sigCount;
         mapping (address => bool) sigs;
         uint irisScore;
-        // For now the record types are
-        // 0 nil, 1 Blood Pressure, 2 A1C, 3 HDL, 4 Triglycerides, 5 Weight
         uint recordType;
         bytes32 ipfsHash; // ipfs path of the encrypted file
         uint timestamp; // time the file is added
     }
 
-    event LogRecordAdded(bytes32 indexed fileHash, address indexed fileOwner);
-    event LogRecordSigAdded(bytes32 indexed fileHash, address indexed attestator, uint irisScore);
+    event LogRecordAdded(
+        bytes32 indexed fileHash, address indexed fileOwner, string keywords
+    );
+    event LogRecordSigAdded(
+        bytes32 indexed fileHash, address indexed attestator, uint irisScore
+    );
 
     LinniaHub public hub;
     // all linnia records
@@ -55,12 +57,14 @@ contract LinniaRecords is Ownable {
 
     function addRecordByAdmin(
         bytes32 fileHash, address fileOwner, address attestator, uint recordType,
-        bytes32 ipfsHash)
+        string keywords, bytes32 ipfsHash)
         onlyOwner
         external
         returns (bool)
     {
-        require(_addRecord(fileHash, fileOwner, recordType, ipfsHash));
+        require(
+            _addRecord(fileHash, fileOwner, recordType, keywords, ipfsHash)
+        );
         if (attestator != 0) {
             require(_addSig(fileHash, attestator));
         }
@@ -72,14 +76,17 @@ contract LinniaRecords is Ownable {
     /// Add a record by user without any provider's signatures.
     /// @param fileHash the hash of the original unencrypted file
     /// @param recordType the type of the record
+    /// @param keywords keywords for the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
     function addRecord(
-        bytes32 fileHash, uint recordType, bytes32 ipfsHash)
+        bytes32 fileHash, uint recordType, string keywords, bytes32 ipfsHash)
         onlyUser
         public
         returns (bool)
     {
-        require(_addRecord(fileHash, msg.sender, recordType, ipfsHash));
+        require(
+            _addRecord(fileHash, msg.sender, recordType, keywords, ipfsHash)
+        );
         return true;
     }
 
@@ -87,16 +94,20 @@ contract LinniaRecords is Ownable {
     /// @param fileHash the hash of the original unencrypted file
     /// @param fileOwner the address of the file owner
     /// @param recordType the type of the record
+    /// @param keywords keywords for the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
     function addRecordByProvider(
-        bytes32 fileHash, address fileOwner, uint recordType, bytes32 ipfsHash)
+        bytes32 fileHash, address fileOwner, uint recordType, string keywords,
+        bytes32 ipfsHash)
         onlyUser
         hasProvenance(msg.sender)
         public
         returns (bool)
     {
         // add the file first
-        require(_addRecord(fileHash, fileOwner, recordType, ipfsHash));
+        require(
+            _addRecord(fileHash, fileOwner, recordType, keywords, ipfsHash)
+        );
         // add provider's sig to the file
         require(_addSig(fileHash, msg.sender));
         return true;
@@ -155,7 +166,8 @@ contract LinniaRecords is Ownable {
     /* Internal functions */
 
     function _addRecord(
-        bytes32 fileHash, address fileOwner, uint recordType, bytes32 ipfsHash)
+        bytes32 fileHash, address fileOwner, uint recordType,
+        string keywords, bytes32 ipfsHash)
         internal
         returns (bool)
     {
@@ -180,7 +192,7 @@ contract LinniaRecords is Ownable {
         // add the reverse mapping
         ipfsRecords[ipfsHash] = fileHash;
         // emit event
-        LogRecordAdded(fileHash, fileOwner);
+        LogRecordAdded(fileHash, fileOwner, keywords);
         return true;
     }
 

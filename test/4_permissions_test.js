@@ -48,9 +48,9 @@ contract("LinniaPermissions", (accounts) => {
     await hub.setRecordsContract(recordsInstance.address)
     // upload 2 records, one for patient1 and one for patient2
     await recordsInstance.addRecord(testFileHash1,
-      1, testIpfsHash1, { from: patient1 })
+      1, "keywords", testIpfsHash1, { from: patient1 })
     await recordsInstance.addRecordByProvider(testFileHash2,
-      patient2, 1, testIpfsHash2, { from: provider2 })
+      patient2, 1, "keywords", testIpfsHash2, { from: provider2 })
   })
   beforeEach("deploy a new LinniaPermissions contract", async () => {
     instance = await LinniaPermissions.new(hub.address,
