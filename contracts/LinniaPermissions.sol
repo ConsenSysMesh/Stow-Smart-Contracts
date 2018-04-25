@@ -3,6 +3,7 @@ pragma solidity ^0.4.18;
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
 import "./LinniaRecords.sol";
+import "./LinniaUsers.sol";
 
 
 contract LinniaPermissions is Ownable {
@@ -12,9 +13,9 @@ contract LinniaPermissions is Ownable {
         bytes32 ipfsHash;
     }
 
-    event LogAccessGranted(address indexed patient, address indexed viewer,
+    event LogAccessGranted(address indexed fileOwner, address indexed viewer,
     bytes32 fileHash);
-    event LogAccessRevoked(address indexed patient, address indexed viewer,
+    event LogAccessRevoked(address indexed fileOwner, address indexed viewer,
     bytes32 fileHash);
 
     LinniaHub public hub;
@@ -22,8 +23,13 @@ contract LinniaPermissions is Ownable {
     mapping(bytes32 => mapping(address => Permission)) public permissions;
 
     /* Modifiers */
-    modifier onlyPatient(address user) {
-        require(hub.rolesContract().isPatient(user) == true);
+    modifier onlyUser() {
+        require(hub.usersContract().isUser(msg.sender) == true);
+        _;
+    }
+
+    modifier onlyFileOwnerOf(bytes32 fileHash) {
+        require(hub.recordsContract().fileOwnerOf(fileHash) == msg.sender);
         _;
     }
 
@@ -42,12 +48,11 @@ contract LinniaPermissions is Ownable {
     /// @param viewer the user being allowed to view the file
     /// @param ipfsHash the IPFS hash of the file encrypted to viewer
     function grantAccess(bytes32 fileHash, address viewer, bytes32 ipfsHash)
-        onlyPatient(msg.sender)
+        onlyUser
+        onlyFileOwnerOf(fileHash)
         external
         returns (bool)
     {
-        // assert the file hash exists and is indeed owned by patient
-        require(hub.recordsContract().patientOf(fileHash) == msg.sender);
         // access must not have already been granted
         require(!permissions[fileHash][viewer].canAccess);
         permissions[fileHash][viewer] = Permission({
@@ -63,11 +68,11 @@ contract LinniaPermissions is Ownable {
     /// @param fileHash the hash of the unencrytped file
     /// @param viewer the user being allowed to view the file
     function revokeAccess(bytes32 fileHash, address viewer)
-        onlyPatient(msg.sender)
+        onlyUser
+        onlyFileOwnerOf(fileHash)
         external
         returns (bool)
     {
-        require(hub.recordsContract().patientOf(fileHash) == msg.sender);
         // access must have already been grated
         require(permissions[fileHash][viewer].canAccess);
         permissions[fileHash][viewer] = Permission({
