@@ -14,7 +14,6 @@ contract LinniaRecords is Ownable {
         uint sigCount;
         mapping (address => bool) sigs;
         uint irisScore;
-        uint recordType;
         bytes32 ipfsHash; // ipfs path of the encrypted file
         uint timestamp; // time the file is added
     }
@@ -56,14 +55,14 @@ contract LinniaRecords is Ownable {
     /* External functions */
 
     function addRecordByAdmin(
-        bytes32 fileHash, address fileOwner, address attestator, uint recordType,
+        bytes32 fileHash, address fileOwner, address attestator,
         string keywords, bytes32 ipfsHash)
         onlyOwner
         external
         returns (bool)
     {
         require(
-            _addRecord(fileHash, fileOwner, recordType, keywords, ipfsHash)
+            _addRecord(fileHash, fileOwner, keywords, ipfsHash)
         );
         if (attestator != 0) {
             require(_addSig(fileHash, attestator));
@@ -75,17 +74,16 @@ contract LinniaRecords is Ownable {
 
     /// Add a record by user without any provider's signatures.
     /// @param fileHash the hash of the original unencrypted file
-    /// @param recordType the type of the record
     /// @param keywords keywords for the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
     function addRecord(
-        bytes32 fileHash, uint recordType, string keywords, bytes32 ipfsHash)
+        bytes32 fileHash, string keywords, bytes32 ipfsHash)
         onlyUser
         public
         returns (bool)
     {
         require(
-            _addRecord(fileHash, msg.sender, recordType, keywords, ipfsHash)
+            _addRecord(fileHash, msg.sender, keywords, ipfsHash)
         );
         return true;
     }
@@ -93,12 +91,10 @@ contract LinniaRecords is Ownable {
     /// Add a record by a data provider.
     /// @param fileHash the hash of the original unencrypted file
     /// @param fileOwner the address of the file owner
-    /// @param recordType the type of the record
     /// @param keywords keywords for the record
     /// @param ipfsHash the sha2-256 hash of the file on IPFS
     function addRecordByProvider(
-        bytes32 fileHash, address fileOwner, uint recordType, string keywords,
-        bytes32 ipfsHash)
+        bytes32 fileHash, address fileOwner, string keywords, bytes32 ipfsHash)
         onlyUser
         hasProvenance(msg.sender)
         public
@@ -106,7 +102,7 @@ contract LinniaRecords is Ownable {
     {
         // add the file first
         require(
-            _addRecord(fileHash, fileOwner, recordType, keywords, ipfsHash)
+            _addRecord(fileHash, fileOwner, keywords, ipfsHash)
         );
         // add provider's sig to the file
         require(_addSig(fileHash, msg.sender));
@@ -166,16 +162,15 @@ contract LinniaRecords is Ownable {
     /* Internal functions */
 
     function _addRecord(
-        bytes32 fileHash, address fileOwner, uint recordType,
-        string keywords, bytes32 ipfsHash)
+        bytes32 fileHash, address fileOwner, string keywords, bytes32 ipfsHash)
         internal
         returns (bool)
     {
         // validate input
-        require(fileHash != 0 && recordType != 0 && ipfsHash != 0);
+        require(fileHash != 0 && ipfsHash != 0);
         // the file must be new
         require(
-            records[fileHash].recordType == 0 && ipfsRecords[ipfsHash] == 0
+            records[fileHash].timestamp == 0 && ipfsRecords[ipfsHash] == 0
         );
         // verify owner
         require(hub.usersContract().isUser(fileOwner) == true);
@@ -184,7 +179,6 @@ contract LinniaRecords is Ownable {
             fileOwner: fileOwner,
             sigCount: 0,
             irisScore: 0,
-            recordType: recordType,
             ipfsHash: ipfsHash,
             // solium-disable-next-line security/no-block-members
             timestamp: block.timestamp
@@ -203,7 +197,7 @@ contract LinniaRecords is Ownable {
     {
         FileRecord storage record = records[fileHash];
         // the file must exist
-        require(record.recordType != 0);
+        require(record.timestamp != 0);
         // the provider must not have signed the file already
         require(!record.sigs[provider]);
         uint provenanceScore = hub.usersContract().provenanceOf(provider);
