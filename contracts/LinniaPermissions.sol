@@ -43,7 +43,7 @@ contract LinniaPermissions is Ownable {
 
     /* External functions */
 
-    /// Give a viewer access to a medical record owned by a patient
+    /// Give a viewer access to a record
     /// @param fileHash the hash of the unencrypted file
     /// @param viewer the user being allowed to view the file
     /// @param ipfsHash the IPFS hash of the file encrypted to viewer
