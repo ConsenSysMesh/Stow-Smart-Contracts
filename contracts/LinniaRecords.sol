@@ -9,28 +9,39 @@ import "./LinniaUsers.sol";
 contract LinniaRecords is Ownable {
     using SafeMath for uint;
 
-    struct FileRecord {
-        address fileOwner;
-        uint sigCount;
+    // Struct of a linnia record
+    // A linnia record is identified by its root hash, which is
+    // sha(sha(data), sha(metadata))
+    struct Record {
+        // owner of the record
+        address owner;
+        // hash of the data before its encrypted
+        bytes32 dataHash;
+        // hash of the plaintext metadata
+        bytes32 metaHash;
+        // attestator signatures
         mapping (address => bool) sigs;
+        // count of attestator sigs
+        uint sigCount;
+        // calculated iris score
         uint irisScore;
-        bytes32 ipfsHash; // ipfs path of the encrypted file
-        uint timestamp; // time the file is added
+        // ipfs path of the encrypted data
+        bytes32 dataUri;
+        // time the file is added
+        uint timestamp;
     }
 
     event LogRecordAdded(
-        bytes32 indexed fileHash, address indexed fileOwner, string keywords
+        bytes32 indexed rootHash, address indexed owner, string metadata
     );
     event LogRecordSigAdded(
-        bytes32 indexed fileHash, address indexed attestator, uint irisScore
+        bytes32 indexed rootHash, address indexed attestator, uint irisScore
     );
 
     LinniaHub public hub;
     // all linnia records
-    // filehash => record mapping
-    mapping(bytes32 => FileRecord) public records;
-    // reverse mapping: ipfsHash => sha256 fileHash
-    mapping(bytes32 => bytes32) public ipfsRecords;
+    // rootHash => record mapping
+    mapping(bytes32 => Record) public records;
 
     /* Modifiers */
 
@@ -55,17 +66,16 @@ contract LinniaRecords is Ownable {
     /* External functions */
 
     function addRecordByAdmin(
-        bytes32 fileHash, address fileOwner, address attestator,
-        string keywords, bytes32 ipfsHash)
+        bytes32 dataHash, address owner, address attestator,
+        string metadata, bytes32 dataUri)
         onlyOwner
         external
         returns (bool)
     {
-        require(
-            _addRecord(fileHash, fileOwner, keywords, ipfsHash)
-        );
+        bytes32 rootHash = _addRecord(dataHash, owner, metadata, dataUri);
+        require(rootHash != 0);
         if (attestator != 0) {
-            require(_addSig(fileHash, attestator));
+            require(_addSig(rootHash, attestator));
         }
         return true;
     }
@@ -73,69 +83,71 @@ contract LinniaRecords is Ownable {
     /* Public functions */
 
     /// Add a record by user without any provider's signatures.
-    /// @param fileHash the hash of the original unencrypted file
-    /// @param keywords keywords for the record
-    /// @param ipfsHash the sha2-256 hash of the file on IPFS
+    /// @param dataHash the hash of the data
+    /// @param metadata plaintext metadata for the record
+    /// @param dataUri the ipfs path of the encrypted data
     function addRecord(
-        bytes32 fileHash, string keywords, bytes32 ipfsHash)
+        bytes32 dataHash, string metadata, bytes32 dataUri)
         onlyUser
         public
         returns (bool)
     {
         require(
-            _addRecord(fileHash, msg.sender, keywords, ipfsHash)
+            _addRecord(dataHash, msg.sender, metadata, dataUri) != 0
         );
         return true;
     }
 
     /// Add a record by a data provider.
-    /// @param fileHash the hash of the original unencrypted file
-    /// @param fileOwner the address of the file owner
-    /// @param keywords keywords for the record
-    /// @param ipfsHash the sha2-256 hash of the file on IPFS
+    /// @param dataHash the hash of the data
+    /// @param owner owner of the record
+    /// @param metadata plaintext metadata for the record
+    /// @param dataUri the ipfs path of the encrypted data
     function addRecordByProvider(
-        bytes32 fileHash, address fileOwner, string keywords, bytes32 ipfsHash)
+        bytes32 dataHash, address owner, string metadata, bytes32 dataUri)
         onlyUser
         hasProvenance(msg.sender)
         public
         returns (bool)
     {
         // add the file first
-        require(
-            _addRecord(fileHash, fileOwner, keywords, ipfsHash)
-        );
+        bytes32 rootHash = _addRecord(dataHash, owner, metadata, dataUri);
+        require(rootHash != 0);
         // add provider's sig to the file
-        require(_addSig(fileHash, msg.sender));
+        require(_addSig(rootHash, msg.sender));
         return true;
     }
 
-    /// Add a provider's signature to an existing file
+    /// Add a provider's signature to a linnia record,
+    /// i.e. adding an attestation
     /// This function is only callable by a provider
-    /// @param fileHash the hash of the original file
-    function addSigByProvider(bytes32 fileHash)
+    /// @param rootHash the root hash of the linnia record
+    function addSigByProvider(bytes32 rootHash)
         hasProvenance(msg.sender)
         public
         returns (bool)
     {
-        require(_addSig(fileHash, msg.sender));
+        require(_addSig(rootHash, msg.sender));
         return true;
     }
 
-    /// Add a provider's signature to an existing file.
+    /// Add a provider's signature to a linnia record
+    /// i.e. adding an attestation
     /// This function can be called by anyone. As long as the signatures are
-    /// indeed from a provider, the sig will be added to the file record
-    /// @param fileHash the hash of the original file
+    /// indeed from a provider, the sig will be added to the record.
+    /// The signature should cover the root hash
+    /// @param rootHash the root hash of the linnia record
     /// @param r signature: R
     /// @param s signature: S
     /// @param v signature: V
-    function addSig(bytes32 fileHash, bytes32 r, bytes32 s, uint8 v)
+    function addSig(bytes32 rootHash, bytes32 r, bytes32 s, uint8 v)
         public
         returns (bool)
     {
         // recover the provider's address from signature
-        address provider = recover(fileHash, r, s, v);
+        address provider = recover(rootHash, r, s, v);
         // add sig
-        require(_addSig(fileHash, provider));
+        require(_addSig(rootHash, provider));
         return true;
     }
 
@@ -147,10 +159,10 @@ contract LinniaRecords is Ownable {
         return ecrecover(prefixedHash, v, r, s);
     }
 
-    function fileOwnerOf(bytes32 fileHash)
+    function recordOwnerOf(bytes32 rootHash)
         public view returns (address)
     {
-        return records[fileHash].fileOwner;
+        return records[rootHash].owner;
     }
 
     function sigExists(bytes32 fileHash, address provider)
@@ -162,40 +174,43 @@ contract LinniaRecords is Ownable {
     /* Internal functions */
 
     function _addRecord(
-        bytes32 fileHash, address fileOwner, string keywords, bytes32 ipfsHash)
+        bytes32 dataHash, address owner, string metadata, bytes32 dataUri)
         internal
-        returns (bool)
+        returns (bytes32)
     {
         // validate input
-        require(fileHash != 0 && ipfsHash != 0);
+        require(dataHash != 0 && dataUri != 0);
+        // calculate root hash
+        bytes32 metaHash = keccak256(metadata);
+        bytes32 rootHash = keccak256(dataHash, metaHash);
         // the file must be new
         require(
-            records[fileHash].timestamp == 0 && ipfsRecords[ipfsHash] == 0
+            records[rootHash].timestamp == 0
         );
         // verify owner
-        require(hub.usersContract().isUser(fileOwner) == true);
+        require(hub.usersContract().isUser(owner) == true);
         // add record
-        records[fileHash] = FileRecord({
-            fileOwner: fileOwner,
+        records[rootHash] = Record({
+            owner: owner,
+            dataHash: dataHash,
+            metaHash: metaHash,
             sigCount: 0,
             irisScore: 0,
-            ipfsHash: ipfsHash,
+            dataUri: dataUri,
             // solium-disable-next-line security/no-block-members
             timestamp: block.timestamp
         });
-        // add the reverse mapping
-        ipfsRecords[ipfsHash] = fileHash;
         // emit event
-        LogRecordAdded(fileHash, fileOwner, keywords);
-        return true;
+        LogRecordAdded(rootHash, owner, metadata);
+        return rootHash;
     }
 
-    function _addSig(bytes32 fileHash, address provider)
+    function _addSig(bytes32 rootHash, address provider)
         hasProvenance(provider)
         internal
         returns (bool)
     {
-        FileRecord storage record = records[fileHash];
+        Record storage record = records[rootHash];
         // the file must exist
         require(record.timestamp != 0);
         // the provider must not have signed the file already
@@ -207,7 +222,7 @@ contract LinniaRecords is Ownable {
         // update iris score
         record.irisScore = record.irisScore.add(provenanceScore);
         // emit event
-        LogRecordSigAdded(fileHash, provider, record.irisScore);
+        LogRecordSigAdded(rootHash, provider, record.irisScore);
         return true;
     }
 }
