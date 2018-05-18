@@ -11,7 +11,7 @@
     "start:testrpc": "ganache-cli -p 7545 -i 5777",
     "migrate": "truffle migrate",
     "test": "truffle test",
-    "lint:sol": "solium -d .",
+    "lint:sol": "solium -d contracts",
     "coverage": "solidity-coverage"
   },
   "repository": {
