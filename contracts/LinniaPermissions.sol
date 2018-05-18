@@ -45,7 +45,8 @@ contract LinniaPermissions is Ownable {
 
     /* External functions */
 
-    /// Give a viewer access to a medical record owned by a patient
+    /// Give a viewer access to a linnia record
+    /// Called by owner of the record.
     /// @param rootHash the root hash of the linnia record
     /// @param viewer the user being permissioned to view the data
     /// @param dataUri the ipfs path of the re-encrypted data
@@ -68,8 +69,8 @@ contract LinniaPermissions is Ownable {
         return true;
     }
 
-    /// Revoke a viewer access to a document
-    /// Note that this does not remove the file off IPFS
+    /// Revoke a viewer access to a linnia record
+    /// Note that this does not necessarily remove the file from storage
     /// @param rootHash the root hash of the linnia record
     /// @param viewer the user that has permission to view the data
     function revokeAccess(bytes32 rootHash, address viewer)
