@@ -10,15 +10,13 @@ contract LinniaRecords is Ownable {
     using SafeMath for uint;
 
     // Struct of a linnia record
-    // A linnia record is identified by its root hash, which is
-    // sha(sha(data), sha(metadata))
+    // A linnia record is identified by its data hash, which is
+    // keccak256(data)
     struct Record {
         // owner of the record
         address owner;
-        // hash of the data before its encrypted
-        bytes32 dataHash;
         // hash of the plaintext metadata
-        bytes32 metaHash;
+        bytes32 metadataHash;
         // attestator signatures
         mapping (address => bool) sigs;
         // count of attestator sigs
@@ -27,20 +25,20 @@ contract LinniaRecords is Ownable {
         uint irisScore;
         // ipfs path of the encrypted data
         bytes32 dataUri;
-        // time the file is added
+        // timestamp of the block when the record is added
         uint timestamp;
     }
 
     event LogRecordAdded(
-        bytes32 indexed rootHash, address indexed owner, string metadata
+        bytes32 indexed dataHash, address indexed owner, string metadata
     );
     event LogRecordSigAdded(
-        bytes32 indexed rootHash, address indexed attestator, uint irisScore
+        bytes32 indexed dataHash, address indexed attestator, uint irisScore
     );
 
     LinniaHub public hub;
     // all linnia records
-    // rootHash => record mapping
+    // dataHash => record mapping
     mapping(bytes32 => Record) public records;
 
     /* Modifiers */
@@ -72,10 +70,9 @@ contract LinniaRecords is Ownable {
         external
         returns (bool)
     {
-        bytes32 rootHash = _addRecord(dataHash, owner, metadata, dataUri);
-        require(rootHash != 0);
+        require(_addRecord(dataHash, owner, metadata, dataUri) == true);
         if (attestator != 0) {
-            require(_addSig(rootHash, attestator));
+            require(_addSig(dataHash, attestator));
         }
         return true;
     }
@@ -93,7 +90,7 @@ contract LinniaRecords is Ownable {
         returns (bool)
     {
         require(
-            _addRecord(dataHash, msg.sender, metadata, dataUri) != 0
+            _addRecord(dataHash, msg.sender, metadata, dataUri) == true
         );
         return true;
     }
@@ -111,23 +108,22 @@ contract LinniaRecords is Ownable {
         returns (bool)
     {
         // add the file first
-        bytes32 rootHash = _addRecord(dataHash, owner, metadata, dataUri);
-        require(rootHash != 0);
+        require(_addRecord(dataHash, owner, metadata, dataUri) == true);
         // add provider's sig to the file
-        require(_addSig(rootHash, msg.sender));
+        require(_addSig(dataHash, msg.sender));
         return true;
     }
 
     /// Add a provider's signature to a linnia record,
     /// i.e. adding an attestation
     /// This function is only callable by a provider
-    /// @param rootHash the root hash of the linnia record
-    function addSigByProvider(bytes32 rootHash)
+    /// @param dataHash the data hash of the linnia record
+    function addSigByProvider(bytes32 dataHash)
         hasProvenance(msg.sender)
         public
         returns (bool)
     {
-        require(_addSig(rootHash, msg.sender));
+        require(_addSig(dataHash, msg.sender));
         return true;
     }
 
@@ -135,19 +131,22 @@ contract LinniaRecords is Ownable {
     /// i.e. adding an attestation
     /// This function can be called by anyone. As long as the signatures are
     /// indeed from a provider, the sig will be added to the record.
-    /// The signature should cover the root hash
-    /// @param rootHash the root hash of the linnia record
+    /// The signature should cover the root hash, which is
+    /// hash(hash(data), hash(metadata))
+    /// @param dataHash the data hash of a linnia record
     /// @param r signature: R
     /// @param s signature: S
     /// @param v signature: V
-    function addSig(bytes32 rootHash, bytes32 r, bytes32 s, uint8 v)
+    function addSig(bytes32 dataHash, bytes32 r, bytes32 s, uint8 v)
         public
         returns (bool)
     {
+        // find the root hash of the record
+        bytes32 rootHash = rootHashOf(dataHash);
         // recover the provider's address from signature
         address provider = recover(rootHash, r, s, v);
         // add sig
-        require(_addSig(rootHash, provider));
+        require(_addSig(dataHash, provider));
         return true;
     }
 
@@ -159,16 +158,22 @@ contract LinniaRecords is Ownable {
         return ecrecover(prefixedHash, v, r, s);
     }
 
-    function recordOwnerOf(bytes32 rootHash)
+    function recordOwnerOf(bytes32 dataHash)
         public view returns (address)
     {
-        return records[rootHash].owner;
+        return records[dataHash].owner;
     }
 
-    function sigExists(bytes32 fileHash, address provider)
+    function rootHashOf(bytes32 dataHash)
+        public view returns (bytes32)
+    {
+        return keccak256(dataHash, records[dataHash].metadataHash);
+    }
+
+    function sigExists(bytes32 dataHash, address provider)
         public view returns (bool)
     {
-        return records[fileHash].sigs[provider];
+        return records[dataHash].sigs[provider];
     }
 
     /* Internal functions */
@@ -176,24 +181,21 @@ contract LinniaRecords is Ownable {
     function _addRecord(
         bytes32 dataHash, address owner, string metadata, bytes32 dataUri)
         internal
-        returns (bytes32)
+        returns (bool)
     {
         // validate input
         require(dataHash != 0 && dataUri != 0);
-        // calculate root hash
-        bytes32 metaHash = keccak256(metadata);
-        bytes32 rootHash = keccak256(dataHash, metaHash);
+        bytes32 metadataHash = keccak256(metadata);
         // the file must be new
         require(
-            records[rootHash].timestamp == 0
+            records[dataHash].timestamp == 0
         );
         // verify owner
         require(hub.usersContract().isUser(owner) == true);
         // add record
-        records[rootHash] = Record({
+        records[dataHash] = Record({
             owner: owner,
-            dataHash: dataHash,
-            metaHash: metaHash,
+            metadataHash: metadataHash,
             sigCount: 0,
             irisScore: 0,
             dataUri: dataUri,
@@ -201,28 +203,28 @@ contract LinniaRecords is Ownable {
             timestamp: block.timestamp
         });
         // emit event
-        LogRecordAdded(rootHash, owner, metadata);
-        return rootHash;
+        LogRecordAdded(dataHash, owner, metadata);
+        return true;
     }
 
-    function _addSig(bytes32 rootHash, address provider)
+    function _addSig(bytes32 dataHash, address provider)
         hasProvenance(provider)
         internal
         returns (bool)
     {
-        Record storage record = records[rootHash];
+        Record storage record = records[dataHash];
         // the file must exist
         require(record.timestamp != 0);
         // the provider must not have signed the file already
         require(!record.sigs[provider]);
         uint provenanceScore = hub.usersContract().provenanceOf(provider);
         // add signature
-        record.sigCount = record.sigCount.add(provenanceScore);
+        record.sigCount = record.sigCount.add(1);
         record.sigs[provider] = true;
         // update iris score
         record.irisScore = record.irisScore.add(provenanceScore);
         // emit event
-        LogRecordSigAdded(rootHash, provider, record.irisScore);
+        LogRecordSigAdded(dataHash, provider, record.irisScore);
         return true;
     }
 }

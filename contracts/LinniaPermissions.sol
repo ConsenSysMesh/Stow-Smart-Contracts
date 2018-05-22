@@ -13,15 +13,15 @@ contract LinniaPermissions is Ownable {
         bytes32 dataUri;
     }
 
-    event LogAccessGranted(bytes32 indexed rootHash, address indexed owner,
+    event LogAccessGranted(bytes32 indexed dataHash, address indexed owner,
         address indexed viewer
     );
-    event LogAccessRevoked(bytes32 indexed rootHash, address indexed owner,
+    event LogAccessRevoked(bytes32 indexed dataHash, address indexed owner,
         address indexed viewer
     );
 
     LinniaHub public hub;
-    // rootHash => viewer => permission mapping
+    // dataHash => viewer => permission mapping
     mapping(bytes32 => mapping(address => Permission)) public permissions;
 
     /* Modifiers */
@@ -30,8 +30,8 @@ contract LinniaPermissions is Ownable {
         _;
     }
 
-    modifier onlyRecordOwnerOf(bytes32 rootHash) {
-        require(hub.recordsContract().recordOwnerOf(rootHash) == msg.sender);
+    modifier onlyRecordOwnerOf(bytes32 dataHash) {
+        require(hub.recordsContract().recordOwnerOf(dataHash) == msg.sender);
         _;
     }
 
@@ -47,12 +47,12 @@ contract LinniaPermissions is Ownable {
 
     /// Give a viewer access to a linnia record
     /// Called by owner of the record.
-    /// @param rootHash the root hash of the linnia record
+    /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being permissioned to view the data
     /// @param dataUri the ipfs path of the re-encrypted data
-    function grantAccess(bytes32 rootHash, address viewer, bytes32 dataUri)
+    function grantAccess(bytes32 dataHash, address viewer, bytes32 dataUri)
         onlyUser
-        onlyRecordOwnerOf(rootHash)
+        onlyRecordOwnerOf(dataHash)
         external
         returns (bool)
     {
@@ -60,32 +60,32 @@ contract LinniaPermissions is Ownable {
         require(viewer != 0);
         require(dataUri != 0);
         // access must not have already been granted
-        require(!permissions[rootHash][viewer].canAccess);
-        permissions[rootHash][viewer] = Permission({
+        require(!permissions[dataHash][viewer].canAccess);
+        permissions[dataHash][viewer] = Permission({
             canAccess: true,
             dataUri: dataUri
         });
-        LogAccessGranted(rootHash, msg.sender, viewer);
+        LogAccessGranted(dataHash, msg.sender, viewer);
         return true;
     }
 
     /// Revoke a viewer access to a linnia record
     /// Note that this does not necessarily remove the file from storage
-    /// @param rootHash the root hash of the linnia record
+    /// @param dataHash the data hash of the linnia record
     /// @param viewer the user that has permission to view the data
-    function revokeAccess(bytes32 rootHash, address viewer)
+    function revokeAccess(bytes32 dataHash, address viewer)
         onlyUser
-        onlyRecordOwnerOf(rootHash)
+        onlyRecordOwnerOf(dataHash)
         external
         returns (bool)
     {
         // access must have already been grated
-        require(permissions[rootHash][viewer].canAccess);
-        permissions[rootHash][viewer] = Permission({
+        require(permissions[dataHash][viewer].canAccess);
+        permissions[dataHash][viewer] = Permission({
             canAccess: false,
             dataUri: 0
         });
-        LogAccessRevoked(rootHash, msg.sender, viewer);
+        LogAccessRevoked(dataHash, msg.sender, viewer);
         return true;
     }
 }

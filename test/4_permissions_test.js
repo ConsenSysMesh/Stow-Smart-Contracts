@@ -21,10 +21,6 @@ const testDataUri2 = eutil.bufferToHex(
   multihashes.decode(
     bs58.decode("QmUoCHEZqSuYhr9fV1c2b4gLASG2hPpC2moQXQ6qzy697d")).digest)
 const testMetadata = "KEYWORDS"
-const testRootHash1 = eutil.bufferToHex(eutil.sha3(Buffer.concat([
-  eutil.sha3(testDataContent1), eutil.sha3(testMetadata)])))
-const testRootHash2 = eutil.bufferToHex(eutil.sha3(Buffer.concat([
-  eutil.sha3(testDataContent2), eutil.sha3(testMetadata)])))
 
 contract("LinniaPermissions", (accounts) => {
   const admin = accounts[0]
@@ -73,69 +69,69 @@ contract("LinniaPermissions", (accounts) => {
   describe("grant access", () => {
     it("should allow patient to grant access to their files", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
-      const tx = await instance.grantAccess(testRootHash1, provider2,
+      const tx = await instance.grantAccess(testDataHash1, provider2,
         fakeIpfsHash, { from: patient1 })
       assert.equal(tx.logs[0].event, "LogAccessGranted")
-      assert.equal(tx.logs[0].args.rootHash, testRootHash1)
+      assert.equal(tx.logs[0].args.dataHash, testDataHash1)
       assert.equal(tx.logs[0].args.owner, patient1)
       assert.equal(tx.logs[0].args.viewer, provider2)
-      const perm = await instance.permissions(testRootHash1, provider2)
+      const perm = await instance.permissions(testDataHash1, provider2)
       assert.equal(perm[0], true)
       assert.equal(perm[1], fakeIpfsHash)
     })
     it("should not allow non-owner to grant access", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
       await expectThrow(
-        instance.grantAccess(testRootHash1, provider2,
+        instance.grantAccess(testDataHash1, provider2,
           fakeIpfsHash, { from: provider1 })
       )
       await expectThrow(
-        instance.grantAccess(testRootHash1, provider2,
+        instance.grantAccess(testDataHash1, provider2,
           fakeIpfsHash, { from: provider2 })
       )
       await expectThrow(
-        instance.grantAccess(testRootHash1, provider2,
+        instance.grantAccess(testDataHash1, provider2,
           fakeIpfsHash, { from: patient2 })
       )
     })
     it("should reject if viewer or data uri is zero", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
-      await expectThrow(instance.grantAccess(testRootHash1,
+      await expectThrow(instance.grantAccess(testDataHash1,
         0, fakeIpfsHash, { from: patient1 }))
-      await expectThrow(instance.grantAccess(testRootHash1,
+      await expectThrow(instance.grantAccess(testDataHash1,
         provider2, 0, { from: patient1 }))
     })
     it("should not allow sharing same record twice with same user", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
-      await instance.grantAccess(testRootHash1, provider2,
+      await instance.grantAccess(testDataHash1, provider2,
         fakeIpfsHash, { from: patient1 })
-      await expectThrow(instance.grantAccess(testRootHash1, provider2,
+      await expectThrow(instance.grantAccess(testDataHash1, provider2,
         fakeIpfsHash, { from: patient1 }))
     })
   })
   describe("revoke access", () => {
     beforeEach("grant provider2 to access patient1's record1", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
-      await instance.grantAccess(testRootHash1, provider2,
+      await instance.grantAccess(testDataHash1, provider2,
         fakeIpfsHash, { from: patient1 })
     })
     it("should allow owner to revoke access to their files", async () => {
-      const tx = await instance.revokeAccess(testRootHash1,
+      const tx = await instance.revokeAccess(testDataHash1,
         provider2, { from: patient1 })
       assert.equal(tx.logs[0].event, "LogAccessRevoked")
-      assert.equal(tx.logs[0].args.rootHash, testRootHash1)
+      assert.equal(tx.logs[0].args.dataHash, testDataHash1)
       assert.equal(tx.logs[0].args.owner, patient1)
       assert.equal(tx.logs[0].args.viewer, provider2)
-      const perm = await instance.permissions(testRootHash1, provider2)
+      const perm = await instance.permissions(testDataHash1, provider2)
       assert.equal(perm[0], false)
       assert.equal(perm[1], eutil.bufferToHex(eutil.zeros(32)))
     })
     it("should not allow non-owner to revoke access to files", async () => {
-      await expectThrow(instance.revokeAccess(testRootHash1,
+      await expectThrow(instance.revokeAccess(testDataHash1,
         provider2, { from: provider1 }))
-      await expectThrow(instance.revokeAccess(testRootHash1,
+      await expectThrow(instance.revokeAccess(testDataHash1,
         provider2, { from: provider2 }))
-      await expectThrow(instance.revokeAccess(testRootHash1,
+      await expectThrow(instance.revokeAccess(testDataHash1,
         provider2, { from: patient2 }))
     })
   })
