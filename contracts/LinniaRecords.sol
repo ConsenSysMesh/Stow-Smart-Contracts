@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.23;
 
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "node_modules/zeppelin-solidity/contracts/math/SafeMath.sol";
@@ -54,7 +54,7 @@ contract LinniaRecords is Ownable {
     }
 
     /* Constructor */
-    function LinniaRecords(LinniaHub _hub) public {
+    constructor(LinniaHub _hub) public {
         hub = _hub;
     }
 
@@ -203,7 +203,7 @@ contract LinniaRecords is Ownable {
             timestamp: block.timestamp
         });
         // emit event
-        LogRecordAdded(dataHash, owner, metadata);
+        emit LogRecordAdded(dataHash, owner, metadata);
         return true;
     }
 
@@ -224,7 +224,7 @@ contract LinniaRecords is Ownable {
         // update iris score
         record.irisScore = record.irisScore.add(provenanceScore);
         // emit event
-        LogRecordSigAdded(dataHash, provider, record.irisScore);
+        emit LogRecordSigAdded(dataHash, provider, record.irisScore);
         return true;
     }
 }

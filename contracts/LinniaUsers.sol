@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.23;
 
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
@@ -17,7 +17,7 @@ contract LinniaUsers is Ownable {
     LinniaHub public hub;
     mapping(address => User) public users;
 
-    function LinniaUsers(LinniaHub _hub) public {
+    constructor(LinniaHub _hub) public {
         hub = _hub;
     }
 
@@ -34,7 +34,7 @@ contract LinniaUsers is Ownable {
             registerBlocktime: block.number,
             provenance: 0
         });
-        LogUserRegistered(msg.sender);
+        emit LogUserRegistered(msg.sender);
         return true;
     }
 
@@ -42,7 +42,7 @@ contract LinniaUsers is Ownable {
     function setProvenance(address user, uint provenance) onlyOwner external returns (bool) {
         require(isUser(user));
         users[user].provenance = provenance;
-        LogProvenanceChanged(user, provenance);
+        emit LogProvenanceChanged(user, provenance);
         return true;
     }
 

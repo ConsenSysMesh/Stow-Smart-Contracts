@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.23;
 
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
@@ -36,7 +36,7 @@ contract LinniaPermissions is Ownable {
     }
 
     /* Constructor */
-    function LinniaPermissions(LinniaHub _hub) public {
+    constructor(LinniaHub _hub) public {
         hub = _hub;
     }
 
@@ -65,7 +65,7 @@ contract LinniaPermissions is Ownable {
             canAccess: true,
             dataUri: dataUri
         });
-        LogAccessGranted(dataHash, msg.sender, viewer);
+        emit LogAccessGranted(dataHash, msg.sender, viewer);
         return true;
     }
 
@@ -85,7 +85,7 @@ contract LinniaPermissions is Ownable {
             canAccess: false,
             dataUri: 0
         });
-        LogAccessRevoked(dataHash, msg.sender, viewer);
+        emit LogAccessRevoked(dataHash, msg.sender, viewer);
         return true;
     }
 }
