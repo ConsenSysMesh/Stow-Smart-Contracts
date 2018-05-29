@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.23;
 
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
@@ -9,17 +9,19 @@ import "./LinniaUsers.sol";
 contract LinniaPermissions is Ownable {
     struct Permission {
         bool canAccess;
-        // IPFS hash of the file, encrypted to the viewer
-        bytes32 ipfsHash;
+        // ipfs path of the data, encrypted to the viewer
+        bytes32 dataUri;
     }
 
-    event LogAccessGranted(address indexed fileOwner, address indexed viewer,
-    bytes32 fileHash);
-    event LogAccessRevoked(address indexed fileOwner, address indexed viewer,
-    bytes32 fileHash);
+    event LogAccessGranted(bytes32 indexed dataHash, address indexed owner,
+        address indexed viewer
+    );
+    event LogAccessRevoked(bytes32 indexed dataHash, address indexed owner,
+        address indexed viewer
+    );
 
     LinniaHub public hub;
-    // filehash => viewer => permission mapping
+    // dataHash => viewer => permission mapping
     mapping(bytes32 => mapping(address => Permission)) public permissions;
 
     /* Modifiers */
@@ -28,13 +30,13 @@ contract LinniaPermissions is Ownable {
         _;
     }
 
-    modifier onlyFileOwnerOf(bytes32 fileHash) {
-        require(hub.recordsContract().fileOwnerOf(fileHash) == msg.sender);
+    modifier onlyRecordOwnerOf(bytes32 dataHash) {
+        require(hub.recordsContract().recordOwnerOf(dataHash) == msg.sender);
         _;
     }
 
     /* Constructor */
-    function LinniaPermissions(LinniaHub _hub) public {
+    constructor(LinniaHub _hub) public {
         hub = _hub;
     }
 
@@ -43,43 +45,47 @@ contract LinniaPermissions is Ownable {
 
     /* External functions */
 
-    /// Give a viewer access to a record
-    /// @param fileHash the hash of the unencrypted file
-    /// @param viewer the user being allowed to view the file
-    /// @param ipfsHash the IPFS hash of the file encrypted to viewer
-    function grantAccess(bytes32 fileHash, address viewer, bytes32 ipfsHash)
+    /// Give a viewer access to a linnia record
+    /// Called by owner of the record.
+    /// @param dataHash the data hash of the linnia record
+    /// @param viewer the user being permissioned to view the data
+    /// @param dataUri the ipfs path of the re-encrypted data
+    function grantAccess(bytes32 dataHash, address viewer, bytes32 dataUri)
         onlyUser
-        onlyFileOwnerOf(fileHash)
+        onlyRecordOwnerOf(dataHash)
         external
         returns (bool)
     {
+        // check input
+        require(viewer != 0);
+        require(dataUri != 0);
         // access must not have already been granted
-        require(!permissions[fileHash][viewer].canAccess);
-        permissions[fileHash][viewer] = Permission({
+        require(!permissions[dataHash][viewer].canAccess);
+        permissions[dataHash][viewer] = Permission({
             canAccess: true,
-            ipfsHash: ipfsHash
+            dataUri: dataUri
         });
-        LogAccessGranted(msg.sender, viewer, fileHash);
+        emit LogAccessGranted(dataHash, msg.sender, viewer);
         return true;
     }
 
-    /// Revoke a viewer access to a document
-    /// Note that this does not remove the file off IPFS
-    /// @param fileHash the hash of the unencrytped file
-    /// @param viewer the user being allowed to view the file
-    function revokeAccess(bytes32 fileHash, address viewer)
+    /// Revoke a viewer access to a linnia record
+    /// Note that this does not necessarily remove the file from storage
+    /// @param dataHash the data hash of the linnia record
+    /// @param viewer the user that has permission to view the data
+    function revokeAccess(bytes32 dataHash, address viewer)
         onlyUser
-        onlyFileOwnerOf(fileHash)
+        onlyRecordOwnerOf(dataHash)
         external
         returns (bool)
     {
         // access must have already been grated
-        require(permissions[fileHash][viewer].canAccess);
-        permissions[fileHash][viewer] = Permission({
+        require(permissions[dataHash][viewer].canAccess);
+        permissions[dataHash][viewer] = Permission({
             canAccess: false,
-            ipfsHash: 0
+            dataUri: 0
         });
-        LogAccessRevoked(msg.sender, viewer, fileHash);
+        emit LogAccessRevoked(dataHash, msg.sender, viewer);
         return true;
     }
 }

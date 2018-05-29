@@ -9,13 +9,16 @@ const multihashes = require("multihashes")
 
 import expectThrow from "zeppelin-solidity/test/helpers/expectThrow"
 
-// assume this is the ipfs hash of the encrypted file
-const testFileContent = `{foo:"bar",baz:42}`
-const testFileHash = eutil.bufferToHex(eutil.sha3(testFileContent))
-const testIpfsHash = eutil.bufferToHex(
+const testDataContent = `{"foo":"bar","baz":42}`
+const testDataHash = eutil.bufferToHex(eutil.sha3(testDataContent))
+const testDataUri = eutil.bufferToHex(
   multihashes.decode(
     bs58.decode(
-      "QmXJdGeZyk8Ae7L9Ca2aLo6qGCX49tC3nnPuyahXDUCUzy")).digest)
+      "QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM")).digest)
+const testMetadata = "KEYWORDS"
+const testMetaHash = eutil.bufferToHex(eutil.sha3(testMetadata))
+const testRootHash = eutil.bufferToHex(eutil.sha3(Buffer.concat([
+  eutil.sha3(testDataContent), eutil.sha3(testMetadata)])))
 
 contract("LinniaRecords", (accounts) => {
   const admin = accounts[0]
@@ -36,7 +39,7 @@ contract("LinniaRecords", (accounts) => {
     usersInstance.register({ from: provider1 })
     usersInstance.register({ from: provider2 })
     usersInstance.setProvenance(provider1, 1)
-    usersInstance.setProvenance(provider2, 1)
+    usersInstance.setProvenance(provider2, 2)
   })
   beforeEach("deploy a new LinniaRecords contract", async () => {
     instance = await LinniaRecords.new(hub.address)
@@ -59,273 +62,297 @@ contract("LinniaRecords", (accounts) => {
     it("should recover zero address if sig is bad", async () => {
       const msgHash = eutil.bufferToHex(eutil.sha3(crypto.randomBytes(2000)))
       const recoveredAddr = await instance.recover(msgHash,
-        eutil.bufferToHex(new Buffer(64)),
-        eutil.bufferToHex(new Buffer(64)), 27)
+        eutil.bufferToHex(Buffer.from(new Uint32Array(64))),
+        eutil.bufferToHex(Buffer.from(new Uint32Array(64))),
+        27)
       assert.equal(recoveredAddr, 0)
     })
   })
   describe("add record by user", () => {
     it("should allow a user to add a record", async () => {
-      const tx = await instance.addRecord(testFileHash,
-        "keywords", testIpfsHash, { from: patient })
+      const tx = await instance.addRecord(testDataHash,
+        testMetadata, testDataUri, { from: patient })
       assert.equal(tx.logs.length, 1)
       assert.equal(tx.logs[0].event, "LogRecordAdded")
-      assert.equal(tx.logs[0].args.fileHash, testFileHash)
-      assert.equal(tx.logs[0].args.fileOwner, patient)
-      assert.equal(tx.logs[0].args.keywords, "keywords")
+      assert.equal(tx.logs[0].args.dataHash, testDataHash)
+      assert.equal(tx.logs[0].args.owner, patient)
+      assert.equal(tx.logs[0].args.metadata, testMetadata)
       const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
         .timestamp
       // check state
-      const storedRecord = await instance.records(testFileHash)
+      const storedRecord = await instance.records(testDataHash)
       assert.equal(storedRecord[0], patient)
-      assert.equal(storedRecord[1], 0) // sig count
-      assert.equal(storedRecord[2], 0) // iris score
-      assert.equal(storedRecord[3], testIpfsHash)
-      assert.equal(storedRecord[4], timestamp)
-      assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
+      assert.equal(storedRecord[1], testMetaHash)
+      assert.equal(storedRecord[2], 0) // sig count
+      assert.equal(storedRecord[3], 0) // iris score
+      assert.equal(storedRecord[4], testDataUri)
+      assert.equal(storedRecord[5], timestamp)
     })
     it("should not allow user to add same record twice", async () => {
-      await instance.addRecord(testFileHash, "keywords",
-        testIpfsHash, { from: patient })
+      await instance.addRecord(testDataHash,
+        testMetadata, testDataUri, { from: patient })
       // try submitting the file again
       await expectThrow(
-        instance.addRecord(testFileHash, "keywords",
-          testIpfsHash, { from: patient })
+        instance.addRecord(testDataHash, testMetadata,
+          testDataUri, { from: patient })
       )
     })
     it("should not allow non-users to call", async () => {
       await expectThrow(
-        instance.addRecord(testFileHash, "keywords",
-          testIpfsHash, { from: nonUser })
+        instance.addRecord(testDataHash, testMetadata,
+          testDataUri, { from: nonUser })
       )
     })
-    it("should reject if file hash or ipfs hash is zero", async () => {
-      // try zero file hash
+    it("should reject if data hash or data uri is zero", async () => {
+      // try zero data hash
       await expectThrow(
-        instance.addRecord(0, "keywords",
-          testIpfsHash, { from: patient })
+        instance.addRecord(0, testMetadata, testDataUri, {
+          from: patient
+        })
       )
-      // try zero ipfs hash
+      // try zero data uri
       await expectThrow(
-        instance.addRecord(0, "keywords",
-          0, { from: patient })
+        instance.addRecord(testDataHash, testMetadata, 0, {
+          from: patient
+        })
       )
     })
   })
   describe("add record by provider", () => {
     it("should allow a provider to add a record", async () => {
-      const tx = await instance.addRecordByProvider(testFileHash, patient,
-        "keywords", testIpfsHash, { from: provider1 })
+      const tx = await instance.addRecordByProvider(testDataHash,
+        patient, testMetadata, testDataUri, { from: provider1 })
       assert.equal(tx.logs.length, 2)
       assert.equal(tx.logs[0].event, "LogRecordAdded")
-      assert.equal(tx.logs[0].args.fileHash, testFileHash)
-      assert.equal(tx.logs[0].args.fileOwner, patient)
-      assert.equal(tx.logs[0].args.keywords, "keywords")
+      assert.equal(tx.logs[0].args.dataHash, testDataHash)
+      assert.equal(tx.logs[0].args.owner, patient)
+      assert.equal(tx.logs[0].args.metadata, testMetadata)
       assert.equal(tx.logs[1].event, "LogRecordSigAdded")
-      assert.equal(tx.logs[1].args.fileHash, testFileHash)
+      assert.equal(tx.logs[1].args.dataHash, testDataHash)
       assert.equal(tx.logs[1].args.attestator, provider1)
       assert.equal(tx.logs[1].args.irisScore, 1)
       const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
         .timestamp
       // check state
-      const storedRecord = await instance.records(testFileHash)
+      const storedRecord = await instance.records(testDataHash)
       assert.equal(storedRecord[0], patient)
-      assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // iris score
-      assert.equal(storedRecord[3], testIpfsHash)
-      assert.equal(storedRecord[4], timestamp)
-      assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
-      assert.equal(await instance.sigExists(testFileHash, provider1),
+      assert.equal(storedRecord[1], testMetaHash)
+      assert.equal(storedRecord[2], 1) // sig count
+      assert.equal(storedRecord[3], 1) // iris score
+      assert.equal(storedRecord[4], testDataUri)
+      assert.equal(storedRecord[5], timestamp)
+      assert.equal(await instance.sigExists(testDataHash, provider1),
         true)
     })
     it("should not allow provider to add a record twice", async () => {
-      await instance.addRecordByProvider(testFileHash, patient,
-        "keywords", testIpfsHash, { from: provider1 })
+      await instance.addRecordByProvider(testDataHash, patient,
+        testMetadata, testDataUri, { from: provider1 })
       await expectThrow(
-        instance.addRecordByProvider(testFileHash,
-          patient, "keywords", testIpfsHash, { from: provider1 })
+        instance.addRecordByProvider(testDataHash, patient,
+          testMetadata, testDataUri, { from: provider1 })
       )
     })
     it("should not allow provider to add a record for non-user", async () => {
       await expectThrow(
-        instance.addRecordByProvider(testFileHash, nonUser,
-          "keywords", testIpfsHash, { from: provider1 })
+        instance.addRecordByProvider(testDataHash, nonUser,
+          testMetadata, testDataUri, { from: provider1 })
       )
     })
     it("should not allow non-provider to call", async () => {
       await expectThrow(
-        instance.addRecordByProvider(testFileHash, patient,
-          "keywords", testIpfsHash, { from: patient })
+        instance.addRecordByProvider(testDataHash, patient,
+          testMetadata, testDataUri, { from: patient })
       )
     })
   })
   describe("add signature", () => {
     it("should allow adding valid signature", async () => {
-      // add a file without any sig
-      await instance.addRecord(testFileHash, "keywords",
-        testIpfsHash, { from: patient })
-      // have provider1 sign it
-      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testFileHash))
-      const tx = await instance.addSig(testFileHash,
+      // add a file without any sig, by patient
+      await instance.addRecord(testDataHash, testMetadata,
+        testDataUri, { from: patient })
+      // have provider1 sign the root hash
+      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testRootHash))
+      // anyone should be able to submit the signature
+      const tx = await instance.addSig(testDataHash,
         eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
         rsv.v, { from: nonUser })
       assert.equal(tx.logs.length, 1)
       assert.equal(tx.logs[0].event, "LogRecordSigAdded")
-      assert.equal(tx.logs[0].args.fileHash, testFileHash)
+      assert.equal(tx.logs[0].args.dataHash, testDataHash)
       assert.equal(tx.logs[0].args.attestator, provider1)
       assert.equal(tx.logs[0].args.irisScore, 1)
       // check state
-      const storedRecord = await instance.records(testFileHash)
-      assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // iris score
-      assert.equal(await instance.sigExists(testFileHash, provider1), true)
+      const storedRecord = await instance.records(testDataHash)
+      assert.equal(storedRecord[2], 1) // sig count
+      assert.equal(storedRecord[3], 1) // iris score
+      assert.equal(await instance.sigExists(testDataHash, provider1), true)
     })
     it("should allow adding valid signature by provider", async () => {
-      // add a file without any sig
-      await instance.addRecord(testFileHash, "keywords",
-        testIpfsHash, { from: patient })
+      // add a file without any sig, by patient
+      await instance.addRecord(testDataHash, testMetadata,
+        testDataUri, { from: patient })
       // have provider1 sign it
-      const tx = await instance.addSigByProvider(testFileHash, { from: provider1 })
+      const tx = await instance.addSigByProvider(testDataHash, {
+        from: provider1
+      })
       assert.equal(tx.logs.length, 1)
       assert.equal(tx.logs[0].event, "LogRecordSigAdded")
-      assert.equal(tx.logs[0].args.fileHash, testFileHash)
+      assert.equal(tx.logs[0].args.dataHash, testDataHash)
       assert.equal(tx.logs[0].args.attestator, provider1)
       assert.equal(tx.logs[0].args.irisScore, 1)
       // check state
-      const storedRecord = await instance.records(testFileHash)
-      assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // iris score
-      assert.equal(await instance.sigExists(testFileHash, provider1),
+      const storedRecord = await instance.records(testDataHash)
+      assert.equal(storedRecord[2], 1) // sig count
+      assert.equal(storedRecord[3], 1) // iris score
+      assert.equal(await instance.sigExists(testDataHash, provider1),
         true)
     })
     it("should not allow adding the same sig twice", async () => {
       // add a file without any sig
-      await instance.addRecord(testFileHash, "keywords",
-        testIpfsHash, { from: patient })
+      await instance.addRecord(testDataHash, testMetadata,
+        testDataUri, { from: patient })
       // have provider1 sign it
-      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testFileHash))
-      await instance.addSig(testFileHash,
+      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testRootHash))
+      await instance.addSig(testDataHash,
         eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
         rsv.v, { from: nonUser })
       await expectThrow(
-        instance.addSig(testFileHash,
+        instance.addSig(testDataHash,
           eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
           rsv.v, { from: nonUser })
       )
     })
-    it("should allow adding multiple sigs from different providers", async () => {
-      await instance.addRecord(testFileHash, "keywords",
-        testIpfsHash, { from: patient })
+    it("should allow adding sigs from different providers", async () => {
+      await instance.addRecord(testDataHash, testMetadata,
+        testDataUri, { from: patient })
       // have provider1 sign it
-      const rsv1 = eutil.fromRpcSig(web3.eth.sign(provider1, testFileHash))
-      const tx1 = await instance.addSig(testFileHash,
+      const rsv1 = eutil.fromRpcSig(web3.eth.sign(provider1, testRootHash))
+      const tx1 = await instance.addSig(testDataHash,
         eutil.bufferToHex(rsv1.r), eutil.bufferToHex(rsv1.s),
         rsv1.v, { from: nonUser })
       // check log
       assert.equal(tx1.logs.length, 1)
       assert.equal(tx1.logs[0].event, "LogRecordSigAdded")
-      assert.equal(tx1.logs[0].args.fileHash, testFileHash)
+      assert.equal(tx1.logs[0].args.dataHash, testDataHash)
       assert.equal(tx1.logs[0].args.attestator, provider1)
       assert.equal(tx1.logs[0].args.irisScore, 1)
       // have provider2 sign it
-      const rsv2 = eutil.fromRpcSig(web3.eth.sign(provider2, testFileHash))
-      const tx2 = await instance.addSig(testFileHash,
+      const rsv2 = eutil.fromRpcSig(web3.eth.sign(provider2, testRootHash))
+      const tx2 = await instance.addSig(testDataHash,
         eutil.bufferToHex(rsv2.r), eutil.bufferToHex(rsv2.s),
         rsv2.v, { from: nonUser })
       // check log
       assert.equal(tx2.logs.length, 1)
       assert.equal(tx2.logs[0].event, "LogRecordSigAdded")
-      assert.equal(tx2.logs[0].args.fileHash, testFileHash)
+      assert.equal(tx2.logs[0].args.dataHash, testDataHash)
       assert.equal(tx2.logs[0].args.attestator, provider2)
-      assert.equal(tx2.logs[0].args.irisScore, 2) // iris should increment
+      assert.equal(tx2.logs[0].args.irisScore, 3) // iris should increment
       // check state
-      const storedRecord = await instance.records(testFileHash)
-      assert.equal(storedRecord[1], 2) // sig count
-      assert.equal(storedRecord[2], 2) // iris score
-      assert.equal(await instance.sigExists(testFileHash, provider1),
+      const storedRecord = await instance.records(testDataHash)
+      assert.equal(storedRecord[2], 2) // sig count
+      assert.equal(storedRecord[3], 3) // iris score
+      assert.equal(await instance.sigExists(testDataHash, provider1),
         true)
-      assert.equal(await instance.sigExists(testFileHash, provider2),
+      assert.equal(await instance.sigExists(testDataHash, provider2),
         true)
     })
     it("should allow adding another sig after provider added file", async () => {
-      await instance.addRecordByProvider(testFileHash,
-        patient, "keywords", testIpfsHash, { from: provider1 })
+      await instance.addRecordByProvider(testDataHash,
+        patient, testMetadata, testDataUri, { from: provider1 })
       // now have provider2 sign it
-      const rsv2 = eutil.fromRpcSig(web3.eth.sign(provider2, testFileHash))
-      const tx = await instance.addSig(testFileHash,
+      const rsv2 = eutil.fromRpcSig(web3.eth.sign(provider2, testRootHash))
+      const tx = await instance.addSig(testDataHash,
         eutil.bufferToHex(rsv2.r), eutil.bufferToHex(rsv2.s),
         rsv2.v, { from: nonUser })
       assert.equal(tx.logs[0].event, "LogRecordSigAdded")
-      assert.equal(tx.logs[0].args.fileHash, testFileHash)
+      assert.equal(tx.logs[0].args.dataHash, testDataHash)
       assert.equal(tx.logs[0].args.attestator, provider2)
-      assert.equal(tx.logs[0].args.irisScore, 2)
+      assert.equal(tx.logs[0].args.irisScore, 3)
       // check state
-      const storedRecord = await instance.records(testFileHash)
-      assert.equal(storedRecord[1], 2) // sig count
-      assert.equal(storedRecord[2], 2) // iris score
-      assert.equal(await instance.sigExists(testFileHash, provider1),
+      const storedRecord = await instance.records(testDataHash)
+      assert.equal(storedRecord[2], 2) // sig count
+      assert.equal(storedRecord[3], 3) // iris score
+      assert.equal(await instance.sigExists(testDataHash, provider1),
         true)
-      assert.equal(await instance.sigExists(testFileHash, provider2),
+      assert.equal(await instance.sigExists(testDataHash, provider2),
         true)
     })
     it("should reject bad signatures", async () => {
-      await instance.addRecord(testFileHash, "keywords",
-        testIpfsHash, { from: patient })
-      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testFileHash))
+      await instance.addRecord(testDataHash, testMetadata,
+        testDataUri, { from: patient })
+      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testRootHash))
       // flip S and V
       await expectThrow(
-        instance.addSig(testFileHash,
+        instance.addSig(testDataHash,
           eutil.bufferToHex(rsv.s), eutil.bufferToHex(rsv.v),
           rsv.v, { from: patient })
       )
     })
+    it("should reject sig that doesn't cover metadata hash", async () => {
+      await instance.addRecord(testDataHash, testMetadata,
+        testDataUri, { from: patient })
+        // sign the data hash instead of root hash
+        const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testDataHash))
+        await expectThrow(
+          instance.addSig(testDataHash,
+            eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
+            rsv.v, { from: patient })
+        )
+    })
   })
   describe("add record by admin", () => {
-    it("should allow admin to add a record without provider sig", async () => {
-      const tx = await instance.addRecordByAdmin(testFileHash,
-        patient, 0,
-        "keywords", testIpfsHash, { from: admin })
+    it("should allow admin to add a record without attestation", async () => {
+      const tx = await instance.addRecordByAdmin(testDataHash,
+        patient, 0, testMetadata, testDataUri, { from: admin })
       assert.equal(tx.logs.length, 1)
       assert.equal(tx.logs[0].event, "LogRecordAdded")
-      assert.equal(tx.logs[0].args.fileHash, testFileHash)
-      assert.equal(tx.logs[0].args.fileOwner, patient)
-      assert.equal(tx.logs[0].args.keywords, "keywords")
+      assert.equal(tx.logs[0].args.dataHash, testDataHash)
+      assert.equal(tx.logs[0].args.owner, patient)
+      assert.equal(tx.logs[0].args.metadata, testMetadata)
       // check state
-      const storedRecord = await instance.records(testFileHash)
+      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
+        .timestamp
+      const storedRecord = await instance.records(testDataHash)
       assert.equal(storedRecord[0], patient)
-      assert.equal(storedRecord[1], 0) // sig count
-      assert.equal(storedRecord[2], 0) // iris score
-      assert.equal(storedRecord[3], testIpfsHash)
-      assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
+      assert.equal(storedRecord[1], testMetaHash)
+      assert.equal(storedRecord[2], 0) // sig count
+      assert.equal(storedRecord[3], 0) // iris score
+      assert.equal(storedRecord[4], testDataUri)
+      assert.equal(storedRecord[5], timestamp)
     })
-    it("should allow admin to add a record with provider sig", async () => {
-      const tx = await instance.addRecordByAdmin(testFileHash,
-        patient, provider1,
-        "keywords", testIpfsHash, { from: admin })
+    it("should allow admin to add a record with attestation", async () => {
+      const tx = await instance.addRecordByAdmin(testDataHash,
+        patient, provider1, testMetadata, testDataUri, { from: admin })
       assert.equal(tx.logs.length, 2)
       assert.equal(tx.logs[0].event, "LogRecordAdded")
-      assert.equal(tx.logs[0].args.fileHash, testFileHash)
-      assert.equal(tx.logs[0].args.fileOwner, patient)
-      assert.equal(tx.logs[0].args.keywords, "keywords")
+      assert.equal(tx.logs[0].args.dataHash, testDataHash)
+      assert.equal(tx.logs[0].args.owner, patient)
+      assert.equal(tx.logs[0].args.metadata, testMetadata)
       assert.equal(tx.logs[1].event, "LogRecordSigAdded")
-      assert.equal(tx.logs[1].args.fileHash, testFileHash)
+      assert.equal(tx.logs[1].args.dataHash, testDataHash)
       assert.equal(tx.logs[1].args.attestator, provider1)
       assert.equal(tx.logs[1].args.irisScore, 1)
       // check state
-      const storedRecord = await instance.records(testFileHash)
+      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber)
+        .timestamp
+      const storedRecord = await instance.records(testDataHash)
       assert.equal(storedRecord[0], patient)
-      assert.equal(storedRecord[1], 1) // sig count
-      assert.equal(storedRecord[2], 1) // iris score
-      assert.equal(storedRecord[3], testIpfsHash)
-      assert.equal(await instance.ipfsRecords(testIpfsHash), testFileHash)
-      assert.equal(await instance.sigExists(testFileHash, provider1),
+      assert.equal(storedRecord[1], testMetaHash)
+      assert.equal(storedRecord[2], 1) // sig count
+      assert.equal(storedRecord[3], 1) // iris score
+      assert.equal(storedRecord[4], testDataUri)
+      assert.equal(storedRecord[5], timestamp)
+      assert.equal(await instance.sigExists(testDataHash, provider1),
         true)
     })
     it("should not allow non admin to call", async () => {
       await expectThrow(
-        instance.addRecordByAdmin(testFileHash,
-          patient, provider1, "keywords",
-          testIpfsHash, { from: provider1 })
+        instance.addRecordByAdmin(testDataHash, patient,
+          provider1, testMetadata, testDataUri, { from: provider1 })
+      )
+      await expectThrow(
+        instance.addRecordByAdmin(testDataHash, patient,
+          0, testMetadata, testDataUri, { from: provider1 })
       )
     })
   })

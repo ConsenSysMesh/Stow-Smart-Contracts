@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.23;
 
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaUsers.sol";
@@ -15,7 +15,7 @@ contract LinniaHub is Ownable {
     event LogRecordsContractSet(address from, address to);
     event LogPermissionsContractSet(address from, address to);
 
-    function LinniaHub() public { }
+    constructor() public { }
 
     function () public { }
 
@@ -26,7 +26,7 @@ contract LinniaHub is Ownable {
     {
         address prev = address(usersContract);
         usersContract = _usersContract;
-        LogUsersContractSet(prev, _usersContract);
+        emit LogUsersContractSet(prev, _usersContract);
         return true;
     }
 
@@ -37,7 +37,7 @@ contract LinniaHub is Ownable {
     {
         address prev = address(recordsContract);
         recordsContract = _recordsContract;
-        LogRecordsContractSet(prev, _recordsContract);
+        emit LogRecordsContractSet(prev, _recordsContract);
         return true;
     }
 
@@ -48,7 +48,7 @@ contract LinniaHub is Ownable {
     {
         address prev = address(permissionsContract);
         permissionsContract = _permissionsContract;
-        LogPermissionsContractSet(prev, _permissionsContract);
+        emit LogPermissionsContractSet(prev, _permissionsContract);
         return true;
     }
 }
