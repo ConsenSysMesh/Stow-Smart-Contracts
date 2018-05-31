@@ -1,6 +1,6 @@
 pragma solidity ^0.4.23;
 
-import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import "./LinniaUsers.sol";
 import "./LinniaRecords.sol";
 import "./LinniaPermissions.sol";
