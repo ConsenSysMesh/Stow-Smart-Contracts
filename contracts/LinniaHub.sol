@@ -1,4 +1,4 @@
-pragma solidity 0.4.23;
+pragma solidity ^0.4.23;
 
 import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaUsers.sol";
