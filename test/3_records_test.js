@@ -7,7 +7,7 @@ const crypto = require("crypto")
 const eutil = require("ethereumjs-util")
 const multihashes = require("multihashes")
 
-import expectThrow from 'openzeppelin-solidity/test/helpers/expectThrow'
+import expectThrow from "openzeppelin-solidity/test/helpers/expectThrow"
 
 const testDataContent = `{"foo":"bar","baz":42}`
 const testDataHash = eutil.bufferToHex(eutil.sha3(testDataContent))

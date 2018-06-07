@@ -1,6 +1,6 @@
 const LinniaHub = artifacts.require("./LinniaHub.sol")
 
-import expectThrow from 'openzeppelin-solidity/test/helpers/expectThrow'
+import expectThrow from "openzeppelin-solidity/test/helpers/expectThrow"
 
 contract("LinniaHub", (accounts) => {
   let instance
