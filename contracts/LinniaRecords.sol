@@ -1,7 +1,7 @@
-pragma solidity ^0.4.23;
+pragma solidity 0.4.23;
 
-import "node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "node_modules/zeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./LinniaHub.sol";
 import "./LinniaUsers.sol";
 
