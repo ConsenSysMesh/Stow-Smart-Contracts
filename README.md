@@ -2,9 +2,7 @@
 ---
 > :warning: WIP
 
-Smart Contracts for Linnia MVP
-
-[More about the MVP](./docs/mvp.md)
+Smart Contracts for Linnia
 
 # Overview
 ## Linnia Users

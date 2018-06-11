@@ -1,5 +1,5 @@
 require('babel-register')({
-  ignore: /node_modules\/(?!zeppelin-solidity)/
+  ignore: /node_modules\/(?!openzeppelin-solidity)/
 });
 require('babel-polyfill');
 
