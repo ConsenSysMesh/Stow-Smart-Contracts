@@ -15,6 +15,9 @@
     "arg-overflow": [
       "off"
     ],
+    "no-constant": [
+      "error"
+    ],
     "security/enforce-explicit-visibility": [
       "error"
     ],
