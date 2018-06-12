@@ -184,13 +184,12 @@ contract LinniaRecords is Ownable {
         returns (bool)
     {
         // validate input
-        require(dataHash != 0 && keccak256(dataUri) != keccak256(""));
+        require(dataHash != 0);
+        require(keccak256(dataUri) != keccak256(""));
 
         bytes32 metadataHash = keccak256(metadata);
         // the file must be new
-        require(
-            records[dataHash].timestamp == 0
-        );
+        require(records[dataHash].timestamp == 0);
         // verify owner
         require(hub.usersContract().isUser(owner) == true);
         // add record
