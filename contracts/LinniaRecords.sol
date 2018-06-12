@@ -1,4 +1,4 @@
-pragma solidity 0.4.23;
+pragma solidity 0.4.24;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -154,7 +154,7 @@ contract LinniaRecords is Ownable {
         public pure returns (address)
     {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedHash = keccak256(prefix, message);
+        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, message));
         return ecrecover(prefixedHash, v, r, s);
     }
 
@@ -167,7 +167,7 @@ contract LinniaRecords is Ownable {
     function rootHashOf(bytes32 dataHash)
         public view returns (bytes32)
     {
-        return keccak256(dataHash, records[dataHash].metadataHash);
+        return keccak256(abi.encodePacked(dataHash, records[dataHash].metadataHash));
     }
 
     function sigExists(bytes32 dataHash, address provider)
@@ -186,8 +186,8 @@ contract LinniaRecords is Ownable {
         // validate input
         require(dataHash != 0);
         require(keccak256(dataUri) != keccak256(""));
+        bytes32 metadataHash = keccak256(abi.encodePacked(metadata));
 
-        bytes32 metadataHash = keccak256(metadata);
         // the file must be new
         require(records[dataHash].timestamp == 0);
         // verify owner
