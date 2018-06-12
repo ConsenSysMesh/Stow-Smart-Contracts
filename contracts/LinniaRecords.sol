@@ -192,6 +192,10 @@ contract LinniaRecords is Ownable {
         );
         // verify owner
         require(hub.usersContract().isUser(owner) == true);
+
+        uint userProvidence = hub.facetContracts[_index].providenceOf(owner);
+
+        hub.facetContracts[_index].irisScore(userProvidence, metadata);
         // add record
         records[dataHash] = Record({
             owner: owner,
@@ -217,7 +221,8 @@ contract LinniaRecords is Ownable {
         require(record.timestamp != 0);
         // the provider must not have signed the file already
         require(!record.sigs[provider]);
-        uint provenanceScore = hub.usersContract().provenanceOf(provider);
+        // uint provenanceScore = hub.usersContract().provenanceOf(provider);
+        uint provenanceScore = hub.facetContracts[_index];
         // add signature
         record.sigCount = record.sigCount.add(1);
         record.sigs[provider] = true;
