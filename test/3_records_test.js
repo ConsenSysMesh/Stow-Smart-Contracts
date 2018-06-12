@@ -117,6 +117,15 @@ contract("LinniaRecords", (accounts) => {
         })
       )
     })
+    it("should allow a long dataUri", async () => {
+      const testDataUri = eutil.bufferToHex("https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar")
+      const tx = await instance.addRecord(testDataHash,
+        testMetadata, testDataUri, { from: patient })
+      assert.equal(tx.logs.length, 1)
+      // check state
+      const storedRecord = await instance.records(testDataHash)
+      assert.equal(storedRecord[4], testDataUri)
+    })
   })
   describe("add record by provider", () => {
     it("should allow a provider to add a record", async () => {
