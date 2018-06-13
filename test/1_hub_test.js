@@ -1,6 +1,6 @@
 const LinniaHub = artifacts.require("./LinniaHub.sol")
 
-import assertRevert from "openzeppelin-solidity/test/helpers/assertRevert"
+import expectThrow from "openzeppelin-solidity/test/helpers/expectThrow"
 
 contract("LinniaHub", (accounts) => {
   let instance
@@ -28,7 +28,7 @@ contract("LinniaHub", (accounts) => {
       assert.equal(await instance.usersContract(), 42)
     })
     it("should not allow non-admin to set Users address", async () => {
-      await assertRevert(instance.setUsersContract(42, { from: accounts[1] }))
+      await expectThrow(instance.setUsersContract(42, { from: accounts[1] }))
     })
   })
   describe("set Records contract", () => {
@@ -40,7 +40,7 @@ contract("LinniaHub", (accounts) => {
       assert.equal(await instance.recordsContract(), 42)
     })
     it("should not allow non-admin to set Records address", async () => {
-      await assertRevert(instance.setRecordsContract(42, { from: accounts[1] }))
+      await expectThrow(instance.setRecordsContract(42, { from: accounts[1] }))
     })
 
   })
@@ -53,7 +53,7 @@ contract("LinniaHub", (accounts) => {
       assert.equal(await instance.permissionsContract(), 42)
     })
     it("should not allow non-admin to set Permissions address", async () => {
-      await assertRevert(instance.setPermissionsContract(42,
+      await expectThrow(instance.setPermissionsContract(42,
         { from: accounts[1] }))
     })
   })
