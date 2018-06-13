@@ -1,12 +1,13 @@
 pragma solidity 0.4.23;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "./LinniaUsers.sol";
 import "./LinniaRecords.sol";
 import "./LinniaPermissions.sol";
 
 
-contract LinniaHub is Ownable {
+contract LinniaHub is Ownable, Pausable {
     LinniaUsers public usersContract;
     LinniaRecords public recordsContract;
     LinniaPermissions public permissionsContract;
@@ -21,6 +22,7 @@ contract LinniaHub is Ownable {
 
     function setUsersContract(LinniaUsers _usersContract)
         onlyOwner
+        whenNotPaused
         external
         returns (bool)
     {
@@ -32,6 +34,7 @@ contract LinniaHub is Ownable {
 
     function setRecordsContract(LinniaRecords _recordsContract)
         onlyOwner
+        whenNotPaused
         external
         returns (bool)
     {
@@ -43,6 +46,7 @@ contract LinniaHub is Ownable {
 
     function setPermissionsContract(LinniaPermissions _permissionsContract)
         onlyOwner
+        whenNotPaused
         external
         returns (bool)
     {
