@@ -16,7 +16,7 @@ A contract that keeps a registry of permissions. Permissions include who can vie
 
 # Installing (only once)
 
-Installs `babel-register` and `babel-polyfill`.
+Installs `babel` and `openzeppelin-solidity`.
 
 ```
 npm install
