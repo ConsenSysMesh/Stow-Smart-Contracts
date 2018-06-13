@@ -364,5 +364,22 @@ contract("LinniaRecords", (accounts) => {
           0, testMetadata, testDataUri, { from: provider1 })
       )
     })
+  describe("pausable", () => {
+    it("should not allow non-admin to pause or unpause", async () => {
+      await assertRevert(instance.pause({ from: accounts[1] }))
+      await assertRevert(instance.unpause({ from: accounts[1] }))
+    })
+    it("should allow admin to pause and unpause", async () => {
+      const tx = await instance.pause()
+      assert.equal(tx.logs[0].event, "Pause")
+      await assertRevert(instance.addRecord(testDataHash,
+          testMetadata, testDataUri, { from: patient }))
+      const tx2 = await instance.unpause()
+      assert.equal(tx2.logs[0].event, "Unpause")
+      const tx3 = await instance.addRecord(testDataHash,
+        testMetadata, testDataUri, { from: patient })
+      assert.equal(tx3.logs[0].event, "LogRecordAdded")
+      })
+    })
   })
 })
