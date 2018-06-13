@@ -137,14 +137,14 @@ contract("LinniaPermissions", (accounts) => {
   })
   describe("pausable", () => {
     it("should not allow non-admin to pause or unpause", async () => {
-      await expectThrow(instance.pause({ from: accounts[1] }))
-      await expectThrow(instance.unpause({ from: accounts[1] }))
+      await assertRevert(instance.pause({ from: accounts[1] }))
+      await assertRevert(instance.unpause({ from: accounts[1] }))
     })
     it("should allow admin to pause and unpause", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
       const tx = await instance.pause()
       assert.equal(tx.logs[0].event, "Pause")
-      await expectThrow(instance.grantAccess(testDataHash1, provider2,
+      await assertRevert(instance.grantAccess(testDataHash1, provider2,
         fakeIpfsHash, { from: patient1 }))
       const tx2 = await instance.unpause()
       assert.equal(tx2.logs[0].event, "Unpause")
