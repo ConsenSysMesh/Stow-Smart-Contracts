@@ -110,6 +110,7 @@ contract("LinniaUsers", (accounts) => {
     })
     it("should not allow register of users when paused by admin", async () => {
       const tx = await instance.pause()
+      assert.equal(await instance.isUser(accounts[1]), false)
       assert.equal(tx.logs[0].event, "Pause")
       await assertRevert(instance.register({ from: accounts[1] }))
       const tx2 = await instance.unpause()
