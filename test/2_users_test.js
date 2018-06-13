@@ -1,7 +1,7 @@
 const LinniaHub = artifacts.require("./LinniaHub.sol")
 const LinniaUsers = artifacts.require("./LinniaUsers.sol")
 
-import expectThrow from "openzeppelin-solidity/test/helpers/expectThrow"
+import assertRevert from "openzeppelin-solidity/test/helpers/assertRevert"
 
 contract("LinniaUsers", (accounts) => {
   let hub
@@ -32,7 +32,7 @@ contract("LinniaUsers", (accounts) => {
     })
     it("should not allow non admin to change admin", async () => {
       const instance = await LinniaUsers.new(hub.address)
-      await expectThrow(instance.transferOwnership(accounts[1], {
+      await assertRevert(instance.transferOwnership(accounts[1], {
         from: accounts[1]
       }))
     })
@@ -53,7 +53,7 @@ contract("LinniaUsers", (accounts) => {
       async () => {
         const tx = await instance.register({ from: accounts[1] })
         assert.equal(tx.logs[0].args.user, accounts[1])
-        await expectThrow(
+        await assertRevert(
           instance.register({ from: accounts[1] })
         )
       })
@@ -73,12 +73,12 @@ contract("LinniaUsers", (accounts) => {
     })
     it("should not allow non admin to change provenance", async () => {
       await instance.register({ from: accounts[1] })
-      await expectThrow(
+      await assertRevert(
         instance.setProvenance(accounts[1], 42, { from: accounts[1] })
       )
     })
     it("should not allow admin to change provenance of nonexistent provider", async () => {
-      await expectThrow(
+      await assertRevert(
         instance.setProvenance(accounts[1], 42)
       )
     })
