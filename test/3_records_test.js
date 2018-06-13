@@ -7,7 +7,7 @@ const crypto = require("crypto")
 const eutil = require("ethereumjs-util")
 const multihashes = require("multihashes")
 
-import expectThrow from "openzeppelin-solidity/test/helpers/expectThrow"
+import assertRevert from "openzeppelin-solidity/test/helpers/assertRevert"
 
 const testDataContent = `{"foo":"bar","baz":42}`
 const testDataHash = eutil.bufferToHex(eutil.sha3(testDataContent))
@@ -92,30 +92,39 @@ contract("LinniaRecords", (accounts) => {
       await instance.addRecord(testDataHash,
         testMetadata, testDataUri, { from: patient })
       // try submitting the file again
-      await expectThrow(
+      await assertRevert(
         instance.addRecord(testDataHash, testMetadata,
           testDataUri, { from: patient })
       )
     })
     it("should not allow non-users to call", async () => {
-      await expectThrow(
+      await assertRevert(
         instance.addRecord(testDataHash, testMetadata,
           testDataUri, { from: nonUser })
       )
     })
     it("should reject if data hash or data uri is zero", async () => {
       // try zero data hash
-      await expectThrow(
+      await assertRevert(
         instance.addRecord(0, testMetadata, testDataUri, {
           from: patient
         })
       )
       // try zero data uri
-      await expectThrow(
+      await assertRevert(
         instance.addRecord(testDataHash, testMetadata, 0, {
           from: patient
         })
       )
+    })
+    it("should allow a long dataUri", async () => {
+      const testDataUri = eutil.bufferToHex("https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar")
+      const tx = await instance.addRecord(testDataHash,
+        testMetadata, testDataUri, { from: patient })
+      assert.equal(tx.logs.length, 1)
+      // check state
+      const storedRecord = await instance.records(testDataHash)
+      assert.equal(storedRecord[4], testDataUri)
     })
   })
   describe("add record by provider", () => {
@@ -147,19 +156,19 @@ contract("LinniaRecords", (accounts) => {
     it("should not allow provider to add a record twice", async () => {
       await instance.addRecordByProvider(testDataHash, patient,
         testMetadata, testDataUri, { from: provider1 })
-      await expectThrow(
+      await assertRevert(
         instance.addRecordByProvider(testDataHash, patient,
           testMetadata, testDataUri, { from: provider1 })
       )
     })
     it("should not allow provider to add a record for non-user", async () => {
-      await expectThrow(
+      await assertRevert(
         instance.addRecordByProvider(testDataHash, nonUser,
           testMetadata, testDataUri, { from: provider1 })
       )
     })
     it("should not allow non-provider to call", async () => {
-      await expectThrow(
+      await assertRevert(
         instance.addRecordByProvider(testDataHash, patient,
           testMetadata, testDataUri, { from: patient })
       )
@@ -216,7 +225,7 @@ contract("LinniaRecords", (accounts) => {
       await instance.addSig(testDataHash,
         eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
         rsv.v, { from: nonUser })
-      await expectThrow(
+      await assertRevert(
         instance.addSig(testDataHash,
           eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
           rsv.v, { from: nonUser })
@@ -282,7 +291,7 @@ contract("LinniaRecords", (accounts) => {
         testDataUri, { from: patient })
       const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testRootHash))
       // flip S and V
-      await expectThrow(
+      await assertRevert(
         instance.addSig(testDataHash,
           eutil.bufferToHex(rsv.s), eutil.bufferToHex(rsv.v),
           rsv.v, { from: patient })
@@ -293,7 +302,7 @@ contract("LinniaRecords", (accounts) => {
         testDataUri, { from: patient })
         // sign the data hash instead of root hash
         const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testDataHash))
-        await expectThrow(
+        await assertRevert(
           instance.addSig(testDataHash,
             eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
             rsv.v, { from: patient })
@@ -346,11 +355,11 @@ contract("LinniaRecords", (accounts) => {
         true)
     })
     it("should not allow non admin to call", async () => {
-      await expectThrow(
+      await assertRevert(
         instance.addRecordByAdmin(testDataHash, patient,
           provider1, testMetadata, testDataUri, { from: provider1 })
       )
-      await expectThrow(
+      await assertRevert(
         instance.addRecordByAdmin(testDataHash, patient,
           0, testMetadata, testDataUri, { from: provider1 })
       )
