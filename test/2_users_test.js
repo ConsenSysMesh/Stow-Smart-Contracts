@@ -108,7 +108,7 @@ contract("LinniaUsers", (accounts) => {
       await assertRevert(instance.pause({ from: accounts[1] }))
       await assertRevert(instance.unpause({ from: accounts[1] }))
     })
-    it("should allow admin to pause and unpause", async () => {
+    it("should not allow register of users when paused by admin", async () => {
       const tx = await instance.pause()
       assert.equal(tx.logs[0].event, "Pause")
       await assertRevert(instance.register({ from: accounts[1] }))
