@@ -1,10 +1,11 @@
 pragma solidity 0.4.24;
 
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
 
 
-contract LinniaUsers is Ownable {
+contract LinniaUsers is Ownable, Pausable {
     struct User {
         bool exists;
         uint registerBlocktime;
@@ -27,7 +28,11 @@ contract LinniaUsers is Ownable {
     /* External functions */
 
     // register allows any user to self register on Linnia
-    function register() external returns (bool) {
+    function register()
+        whenNotPaused
+        external
+        returns (bool)
+    {
         require(!isUser(msg.sender));
         users[msg.sender] = User({
             exists: true,
@@ -39,7 +44,11 @@ contract LinniaUsers is Ownable {
     }
 
     // setProvenance allows admin to set the provenance of a user
-    function setProvenance(address user, uint provenance) onlyOwner external returns (bool) {
+    function setProvenance(address user, uint provenance)
+        onlyOwner
+        external
+        returns (bool)
+    {
         require(isUser(user));
         users[user].provenance = provenance;
         emit LogProvenanceChanged(user, provenance);
@@ -48,11 +57,19 @@ contract LinniaUsers is Ownable {
 
     /* Public functions */
 
-    function isUser(address user) public view returns (bool) {
+    function isUser(address user)
+        public
+        view
+        returns (bool)
+    {
         return users[user].exists;
     }
 
-    function provenanceOf(address user) public view returns (uint) {
+    function provenanceOf(address user)
+        public
+        view
+        returns (uint)
+    {
         if (users[user].exists) {
             return users[user].provenance;
         } else {
