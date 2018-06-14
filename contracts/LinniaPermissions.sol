@@ -1,12 +1,14 @@
 pragma solidity 0.4.24;
 
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+
 import "./LinniaHub.sol";
 import "./LinniaRecords.sol";
 import "./LinniaUsers.sol";
 
 
-contract LinniaPermissions is Ownable {
+contract LinniaPermissions is Ownable, Pausable {
     struct Permission {
         bool canAccess;
         // ipfs path of the data, encrypted to the viewer
@@ -53,12 +55,13 @@ contract LinniaPermissions is Ownable {
     function grantAccess(bytes32 dataHash, address viewer, string dataUri)
         onlyUser
         onlyRecordOwnerOf(dataHash)
+        whenNotPaused
         external
         returns (bool)
     {
         // validate input
         require(viewer != 0);
-        require(keccak256(dataUri) != keccak256(""));
+        require(keccak256(abi.encodePacked(dataUri)) != keccak256(abi.encodePacked("")));
 
         // access must not have already been granted
         require(!permissions[dataHash][viewer].canAccess);
@@ -77,6 +80,7 @@ contract LinniaPermissions is Ownable {
     function revokeAccess(bytes32 dataHash, address viewer)
         onlyUser
         onlyRecordOwnerOf(dataHash)
+        whenNotPaused
         external
         returns (bool)
     {

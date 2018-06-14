@@ -1,12 +1,13 @@
 pragma solidity 0.4.24;
 
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./LinniaHub.sol";
 import "./LinniaUsers.sol";
 
 
-contract LinniaRecords is Ownable {
+contract LinniaRecords is Ownable, Pausable {
     using SafeMath for uint;
 
     // Struct of a linnia record
@@ -67,6 +68,7 @@ contract LinniaRecords is Ownable {
         bytes32 dataHash, address owner, address attestator,
         string metadata, string dataUri)
         onlyOwner
+        whenNotPaused
         external
         returns (bool)
     {
@@ -86,6 +88,7 @@ contract LinniaRecords is Ownable {
     function addRecord(
         bytes32 dataHash, string metadata, string dataUri)
         onlyUser
+        whenNotPaused
         public
         returns (bool)
     {
@@ -104,6 +107,7 @@ contract LinniaRecords is Ownable {
         bytes32 dataHash, address owner, string metadata, string dataUri)
         onlyUser
         hasProvenance(msg.sender)
+        whenNotPaused
         public
         returns (bool)
     {
@@ -120,6 +124,7 @@ contract LinniaRecords is Ownable {
     /// @param dataHash the data hash of the linnia record
     function addSigByProvider(bytes32 dataHash)
         hasProvenance(msg.sender)
+        whenNotPaused
         public
         returns (bool)
     {
@@ -139,6 +144,7 @@ contract LinniaRecords is Ownable {
     /// @param v signature: V
     function addSig(bytes32 dataHash, bytes32 r, bytes32 s, uint8 v)
         public
+        whenNotPaused
         returns (bool)
     {
         // find the root hash of the record
@@ -185,7 +191,7 @@ contract LinniaRecords is Ownable {
     {
         // validate input
         require(dataHash != 0);
-        require(keccak256(dataUri) != keccak256(""));
+        require(keccak256(abi.encodePacked(dataUri)) != keccak256(abi.encodePacked("")));
         bytes32 metadataHash = keccak256(abi.encodePacked(metadata));
 
         // the file must be new
