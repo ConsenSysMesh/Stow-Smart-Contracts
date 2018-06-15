@@ -12,7 +12,7 @@ contract LinniaPermissions is Ownable, Pausable {
     struct Permission {
         bool canAccess;
         // ipfs path of the data, encrypted to the viewer
-        string dataUri;
+        bytes dataUri;
     }
 
     event LogAccessGranted(bytes32 indexed dataHash, address indexed owner,
@@ -52,7 +52,7 @@ contract LinniaPermissions is Ownable, Pausable {
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being permissioned to view the data
     /// @param dataUri the ipfs path of the re-encrypted data
-    function grantAccess(bytes32 dataHash, address viewer, string dataUri)
+    function grantAccess(bytes32 dataHash, address viewer, bytes dataUri)
         onlyUser
         onlyRecordOwnerOf(dataHash)
         whenNotPaused
@@ -61,7 +61,7 @@ contract LinniaPermissions is Ownable, Pausable {
     {
         // validate input
         require(viewer != 0);
-        require(keccak256(abi.encodePacked(dataUri)) != keccak256(abi.encodePacked("")));
+        require(dataUri.length != 0);
 
         // access must not have already been granted
         require(!permissions[dataHash][viewer].canAccess);
