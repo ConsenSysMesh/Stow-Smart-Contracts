@@ -382,4 +382,24 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx3.logs[0].event, "LogRecordAdded")
       })
     })
+  describe("destructible", () => {
+    it("should not allow non-admin to destroy", async () => {
+      await assertRevert(instance.destroy({ from: accounts[1] }))
+    })
+    it("should allow admin to destroy", async () => {
+      const admin = accounts[0]
+      const tx = await instance.destroy({from: admin})
+      assert(!tx.logs.length, `did not expect logs but got ${tx.logs}`)
+      try {
+        const afterOwner = await instance.owner({from: admin});
+      } catch(error) {
+        const expectedMsg = 'Error: Attempting to run transaction which calls a contract function, but recipient address';
+        const actualMsg = error.message.startsWith(expectedMsg) == 0;
+        assert(actualMsg, `Expected [${expectedMsg}], got [${error.message}] instead`);
+        return;
+      }
+      assert.isTrue(false, 'test failed we did not enter the catch block');
+
+    })
+  })
 })
