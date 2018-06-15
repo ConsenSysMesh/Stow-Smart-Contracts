@@ -57,6 +57,10 @@ contract("LinniaUsers", (accounts) => {
           instance.register({ from: accounts[1] })
         )
       })
+    it("should not allow user to register when paused", async () => {
+      await instance.pause({ from: accounts[0] })
+      await assertRevert(instance.register({ from: accounts[1] }))
+    })
   })
   describe("set provenance", () => {
     it("should allow admin to set provenance of a user", async () => {
@@ -103,20 +107,18 @@ contract("LinniaUsers", (accounts) => {
       assert.equal(await instance.provenanceOf(accounts[1]), 0)
     })
   })
-  describe("pausable", () => {
-    it("should not allow non-admin to pause or unpause", async () => {
+  describe("pause and unpause", () => {
+    it("should not allow non admin to pause or unpause", async () => {
       await assertRevert(instance.pause({ from: accounts[1] }))
       await assertRevert(instance.unpause({ from: accounts[1] }))
     })
-    it("should not allow register of users when paused by admin", async () => {
-      const tx = await instance.pause()
-      assert.equal(await instance.isUser(accounts[1]), false)
+    it("should allow admin to pause and unpause", async () => {
+      const tx = await instance.pause({ from: accounts[0] })
       assert.equal(tx.logs[0].event, "Pause")
-      await assertRevert(instance.register({ from: accounts[1] }))
-      const tx2 = await instance.unpause()
+      assert.isTrue(await instance.paused())
+      const tx2 = await instance.unpause({ from: accounts[0] })
       assert.equal(tx2.logs[0].event, "Unpause")
-      const tx3 = await instance.register({ from: accounts[1] })
-      assert.equal(tx3.logs[0].event, "LogUserRegistered")
+      assert.isFalse(await instance.paused())
     })
   })
 })

@@ -108,6 +108,13 @@ contract("LinniaPermissions", (accounts) => {
       await assertRevert(instance.grantAccess(testDataHash1, provider2,
         fakeIpfsHash, { from: patient1 }))
     })
+    it("should not allow sharing record when paused", async () => {
+      await instance.pause({ from: admin })
+      // try sharing a record
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
+      await assertRevert(instance.grantAccess(testDataHash1, provider2,
+        fakeIpfsHash, { from: patient1 }))
+    })
   })
   describe("revoke access", () => {
     beforeEach("grant provider2 to access patient1's record1", async () => {
@@ -134,23 +141,24 @@ contract("LinniaPermissions", (accounts) => {
       await assertRevert(instance.revokeAccess(testDataHash1,
         provider2, { from: patient2 }))
     })
+    it("should not allow revoking access when paused", async () => {
+      await instance.pause({ from: admin })
+      await assertRevert(instance.revokeAccess(testDataHash1,
+        provider2, { from: patient1 }))
+    })
   })
-  describe("pausable", () => {
-    it("should not allow non-admin to pause or unpause", async () => {
+  describe("pause and unpause", () => {
+    it("should not allow non admin to pause or unpause", async () => {
       await assertRevert(instance.pause({ from: accounts[1] }))
       await assertRevert(instance.unpause({ from: accounts[1] }))
     })
-    it("should not allow sharing records when paused by admin", async () => {
-      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
-      const tx = await instance.pause()
+    it("should allow admin to pause and unpause", async () => {
+      const tx = await instance.pause({ from: accounts[0] })
       assert.equal(tx.logs[0].event, "Pause")
-      await assertRevert(instance.grantAccess(testDataHash1, provider2,
-        fakeIpfsHash, { from: patient1 }))
-      const tx2 = await instance.unpause()
+      assert.isTrue(await instance.paused())
+      const tx2 = await instance.unpause({ from: accounts[0] })
       assert.equal(tx2.logs[0].event, "Unpause")
-      const tx3 = await instance.grantAccess(testDataHash1, provider2,
-        fakeIpfsHash, { from: patient1 })
-      assert.equal(tx3.logs[0].event, "LogAccessGranted")
+      assert.isFalse(await instance.paused())
     })
   })
 })
