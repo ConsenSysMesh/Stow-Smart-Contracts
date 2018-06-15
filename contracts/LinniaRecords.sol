@@ -25,7 +25,7 @@ contract LinniaRecords is Ownable, Pausable {
         // calculated iris score
         uint irisScore;
         // ipfs path of the encrypted data
-        string dataUri;
+        bytes dataUri;
         // timestamp of the block when the record is added
         uint timestamp;
     }
@@ -66,7 +66,7 @@ contract LinniaRecords is Ownable, Pausable {
 
     function addRecordByAdmin(
         bytes32 dataHash, address owner, address attestator,
-        string metadata, string dataUri)
+        string metadata, bytes dataUri)
         onlyOwner
         whenNotPaused
         external
@@ -86,7 +86,7 @@ contract LinniaRecords is Ownable, Pausable {
     /// @param metadata plaintext metadata for the record
     /// @param dataUri the ipfs path of the encrypted data
     function addRecord(
-        bytes32 dataHash, string metadata, string dataUri)
+        bytes32 dataHash, string metadata, bytes dataUri)
         onlyUser
         whenNotPaused
         public
@@ -104,7 +104,7 @@ contract LinniaRecords is Ownable, Pausable {
     /// @param metadata plaintext metadata for the record
     /// @param dataUri the ipfs path of the encrypted data
     function addRecordByProvider(
-        bytes32 dataHash, address owner, string metadata, string dataUri)
+        bytes32 dataHash, address owner, string metadata, bytes dataUri)
         onlyUser
         hasProvenance(msg.sender)
         whenNotPaused
@@ -185,14 +185,14 @@ contract LinniaRecords is Ownable, Pausable {
     /* Internal functions */
 
     function _addRecord(
-        bytes32 dataHash, address owner, string metadata, string dataUri)
+        bytes32 dataHash, address owner, string metadata, bytes dataUri)
         internal
         returns (bool)
     {
         // validate input
         require(dataHash != 0);
-        require(keccak256(abi.encodePacked(dataUri)) != keccak256(abi.encodePacked("")));
-        bytes32 metadataHash = keccak256(abi.encodePacked(metadata));
+        require(dataUri.length != 0);
+        bytes32 metadataHash = keccak256(bytes(metadata));
 
         // the file must be new
         require(records[dataHash].timestamp == 0);

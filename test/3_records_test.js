@@ -116,12 +116,21 @@ contract("LinniaRecords", (accounts) => {
           from: patient
         })
       )
+      await assertRevert(
+        instance.addRecord(testDataHash, testMetadata, "0x", {
+          from: patient
+        })
+      )
     })
-    it("should allow a long dataUri", async () => {
+    it("should allow a long data uri", async () => {
       const testDataUri = eutil.bufferToHex("https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar")
       const tx = await instance.addRecord(testDataHash,
         testMetadata, testDataUri, { from: patient })
       assert.equal(tx.logs.length, 1)
+      assert.equal(tx.logs[0].event, "LogRecordAdded")
+      assert.equal(tx.logs[0].args.dataHash, testDataHash)
+      assert.equal(tx.logs[0].args.owner, patient)
+      assert.equal(tx.logs[0].args.metadata, testMetadata)
       // check state
       const storedRecord = await instance.records(testDataHash)
       assert.equal(storedRecord[4], testDataUri)
@@ -300,13 +309,13 @@ contract("LinniaRecords", (accounts) => {
     it("should reject sig that doesn't cover metadata hash", async () => {
       await instance.addRecord(testDataHash, testMetadata,
         testDataUri, { from: patient })
-        // sign the data hash instead of root hash
-        const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testDataHash))
-        await assertRevert(
-          instance.addSig(testDataHash,
-            eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
-            rsv.v, { from: patient })
-        )
+      // sign the data hash instead of root hash
+      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testDataHash))
+      await assertRevert(
+        instance.addSig(testDataHash,
+          eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
+          rsv.v, { from: patient })
+      )
     })
   })
   describe("add record by admin", () => {
@@ -374,12 +383,12 @@ contract("LinniaRecords", (accounts) => {
       const tx = await instance.pause()
       assert.equal(tx.logs[0].event, "Pause")
       await assertRevert(instance.addRecord(testDataHash,
-          testMetadata, testDataUri, { from: patient }))
+        testMetadata, testDataUri, { from: patient }))
       const tx2 = await instance.unpause()
       assert.equal(tx2.logs[0].event, "Unpause")
       const tx3 = await instance.addRecord(testDataHash,
         testMetadata, testDataUri, { from: patient })
       assert.equal(tx3.logs[0].event, "LogRecordAdded")
-      })
     })
+  })
 })

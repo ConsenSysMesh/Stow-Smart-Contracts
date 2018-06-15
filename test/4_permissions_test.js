@@ -96,10 +96,14 @@ contract("LinniaPermissions", (accounts) => {
     })
     it("should reject if viewer or data uri is zero", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
+      // zero viewer address
       await assertRevert(instance.grantAccess(testDataHash1,
         0, fakeIpfsHash, { from: patient1 }))
+      // zero data uri
       await assertRevert(instance.grantAccess(testDataHash1,
         provider2, 0, { from: patient1 }))
+      await assertRevert(instance.grantAccess(testDataHash1,
+        provider2, "0x", { from: patient1 }))
     })
     it("should not allow sharing same record twice with same user", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
@@ -124,7 +128,7 @@ contract("LinniaPermissions", (accounts) => {
       assert.equal(tx.logs[0].args.viewer, provider2)
       const perm = await instance.permissions(testDataHash1, provider2)
       assert.equal(perm[0], false)
-      assert.equal(perm[1], "")
+      assert.equal(perm[1], "0x")
     })
     it("should not allow non-owner to revoke access to files", async () => {
       await assertRevert(instance.revokeAccess(testDataHash1,
