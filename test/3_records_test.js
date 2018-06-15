@@ -390,8 +390,8 @@ contract("LinniaRecords", (accounts) => {
       const admin = accounts[0]
       assert.notEqual(web3.eth.getCode(instance.address), '0x0')
       const tx = await instance.destroy({from: admin})
-      assert(!tx.logs.length, `did not expect logs but got ${tx.logs}`)
-      assert(web3.eth.getCode(instance.address), '0x0')
+      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`)
+      assert.equal(web3.eth.getCode(instance.address), '0x0')
     })
   })
 })
