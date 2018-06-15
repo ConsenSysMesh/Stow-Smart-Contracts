@@ -117,6 +117,11 @@ contract("LinniaRecords", (accounts) => {
         })
       )
     })
+    it("should not allow adding record by user when paused", async () => {
+      await instance.pause({ from: admin })
+      await assertRevert(instance.addRecord(testDataHash,
+        testMetadata, testDataUri, { from: patient }))
+    })
     it("should allow a long dataUri", async () => {
       const testDataUri = eutil.bufferToHex("https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar")
       const tx = await instance.addRecord(testDataHash,
@@ -172,6 +177,11 @@ contract("LinniaRecords", (accounts) => {
         instance.addRecordByProvider(testDataHash, patient,
           testMetadata, testDataUri, { from: patient })
       )
+    })
+    it("should not allow adding record by provider when paused", async () => {
+      await instance.pause({ from: admin })
+      await assertRevert(instance.addRecordByProvider(testDataHash,
+        patient, testMetadata, testDataUri, { from: provider1 }))
     })
   })
   describe("add signature", () => {
@@ -300,13 +310,29 @@ contract("LinniaRecords", (accounts) => {
     it("should reject sig that doesn't cover metadata hash", async () => {
       await instance.addRecord(testDataHash, testMetadata,
         testDataUri, { from: patient })
-        // sign the data hash instead of root hash
-        const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testDataHash))
-        await assertRevert(
-          instance.addSig(testDataHash,
-            eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
-            rsv.v, { from: patient })
-        )
+      // sign the data hash instead of root hash
+      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testDataHash))
+      await assertRevert(
+        instance.addSig(testDataHash,
+          eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
+          rsv.v, { from: patient })
+      )
+    })
+    it("should not allow adding sig when paused", async () => {
+      // add a record before pausing
+      await instance.addRecord(testDataHash, testMetadata,
+        testDataUri, { from: patient })
+      // pause
+      await instance.pause({ from: admin })
+      // try adding detached sig
+      const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testRootHash))
+      await assertRevert(instance.addSig(testDataHash,
+        eutil.bufferToHex(rsv.r), eutil.bufferToHex(rsv.s),
+        rsv.v, { from: nonUser }))
+      // try adding sig directly from provider
+      await assertRevert(instance.addSigByProvider(testDataHash, {
+        from: provider1
+      }))
     })
   })
   describe("add record by admin", () => {
@@ -354,7 +380,7 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(await instance.sigExists(testDataHash, provider1),
         true)
     })
-    it("should not allow non admin to call", async () => {
+    it("should not allow non-admin to call", async () => {
       await assertRevert(
         instance.addRecordByAdmin(testDataHash, patient,
           provider1, testMetadata, testDataUri, { from: provider1 })
@@ -364,22 +390,24 @@ contract("LinniaRecords", (accounts) => {
           0, testMetadata, testDataUri, { from: provider1 })
       )
     })
+    it("should not allow adding record by admin when paused", async () => {
+      await instance.pause({ from: admin })
+      await assertRevert(instance.addRecordByAdmin(testDataHash,
+        patient, 0, testMetadata, testDataUri, { from: admin }))
+    })
   })
-  describe("pausable", () => {
-    it("should not allow non-admin to pause or unpause", async () => {
-      await assertRevert(instance.pause({ from: accounts[1] }))
-      await assertRevert(instance.unpause({ from: accounts[1] }))
+  describe("pause and unpause", () => {
+    it("should not allow non admin to pause or unpause", async () => {
+      await assertRevert(instance.pause({ from: provider1 }))
+      await assertRevert(instance.unpause({ from: provider1 }))
     })
-    it("should not allow adding records when paused by admin", async () => {
-      const tx = await instance.pause()
+    it("should allow admin to pause and unpause", async () => {
+      const tx = await instance.pause({ from: admin })
       assert.equal(tx.logs[0].event, "Pause")
-      await assertRevert(instance.addRecord(testDataHash,
-          testMetadata, testDataUri, { from: patient }))
-      const tx2 = await instance.unpause()
+      assert.isTrue(await instance.paused())
+      const tx2 = await instance.unpause({ from: admin })
       assert.equal(tx2.logs[0].event, "Unpause")
-      const tx3 = await instance.addRecord(testDataHash,
-        testMetadata, testDataUri, { from: patient })
-      assert.equal(tx3.logs[0].event, "LogRecordAdded")
-      })
+      assert.isFalse(await instance.paused())
     })
+  })
 })
