@@ -1,5 +1,6 @@
 pragma solidity 0.4.24;
 
+import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
@@ -8,7 +9,7 @@ import "./LinniaRecords.sol";
 import "./LinniaUsers.sol";
 
 
-contract LinniaPermissions is Ownable, Pausable {
+contract LinniaPermissions is Ownable, Pausable, Destructible {
     struct Permission {
         bool canAccess;
         // ipfs path of the data, encrypted to the viewer
