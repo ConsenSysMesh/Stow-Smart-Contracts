@@ -1,5 +1,6 @@
 pragma solidity 0.4.24;
 
+import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -7,7 +8,7 @@ import "./LinniaHub.sol";
 import "./LinniaUsers.sol";
 
 
-contract LinniaRecords is Ownable, Pausable {
+contract LinniaRecords is Ownable, Pausable, Destructible {
     using SafeMath for uint;
 
     // Struct of a linnia record

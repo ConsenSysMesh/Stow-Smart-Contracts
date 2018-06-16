@@ -382,4 +382,24 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx3.logs[0].event, "LogRecordAdded")
       })
     })
+  describe("destructible", () => {
+    it("should not allow non-admin to destroy", async () => {
+      await assertRevert(instance.destroy({ from: accounts[1] }))
+    })
+    it("should allow admin to destroy", async () => {
+      const admin = accounts[0]
+      assert.notEqual(web3.eth.getCode(instance.address), '0x0')
+      const tx = await instance.destroy({from: admin})
+      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`)
+      assert.equal(web3.eth.getCode(instance.address), '0x0')
+    })
+    it("should allow admin to destroyAndSend", async () => {
+      const admin = accounts[0]
+      assert.notEqual(web3.eth.getCode(instance.address), '0x0')
+      const tx = await instance.destroyAndSend(admin, {from: admin})
+      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`)
+      assert.equal(web3.eth.getCode(instance.address), '0x0')
+      assert.equal(web3.eth.getBalance(instance.address).toNumber(),0)
+    })
+  })
 })
