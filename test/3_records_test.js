@@ -393,5 +393,13 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`)
       assert.equal(web3.eth.getCode(instance.address), '0x0')
     })
+    it("should allow admin to destroyAndSend", async () => {
+      const admin = accounts[0]
+      assert.notEqual(web3.eth.getCode(instance.address), '0x0')
+      const tx = await instance.destroyAndSend(admin, {from: admin})
+      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`)
+      assert.equal(web3.eth.getCode(instance.address), '0x0')
+      assert.equal(web3.eth.getBalance(instance.address).toNumber(),0)
+    })
   })
 })
