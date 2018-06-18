@@ -1,12 +1,14 @@
 pragma solidity 0.4.24;
 
+
+import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaUsers.sol";
 import "./LinniaRecords.sol";
 import "./LinniaPermissions.sol";
 
 
-contract LinniaHub is Ownable {
+contract LinniaHub is Ownable, Destructible {
     LinniaUsers public usersContract;
     LinniaRecords public recordsContract;
     LinniaPermissions public permissionsContract;

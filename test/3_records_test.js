@@ -380,8 +380,9 @@ contract("LinniaRecords", (accounts) => {
       const tx3 = await instance.addRecord(testDataHash,
         testMetadata, testDataUri, { from: patient })
       assert.equal(tx3.logs[0].event, "LogRecordAdded")
-      })
     })
+  })
+  // copy paste from records contract
   describe("destructible", () => {
     it("should not allow non-admin to destroy", async () => {
       await assertRevert(instance.destroy({ from: accounts[1] }))
