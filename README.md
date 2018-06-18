@@ -16,6 +16,10 @@ A contract that keeps a registry of permissions. Permissions include who can vie
 
 # Getting started
 
+### Prerequisites
+* Node.js
+* Node Package Manager
+
 Clone the repository
 ```
 $ git clone https://github.com/ConsenSys/Linnia-Smart-Contracts.git
@@ -41,3 +45,7 @@ To run tests without coverage
 - First start testrpc with `npm start`
   - Alternatively you can run Ganache GUI at port 7545 with network id 5777
 - Run `npm test`
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://github.com/ConsenSys/Linnia-Smart-Contracts/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
