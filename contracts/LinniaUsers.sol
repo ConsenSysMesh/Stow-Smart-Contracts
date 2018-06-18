@@ -1,11 +1,12 @@
 pragma solidity 0.4.24;
 
+import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
 
 
-contract LinniaUsers is Ownable, Pausable {
+contract LinniaUsers is Ownable, Pausable, Destructible {
     struct User {
         bool exists;
         uint registerBlocktime;
