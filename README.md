@@ -14,21 +14,28 @@ A contract that keeps a registry of metadata of uploaded medical records, as wel
 ## Linnia Permissions
 A contract that keeps a registry of permissions. Permissions include who can view what data, and where the permissioned copy is stored on IPFS.
 
-# Installing (only once)
+# Getting started
 
-Installs `babel` and `openzeppelin-solidity`.
+### Prerequisites
+* Node.js
+* Node Package Manager
 
+Clone the repository
 ```
-npm install
+$ git clone https://github.com/ConsenSys/Linnia-Smart-Contracts.git
 ```
 
+Install the dependencies
+```
+$ npm install
+```
 
-# Deploying
+## Deploying
 ```
 npm run migrate
 ```
 
-# Testing
+## Testing
 To run tests with coverage
 ```
 npm run coverage
@@ -38,3 +45,7 @@ To run tests without coverage
 - First start testrpc with `npm start`
   - Alternatively you can run Ganache GUI at port 7545 with network id 5777
 - Run `npm test`
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://github.com/ConsenSys/Linnia-Smart-Contracts/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
