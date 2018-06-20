@@ -1,7 +1,7 @@
 Contributing to Linnia-Smart-Contracts
 =======
 
-We really appreciate and value contributions to Linnia-Smart-Contracts. Please take 5' to review the items listed below to make sure that your contributions are merged as soon as possible. 
+We really appreciate and value contributions to Linnia-Smart-Contracts. Please take a few moments to review the items listed below to make sure that your contributions are merged as soon as possible. 
 
 ## Contribution guidelines
 
@@ -24,10 +24,10 @@ git pull --rebase upstream master
 ```
 NOTE: The directory `Linnia-Smart-Contracts` represents your fork's local copy.
 
-2) Branch out from `master` into `fix/some-bug-#123`:
+2) Branch out from `master` into `lp123/bug/fixesTheThing`:
 (Postfixing #123 will associate your PR with the issue #123 and make everyone's life easier =D)
 ```
-git checkout -b fix/some-bug-#123
+git checkout -b lp123/bug/fixesTheThing
 ```
 
 3) Make your changes, add your files, commit and push to your fork.
@@ -35,7 +35,7 @@ git checkout -b fix/some-bug-#123
 ```
 git add SomeFile.js
 git commit "Fix some bug #123"
-git push origin fix/some-bug-#123
+git push origin lp123/bug/fixesTheThing
 ```
 
 4) Go to [github.com/Consensys/Linnia-Smart-Contracts](https://github.com/Consensys/Linnia-Smart-Contracts) in your web browser and issue a new pull request.
