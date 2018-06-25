@@ -68,6 +68,7 @@ contract LinniaRecords is Ownable, Pausable {
         bytes32 dataHash, address owner, address attestator,
         string metadata, string dataUri)
         onlyOwner
+        whenNotPaused
         external
         returns (bool)
     {
@@ -87,6 +88,7 @@ contract LinniaRecords is Ownable, Pausable {
     function addRecord(
         bytes32 dataHash, string metadata, string dataUri)
         onlyUser
+        whenNotPaused
         public
         returns (bool)
     {
@@ -105,6 +107,7 @@ contract LinniaRecords is Ownable, Pausable {
         bytes32 dataHash, address owner, string metadata, string dataUri)
         onlyUser
         hasProvenance(msg.sender)
+        whenNotPaused
         public
         returns (bool)
     {
@@ -122,6 +125,7 @@ contract LinniaRecords is Ownable, Pausable {
     function addSigByProvider(bytes32 dataHash)
         hasProvenance(msg.sender)
         public
+        whenNotPaused
         returns (bool)
     {
         require(_addSig(dataHash, msg.sender));
@@ -140,6 +144,7 @@ contract LinniaRecords is Ownable, Pausable {
     /// @param v signature: V
     function addSig(bytes32 dataHash, bytes32 r, bytes32 s, uint8 v)
         public
+        whenNotPaused
         returns (bool)
     {
         // find the root hash of the record
@@ -181,7 +186,6 @@ contract LinniaRecords is Ownable, Pausable {
 
     function _addRecord(
         bytes32 dataHash, address owner, string metadata, string dataUri)
-        whenNotPaused
         internal
         returns (bool)
     {
@@ -211,7 +215,6 @@ contract LinniaRecords is Ownable, Pausable {
 
     function _addSig(bytes32 dataHash, address provider)
         hasProvenance(provider)
-        whenNotPaused
         internal
         returns (bool)
     {
