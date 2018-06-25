@@ -124,8 +124,8 @@ contract LinniaRecords is Ownable, Pausable {
     /// @param dataHash the data hash of the linnia record
     function addSigByProvider(bytes32 dataHash)
         hasProvenance(msg.sender)
-        public
         whenNotPaused
+        public
         returns (bool)
     {
         require(_addSig(dataHash, msg.sender));
@@ -143,8 +143,8 @@ contract LinniaRecords is Ownable, Pausable {
     /// @param s signature: S
     /// @param v signature: V
     function addSig(bytes32 dataHash, bytes32 r, bytes32 s, uint8 v)
-        public
         whenNotPaused
+        public
         returns (bool)
     {
         // find the root hash of the record
