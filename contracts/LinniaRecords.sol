@@ -192,7 +192,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
     {
         // validate input
         require(dataHash != 0);
-        require(keccak256(abi.encodePacked(dataUri)) != keccak256(abi.encodePacked("")));
+        require(bytes(dataUri).length != 0);
         bytes32 metadataHash = keccak256(abi.encodePacked(metadata));
 
         // the file must be new
