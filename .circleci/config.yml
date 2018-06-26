@@ -45,10 +45,10 @@ jobs:
       #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
       # Save test results
       - store_test_results:
-          path:  circleci-test-results
+          path:  coverage
       # Save artifacts
       - store_artifacts:
-          path: /tmp/circleci-artifacts
+          path: coverage
       - store_artifacts:
-          path: /tmp/circleci-test-results
+          path: build
 
