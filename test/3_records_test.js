@@ -11,10 +11,7 @@ import assertRevert from "openzeppelin-solidity/test/helpers/assertRevert"
 
 const testDataContent = `{"foo":"bar","baz":42}`
 const testDataHash = eutil.bufferToHex(eutil.sha3(testDataContent))
-const testDataUri = eutil.bufferToHex(
-  multihashes.decode(
-    bs58.decode(
-      "QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM")).digest)
+const testDataUri = "QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM"
 const testMetadata = "KEYWORDS"
 const testMetaHash = eutil.bufferToHex(eutil.sha3(testMetadata))
 const testRootHash = eutil.bufferToHex(eutil.sha3(Buffer.concat([
