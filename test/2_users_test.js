@@ -24,6 +24,15 @@ contract("LinniaUsers", (accounts) => {
       assert.equal(await instance.hub(), hub.address)
     })
   })
+  describe("fallback function", () => {
+    it("should revert when ether sent directly.", async () => {
+      await assertRevert(
+        instance.sendTransaction(
+          { from: accounts[1], value: 1 }
+        )
+      )
+    })
+  })
   describe("change admin", () => {
     it("should allow admin to change admin", async () => {
       const instance = await LinniaUsers.new(hub.address)

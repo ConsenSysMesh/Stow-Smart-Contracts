@@ -66,6 +66,15 @@ contract("LinniaPermissions", (accounts) => {
       assert.equal(await instance.hub(), hub.address)
     })
   })
+  describe("fallback function", () => {
+    it("should revert when ether sent directly.", async () => {
+      await assertRevert(
+        instance.sendTransaction(
+          { from: accounts[1], value: 1 }
+        )
+      )
+    })
+  })
   describe("grant access", () => {
     it("should allow patient to grant access to their files", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))

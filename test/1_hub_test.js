@@ -19,6 +19,15 @@ contract("LinniaHub", (accounts) => {
         assert.equal(await instance.recordsContract(), 0)
       })
   })
+  describe("fallback function", () => {
+    it("should revert when ether sent directly.", async () => {
+      await assertRevert(
+        instance.sendTransaction(
+          { from: accounts[1], value: 1 }
+        )
+      )
+    })
+  })
   describe("set users contract", () => {
     it("should allow admin to set Users address", async () => {
       const tx = await instance.setUsersContract(42)
