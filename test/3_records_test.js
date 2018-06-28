@@ -51,6 +51,15 @@ contract("LinniaRecords", (accounts) => {
       assert.equal(await instance.hub(), hub.address)
     })
   })
+  describe("fallback function", () => {
+    it("should revert when ether sent directly.", async () => {
+      await assertRevert(
+        instance.sendTransaction(
+          { from: accounts[1], value: 1 }
+        )
+      )
+    })
+  })
   describe("recover", () => {
     it("should recover the signer address if sig is valid", async () => {
       const msgHash = eutil.bufferToHex(eutil.sha3(crypto.randomBytes(2000)))
