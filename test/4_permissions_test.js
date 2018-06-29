@@ -14,12 +14,8 @@ const testDataContent1 = `{"foo":"bar","baz":42}`
 const testDataContent2 = `{"asdf":42}`
 const testDataHash1 = eutil.bufferToHex(eutil.sha3(testDataContent1))
 const testDataHash2 = eutil.bufferToHex(eutil.sha3(testDataContent2))
-const testDataUri1 = eutil.bufferToHex(
-  multihashes.decode(
-    bs58.decode("QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM")).digest)
-const testDataUri2 = eutil.bufferToHex(
-  multihashes.decode(
-    bs58.decode("QmUoCHEZqSuYhr9fV1c2b4gLASG2hPpC2moQXQ6qzy697d")).digest)
+const testDataUri1 = "QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM"
+const testDataUri2 = "QmUoCHEZqSuYhr9fV1c2b4gLASG2hPpC2moQXQ6qzy697d"
 const testMetadata = "KEYWORDS"
 
 contract("LinniaPermissions", (accounts) => {
