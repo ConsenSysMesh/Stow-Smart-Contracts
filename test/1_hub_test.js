@@ -1,81 +1,82 @@
-const LinniaHub = artifacts.require("./LinniaHub.sol")
+const LinniaHub = artifacts.require("./LinniaHub.sol");
 
-import assertRevert from "openzeppelin-solidity/test/helpers/assertRevert"
+import assertRevert from "openzeppelin-solidity/test/helpers/assertRevert";
 
-contract("LinniaHub", (accounts) => {
-  let instance
+contract("LinniaHub", accounts => {
+  let instance;
   beforeEach("deploy a new LinniaHub contract", async () => {
-    instance = await LinniaHub.new()
-  })
+    instance = await LinniaHub.new();
+  });
 
   describe("constructor", () => {
     it("should set admin correctly", async () => {
-      const instance = await LinniaHub.new()
-      assert.equal(await instance.owner(), accounts[0])
-    })
-    it("should initialize users, records addresss to zero",
-      async () => {
-        assert.equal(await instance.usersContract(), 0)
-        assert.equal(await instance.recordsContract(), 0)
-      })
-  })
+      const instance = await LinniaHub.new();
+      assert.equal(await instance.owner(), accounts[0]);
+    });
+    it("should initialize users, records addresss to zero", async () => {
+      assert.equal(await instance.usersContract(), 0);
+      assert.equal(await instance.recordsContract(), 0);
+    });
+  });
   describe("set users contract", () => {
     it("should allow admin to set Users address", async () => {
-      const tx = await instance.setUsersContract(42)
-      assert.equal(tx.logs[0].event, "LogUsersContractSet")
-      assert.equal(tx.logs[0].args.from, 0)
-      assert.equal(tx.logs[0].args.to, 42)
-      assert.equal(await instance.usersContract(), 42)
-    })
+      const tx = await instance.setUsersContract(42);
+      assert.equal(tx.logs[0].event, "LogUsersContractSet");
+      assert.equal(tx.logs[0].args.from, 0);
+      assert.equal(tx.logs[0].args.to, 42);
+      assert.equal(await instance.usersContract(), 42);
+    });
     it("should not allow non-admin to set Users address", async () => {
-      await assertRevert(instance.setUsersContract(42, { from: accounts[1] }))
-    })
-  })
+      await assertRevert(instance.setUsersContract(42, {from: accounts[1]}));
+    });
+  });
   describe("set Records contract", () => {
     it("should allow admin to set Records address", async () => {
-      const tx = await instance.setRecordsContract(42)
-      assert.equal(tx.logs[0].event, "LogRecordsContractSet")
-      assert.equal(tx.logs[0].args.from, 0)
-      assert.equal(tx.logs[0].args.to, 42)
-      assert.equal(await instance.recordsContract(), 42)
-    })
+      const tx = await instance.setRecordsContract(42);
+      assert.equal(tx.logs[0].event, "LogRecordsContractSet");
+      assert.equal(tx.logs[0].args.from, 0);
+      assert.equal(tx.logs[0].args.to, 42);
+      assert.equal(await instance.recordsContract(), 42);
+    });
     it("should not allow non-admin to set Records address", async () => {
-      await assertRevert(instance.setRecordsContract(42, { from: accounts[1] }))
-    })
-
-  })
+      await assertRevert(
+        instance.setRecordsContract(42, {from: accounts[1]})
+      );
+    });
+  });
   describe("set Permissions contract", () => {
     it("should allow admin to set Permissions address", async () => {
-      const tx = await instance.setPermissionsContract(42)
-      assert.equal(tx.logs[0].event, "LogPermissionsContractSet")
-      assert.equal(tx.logs[0].args.from, 0)
-      assert.equal(tx.logs[0].args.to, 42)
-      assert.equal(await instance.permissionsContract(), 42)
-    })
+      const tx = await instance.setPermissionsContract(42);
+      assert.equal(tx.logs[0].event, "LogPermissionsContractSet");
+      assert.equal(tx.logs[0].args.from, 0);
+      assert.equal(tx.logs[0].args.to, 42);
+      assert.equal(await instance.permissionsContract(), 42);
+    });
     it("should not allow non-admin to set Permissions address", async () => {
-      await assertRevert(instance.setPermissionsContract(42,
-        { from: accounts[1] }))
-    })
-  })
+      await assertRevert(
+        instance.setPermissionsContract(42, {from: accounts[1]})
+      );
+    });
+  });
   // copy paste from records contract
   describe("destructible", () => {
     it("should not allow non-admin to destroy", async () => {
-      await assertRevert(instance.destroy({ from: accounts[1] }))
-    })
+      await assertRevert(instance.destroy({from: accounts[1]}));
+    });
     it("should allow admin to destroy", async () => {
-      const admin = accounts[0]
-      assert.notEqual(web3.eth.getCode(instance.address), '0x0')
-      const tx = await instance.destroy({from: admin})
-      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`)
-      assert.equal(web3.eth.getCode(instance.address), '0x0')
-    })
+      const admin = accounts[0];
+      assert.notEqual(web3.eth.getCode(instance.address), "0x0");
+      const tx = await instance.destroy({from: admin});
+      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
+      assert.equal(web3.eth.getCode(instance.address), "0x0");
+    });
     it("should allow admin to destroyAndSend", async () => {
-      const admin = accounts[0]
-      assert.notEqual(web3.eth.getCode(instance.address), '0x0')
-      const tx = await instance.destroyAndSend(admin, {from: admin})
-      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`)
-      assert.equal(web3.eth.getCode(instance.address), '0x0')
-      assert.equal(web3.eth.getBalance(instance.address).toNumber(),0)
-    })
-  })
-})
+      const admin = accounts[0];
+      assert.notEqual(web3.eth.getCode(instance.address), "0x0");
+      const tx = await instance.destroyAndSend(admin, {from: admin});
+      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
+      assert.equal(web3.eth.getCode(instance.address), "0x0");
+      assert.equal(web3.eth.getBalance(instance.address).toNumber(), 0);
+    });
+  });
+});
