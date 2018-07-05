@@ -372,7 +372,7 @@ contract('LinniaRecords', accounts => {
         )
       );
     });
-    it('should reject sig that doesn\'t cover metadata hash', async () => {
+    it("should reject sig that doesn't cover metadata hash", async () => {
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: patient
       });
