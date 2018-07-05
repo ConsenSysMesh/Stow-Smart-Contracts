@@ -1,17 +1,15 @@
+import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
+
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
 const LinniaRecords = artifacts.require('./LinniaRecords.sol');
 const LinniaPermissions = artifacts.require('./LinniaPermissions.sol');
 
-const bs58 = require('bs58');
 const crypto = require('crypto');
 const eutil = require('ethereumjs-util');
-const multihashes = require('multihashes');
 
-import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
-
-const testDataContent1 = `{"foo":"bar","baz":42}`;
-const testDataContent2 = `{"asdf":42}`;
+const testDataContent1 = '{"foo":"bar","baz":42}';
+const testDataContent2 = '{"asdf":42}';
 const testDataHash1 = eutil.bufferToHex(eutil.sha3(testDataContent1));
 const testDataHash2 = eutil.bufferToHex(eutil.sha3(testDataContent2));
 const testDataUri1 = 'QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM';
@@ -24,7 +22,8 @@ contract('LinniaPermissions', accounts => {
   const patient2 = accounts[2];
   const provider1 = accounts[3];
   const provider2 = accounts[4];
-  let hub, instance;
+  let hub;
+  let instance;
 
   before('set up a LinniaHub contract', async () => {
     hub = await LinniaHub.new();
@@ -62,10 +61,10 @@ contract('LinniaPermissions', accounts => {
 
   describe('constructor', () => {
     it('should set hub address correctly', async () => {
-      const instance = await LinniaRecords.new(hub.address, {
+      const newInstance = await LinniaRecords.new(hub.address, {
         from: accounts[0]
       });
-      assert.equal(await instance.hub(), hub.address);
+      assert.equal(await newInstance.hub(), hub.address);
     });
   });
   describe('grant access', () => {
@@ -128,7 +127,7 @@ contract('LinniaPermissions', accounts => {
     );
   });
   describe('revoke access', () => {
-    beforeEach("grant provider2 to access patient1's record1", async () => {
+    beforeEach('grant provider2 to access patient1\'s record1', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
         from: patient1
@@ -189,14 +188,12 @@ contract('LinniaPermissions', accounts => {
       await assertRevert(instance.destroy({ from: accounts[1] }));
     });
     it('should allow admin to destroy', async () => {
-      const admin = accounts[0];
       assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroy({ from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
       assert.equal(web3.eth.getCode(instance.address), '0x0');
     });
     it('should allow admin to destroyAndSend', async () => {
-      const admin = accounts[0];
       assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroyAndSend(admin, { from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);

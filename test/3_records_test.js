@@ -1,15 +1,13 @@
+import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
+
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
 const LinniaRecords = artifacts.require('./LinniaRecords.sol');
 
-const bs58 = require('bs58');
 const crypto = require('crypto');
 const eutil = require('ethereumjs-util');
-const multihashes = require('multihashes');
 
-import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
-
-const testDataContent = `{"foo":"bar","baz":42}`;
+const testDataContent = '{"foo":"bar","baz":42}';
 const testDataHash = eutil.bufferToHex(eutil.sha3(testDataContent));
 const testDataUri = 'QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM';
 const testMetadata = 'KEYWORDS';
@@ -47,8 +45,8 @@ contract('LinniaRecords', accounts => {
   });
   describe('constructor', () => {
     it('should set hub address correctly', async () => {
-      const instance = await LinniaRecords.new(hub.address);
-      assert.equal(await instance.hub(), hub.address);
+      const newInstance = await LinniaRecords.new(hub.address);
+      assert.equal(await newInstance.hub(), hub.address);
     });
   });
   describe('recover', () => {
@@ -87,7 +85,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
-      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber).timestamp;
+      const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
       // check state
       const storedRecord = await instance.records(testDataHash);
       assert.equal(storedRecord[0], patient);
@@ -130,19 +128,19 @@ contract('LinniaRecords', accounts => {
       );
     });
     it('should allow a long dataUri', async () => {
-      const testDataUri = eutil.bufferToHex(
+      const testLongDataUri = eutil.bufferToHex(
         'https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar'
       );
       const tx = await instance.addRecord(
         testDataHash,
         testMetadata,
-        testDataUri,
+        testLongDataUri,
         { from: patient }
       );
       assert.equal(tx.logs.length, 1);
       // check state
       const storedRecord = await instance.records(testDataHash);
-      assert.equal(storedRecord[4], testDataUri);
+      assert.equal(storedRecord[4], testLongDataUri);
     });
   });
   describe('add record by provider', () => {
@@ -163,7 +161,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
       assert.equal(tx.logs[1].args.attestator, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
-      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber).timestamp;
+      const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
       // check state
       const storedRecord = await instance.records(testDataHash);
       assert.equal(storedRecord[0], patient);
@@ -374,7 +372,7 @@ contract('LinniaRecords', accounts => {
         )
       );
     });
-    it("should reject sig that doesn't cover metadata hash", async () => {
+    it('should reject sig that doesn\'t cover metadata hash', async () => {
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: patient
       });
@@ -407,7 +405,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
       // check state
-      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber).timestamp;
+      const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
       const storedRecord = await instance.records(testDataHash);
       assert.equal(storedRecord[0], patient);
       assert.equal(storedRecord[1], testMetaHash);
@@ -435,7 +433,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[1].args.attestator, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
       // check state
-      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber).timestamp;
+      const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
       const storedRecord = await instance.records(testDataHash);
       assert.equal(storedRecord[0], patient);
       assert.equal(storedRecord[1], testMetaHash);
@@ -498,14 +496,12 @@ contract('LinniaRecords', accounts => {
       await assertRevert(instance.destroy({ from: accounts[1] }));
     });
     it('should allow admin to destroy', async () => {
-      const admin = accounts[0];
       assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroy({ from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
       assert.equal(web3.eth.getCode(instance.address), '0x0');
     });
     it('should allow admin to destroyAndSend', async () => {
-      const admin = accounts[0];
       assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroyAndSend(admin, { from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
