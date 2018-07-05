@@ -1,18 +1,18 @@
-const LinniaHub = artifacts.require("./LinniaHub.sol");
-const LinniaUsers = artifacts.require("./LinniaUsers.sol");
-const LinniaRecords = artifacts.require("./LinniaRecords.sol");
+const LinniaHub = artifacts.require('./LinniaHub.sol');
+const LinniaUsers = artifacts.require('./LinniaUsers.sol');
+const LinniaRecords = artifacts.require('./LinniaRecords.sol');
 
-const bs58 = require("bs58");
-const crypto = require("crypto");
-const eutil = require("ethereumjs-util");
-const multihashes = require("multihashes");
+const bs58 = require('bs58');
+const crypto = require('crypto');
+const eutil = require('ethereumjs-util');
+const multihashes = require('multihashes');
 
-import assertRevert from "openzeppelin-solidity/test/helpers/assertRevert";
+import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 
 const testDataContent = `{"foo":"bar","baz":42}`;
 const testDataHash = eutil.bufferToHex(eutil.sha3(testDataContent));
-const testDataUri = "QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM";
-const testMetadata = "KEYWORDS";
+const testDataUri = 'QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM';
+const testMetadata = 'KEYWORDS';
 const testMetaHash = eutil.bufferToHex(eutil.sha3(testMetadata));
 const testRootHash = eutil.bufferToHex(
   eutil.sha3(
@@ -20,7 +20,7 @@ const testRootHash = eutil.bufferToHex(
   )
 );
 
-contract("LinniaRecords", accounts => {
+contract('LinniaRecords', accounts => {
   const admin = accounts[0];
   const patient = accounts[1];
   const provider1 = accounts[2];
@@ -29,10 +29,10 @@ contract("LinniaRecords", accounts => {
   let hub;
   let instance;
 
-  before("set up a LinniaHub contract", async () => {
+  before('set up a LinniaHub contract', async () => {
     hub = await LinniaHub.new();
   });
-  before("set up a LinniaUsers contract", async () => {
+  before('set up a LinniaUsers contract', async () => {
     const usersInstance = await LinniaUsers.new(hub.address);
     await hub.setUsersContract(usersInstance.address);
     usersInstance.register({ from: patient });
@@ -41,18 +41,18 @@ contract("LinniaRecords", accounts => {
     usersInstance.setProvenance(provider1, 1);
     usersInstance.setProvenance(provider2, 2);
   });
-  beforeEach("deploy a new LinniaRecords contract", async () => {
+  beforeEach('deploy a new LinniaRecords contract', async () => {
     instance = await LinniaRecords.new(hub.address);
     await hub.setRecordsContract(instance.address);
   });
-  describe("constructor", () => {
-    it("should set hub address correctly", async () => {
+  describe('constructor', () => {
+    it('should set hub address correctly', async () => {
       const instance = await LinniaRecords.new(hub.address);
       assert.equal(await instance.hub(), hub.address);
     });
   });
-  describe("recover", () => {
-    it("should recover the signer address if sig is valid", async () => {
+  describe('recover', () => {
+    it('should recover the signer address if sig is valid', async () => {
       const msgHash = eutil.bufferToHex(eutil.sha3(crypto.randomBytes(2000)));
       const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, msgHash));
       const recoveredAddr = await instance.recover(
@@ -63,7 +63,7 @@ contract("LinniaRecords", accounts => {
       );
       assert.equal(recoveredAddr, provider1);
     });
-    it("should recover zero address if sig is bad", async () => {
+    it('should recover zero address if sig is bad', async () => {
       const msgHash = eutil.bufferToHex(eutil.sha3(crypto.randomBytes(2000)));
       const recoveredAddr = await instance.recover(
         msgHash,
@@ -74,8 +74,8 @@ contract("LinniaRecords", accounts => {
       assert.equal(recoveredAddr, 0);
     });
   });
-  describe("add record by user", () => {
-    it("should allow a user to add a record", async () => {
+  describe('add record by user', () => {
+    it('should allow a user to add a record', async () => {
       const tx = await instance.addRecord(
         testDataHash,
         testMetadata,
@@ -83,7 +83,7 @@ contract("LinniaRecords", accounts => {
         { from: patient }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, "LogRecordAdded");
+      assert.equal(tx.logs[0].event, 'LogRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
@@ -97,7 +97,7 @@ contract("LinniaRecords", accounts => {
       assert.equal(storedRecord[4], testDataUri);
       assert.equal(storedRecord[5], timestamp);
     });
-    it("should not allow user to add same record twice", async () => {
+    it('should not allow user to add same record twice', async () => {
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: patient
       });
@@ -108,14 +108,14 @@ contract("LinniaRecords", accounts => {
         })
       );
     });
-    it("should not allow non-users to call", async () => {
+    it('should not allow non-users to call', async () => {
       await assertRevert(
         instance.addRecord(testDataHash, testMetadata, testDataUri, {
           from: nonUser
         })
       );
     });
-    it("should reject if data hash or data uri is zero", async () => {
+    it('should reject if data hash or data uri is zero', async () => {
       // try zero data hash
       await assertRevert(
         instance.addRecord(0, testMetadata, testDataUri, {
@@ -129,9 +129,9 @@ contract("LinniaRecords", accounts => {
         })
       );
     });
-    it("should allow a long dataUri", async () => {
+    it('should allow a long dataUri', async () => {
       const testDataUri = eutil.bufferToHex(
-        "https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar"
+        'https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar'
       );
       const tx = await instance.addRecord(
         testDataHash,
@@ -145,8 +145,8 @@ contract("LinniaRecords", accounts => {
       assert.equal(storedRecord[4], testDataUri);
     });
   });
-  describe("add record by provider", () => {
-    it("should allow a provider to add a record", async () => {
+  describe('add record by provider', () => {
+    it('should allow a provider to add a record', async () => {
       const tx = await instance.addRecordByProvider(
         testDataHash,
         patient,
@@ -155,11 +155,11 @@ contract("LinniaRecords", accounts => {
         { from: provider1 }
       );
       assert.equal(tx.logs.length, 2);
-      assert.equal(tx.logs[0].event, "LogRecordAdded");
+      assert.equal(tx.logs[0].event, 'LogRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
-      assert.equal(tx.logs[1].event, "LogRecordSigAdded");
+      assert.equal(tx.logs[1].event, 'LogRecordSigAdded');
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
       assert.equal(tx.logs[1].args.attestator, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
@@ -174,7 +174,7 @@ contract("LinniaRecords", accounts => {
       assert.equal(storedRecord[5], timestamp);
       assert.equal(await instance.sigExists(testDataHash, provider1), true);
     });
-    it("should not allow provider to add a record twice", async () => {
+    it('should not allow provider to add a record twice', async () => {
       await instance.addRecordByProvider(
         testDataHash,
         patient,
@@ -192,7 +192,7 @@ contract("LinniaRecords", accounts => {
         )
       );
     });
-    it("should not allow provider to add a record for non-user", async () => {
+    it('should not allow provider to add a record for non-user', async () => {
       await assertRevert(
         instance.addRecordByProvider(
           testDataHash,
@@ -203,7 +203,7 @@ contract("LinniaRecords", accounts => {
         )
       );
     });
-    it("should not allow non-provider to call", async () => {
+    it('should not allow non-provider to call', async () => {
       await assertRevert(
         instance.addRecordByProvider(
           testDataHash,
@@ -215,8 +215,8 @@ contract("LinniaRecords", accounts => {
       );
     });
   });
-  describe("add signature", () => {
-    it("should allow adding valid signature", async () => {
+  describe('add signature', () => {
+    it('should allow adding valid signature', async () => {
       // add a file without any sig, by patient
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: patient
@@ -232,7 +232,7 @@ contract("LinniaRecords", accounts => {
         { from: nonUser }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, "LogRecordSigAdded");
+      assert.equal(tx.logs[0].event, 'LogRecordSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.attestator, provider1);
       assert.equal(tx.logs[0].args.irisScore, 1);
@@ -242,7 +242,7 @@ contract("LinniaRecords", accounts => {
       assert.equal(storedRecord[3], 1); // iris score
       assert.equal(await instance.sigExists(testDataHash, provider1), true);
     });
-    it("should allow adding valid signature by provider", async () => {
+    it('should allow adding valid signature by provider', async () => {
       // add a file without any sig, by patient
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: patient
@@ -252,7 +252,7 @@ contract("LinniaRecords", accounts => {
         from: provider1
       });
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, "LogRecordSigAdded");
+      assert.equal(tx.logs[0].event, 'LogRecordSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.attestator, provider1);
       assert.equal(tx.logs[0].args.irisScore, 1);
@@ -262,7 +262,7 @@ contract("LinniaRecords", accounts => {
       assert.equal(storedRecord[3], 1); // iris score
       assert.equal(await instance.sigExists(testDataHash, provider1), true);
     });
-    it("should not allow adding the same sig twice", async () => {
+    it('should not allow adding the same sig twice', async () => {
       // add a file without any sig
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: patient
@@ -286,7 +286,7 @@ contract("LinniaRecords", accounts => {
         )
       );
     });
-    it("should allow adding sigs from different providers", async () => {
+    it('should allow adding sigs from different providers', async () => {
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: patient
       });
@@ -301,7 +301,7 @@ contract("LinniaRecords", accounts => {
       );
       // check log
       assert.equal(tx1.logs.length, 1);
-      assert.equal(tx1.logs[0].event, "LogRecordSigAdded");
+      assert.equal(tx1.logs[0].event, 'LogRecordSigAdded');
       assert.equal(tx1.logs[0].args.dataHash, testDataHash);
       assert.equal(tx1.logs[0].args.attestator, provider1);
       assert.equal(tx1.logs[0].args.irisScore, 1);
@@ -316,7 +316,7 @@ contract("LinniaRecords", accounts => {
       );
       // check log
       assert.equal(tx2.logs.length, 1);
-      assert.equal(tx2.logs[0].event, "LogRecordSigAdded");
+      assert.equal(tx2.logs[0].event, 'LogRecordSigAdded');
       assert.equal(tx2.logs[0].args.dataHash, testDataHash);
       assert.equal(tx2.logs[0].args.attestator, provider2);
       assert.equal(tx2.logs[0].args.irisScore, 3); // iris should increment
@@ -328,7 +328,7 @@ contract("LinniaRecords", accounts => {
       assert.equal(await instance.sigExists(testDataHash, provider2), true);
     });
     it(
-      "should allow adding another sig after provider added file",
+      'should allow adding another sig after provider added file',
       async () => {
         await instance.addRecordByProvider(
           testDataHash,
@@ -346,7 +346,7 @@ contract("LinniaRecords", accounts => {
           rsv2.v,
           { from: nonUser }
         );
-        assert.equal(tx.logs[0].event, "LogRecordSigAdded");
+        assert.equal(tx.logs[0].event, 'LogRecordSigAdded');
         assert.equal(tx.logs[0].args.dataHash, testDataHash);
         assert.equal(tx.logs[0].args.attestator, provider2);
         assert.equal(tx.logs[0].args.irisScore, 3);
@@ -358,7 +358,7 @@ contract("LinniaRecords", accounts => {
         assert.equal(await instance.sigExists(testDataHash, provider2), true);
       }
     );
-    it("should reject bad signatures", async () => {
+    it('should reject bad signatures', async () => {
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: patient
       });
@@ -391,8 +391,8 @@ contract("LinniaRecords", accounts => {
       );
     });
   });
-  describe("add record by admin", () => {
-    it("should allow admin to add a record without attestation", async () => {
+  describe('add record by admin', () => {
+    it('should allow admin to add a record without attestation', async () => {
       const tx = await instance.addRecordByAdmin(
         testDataHash,
         patient,
@@ -402,7 +402,7 @@ contract("LinniaRecords", accounts => {
         { from: admin }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, "LogRecordAdded");
+      assert.equal(tx.logs[0].event, 'LogRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
@@ -416,7 +416,7 @@ contract("LinniaRecords", accounts => {
       assert.equal(storedRecord[4], testDataUri);
       assert.equal(storedRecord[5], timestamp);
     });
-    it("should allow admin to add a record with attestation", async () => {
+    it('should allow admin to add a record with attestation', async () => {
       const tx = await instance.addRecordByAdmin(
         testDataHash,
         patient,
@@ -426,11 +426,11 @@ contract("LinniaRecords", accounts => {
         { from: admin }
       );
       assert.equal(tx.logs.length, 2);
-      assert.equal(tx.logs[0].event, "LogRecordAdded");
+      assert.equal(tx.logs[0].event, 'LogRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
-      assert.equal(tx.logs[1].event, "LogRecordSigAdded");
+      assert.equal(tx.logs[1].event, 'LogRecordSigAdded');
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
       assert.equal(tx.logs[1].args.attestator, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
@@ -445,7 +445,7 @@ contract("LinniaRecords", accounts => {
       assert.equal(storedRecord[5], timestamp);
       assert.equal(await instance.sigExists(testDataHash, provider1), true);
     });
-    it("should not allow non admin to call", async () => {
+    it('should not allow non admin to call', async () => {
       await assertRevert(
         instance.addRecordByAdmin(
           testDataHash,
@@ -468,48 +468,48 @@ contract("LinniaRecords", accounts => {
       );
     });
   });
-  describe("pausable", () => {
-    it("should not allow non-admin to pause or unpause", async () => {
+  describe('pausable', () => {
+    it('should not allow non-admin to pause or unpause', async () => {
       await assertRevert(instance.pause({ from: accounts[1] }));
       await assertRevert(instance.unpause({ from: accounts[1] }));
     });
-    it("should not allow adding records when paused by admin", async () => {
+    it('should not allow adding records when paused by admin', async () => {
       const tx = await instance.pause();
-      assert.equal(tx.logs[0].event, "Pause");
+      assert.equal(tx.logs[0].event, 'Pause');
       await assertRevert(
         instance.addRecord(testDataHash, testMetadata, testDataUri, {
           from: patient
         })
       );
       const tx2 = await instance.unpause();
-      assert.equal(tx2.logs[0].event, "Unpause");
+      assert.equal(tx2.logs[0].event, 'Unpause');
       const tx3 = await instance.addRecord(
         testDataHash,
         testMetadata,
         testDataUri,
         { from: patient }
       );
-      assert.equal(tx3.logs[0].event, "LogRecordAdded");
+      assert.equal(tx3.logs[0].event, 'LogRecordAdded');
     });
   });
   // copy paste from records contract
-  describe("destructible", () => {
-    it("should not allow non-admin to destroy", async () => {
+  describe('destructible', () => {
+    it('should not allow non-admin to destroy', async () => {
       await assertRevert(instance.destroy({ from: accounts[1] }));
     });
-    it("should allow admin to destroy", async () => {
+    it('should allow admin to destroy', async () => {
       const admin = accounts[0];
-      assert.notEqual(web3.eth.getCode(instance.address), "0x0");
+      assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroy({ from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
-      assert.equal(web3.eth.getCode(instance.address), "0x0");
+      assert.equal(web3.eth.getCode(instance.address), '0x0');
     });
-    it("should allow admin to destroyAndSend", async () => {
+    it('should allow admin to destroyAndSend', async () => {
       const admin = accounts[0];
-      assert.notEqual(web3.eth.getCode(instance.address), "0x0");
+      assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroyAndSend(admin, { from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
-      assert.equal(web3.eth.getCode(instance.address), "0x0");
+      assert.equal(web3.eth.getCode(instance.address), '0x0');
       assert.equal(web3.eth.getBalance(instance.address).toNumber(), 0);
     });
   });
