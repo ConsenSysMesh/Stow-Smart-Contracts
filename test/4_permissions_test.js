@@ -1,17 +1,15 @@
+import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
+
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
 const LinniaRecords = artifacts.require('./LinniaRecords.sol');
 const LinniaPermissions = artifacts.require('./LinniaPermissions.sol');
 
-const bs58 = require('bs58');
 const crypto = require('crypto');
 const eutil = require('ethereumjs-util');
-const multihashes = require('multihashes');
 
-import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
-
-const testDataContent1 = `{"foo":"bar","baz":42}`;
-const testDataContent2 = `{"asdf":42}`;
+const testDataContent1 = '{"foo":"bar","baz":42}';
+const testDataContent2 = '{"asdf":42}';
 const testDataHash1 = eutil.bufferToHex(eutil.sha3(testDataContent1));
 const testDataHash2 = eutil.bufferToHex(eutil.sha3(testDataContent2));
 const testDataUri1 = 'QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM';
@@ -24,7 +22,8 @@ contract('LinniaPermissions', accounts => {
   const patient2 = accounts[2];
   const provider1 = accounts[3];
   const provider2 = accounts[4];
-  let hub, instance;
+  let hub;
+  let instance;
 
   before('set up a LinniaHub contract', async () => {
     hub = await LinniaHub.new();
@@ -128,7 +127,7 @@ contract('LinniaPermissions', accounts => {
     );
   });
   describe('revoke access', () => {
-    beforeEach("grant provider2 to access patient1's record1", async () => {
+    beforeEach('grant provider2 to access patient1\'s record1', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
         from: patient1

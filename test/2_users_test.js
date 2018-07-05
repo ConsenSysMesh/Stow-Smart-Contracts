@@ -1,7 +1,7 @@
+import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
+
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
-
-import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 
 contract('LinniaUsers', accounts => {
   let hub;
@@ -98,7 +98,7 @@ contract('LinniaUsers', accounts => {
       await instance.setProvenance(accounts[1], 42, { from: accounts[0] });
       assert.equal((await instance.provenanceOf(accounts[1])).toString(), '42');
     });
-    it("should return 0 if user isn't registered", async () => {
+    it('should return 0 if user isn\'t registered', async () => {
       assert.equal(await instance.provenanceOf(accounts[1]), 0);
     });
   });

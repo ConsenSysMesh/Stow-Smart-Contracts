@@ -1,6 +1,6 @@
-const LinniaHub = artifacts.require('./LinniaHub.sol');
-
 import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
+
+const LinniaHub = artifacts.require('./LinniaHub.sol');
 
 contract('LinniaHub', accounts => {
   let instance;

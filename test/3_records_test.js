@@ -1,15 +1,13 @@
+import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
+
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
 const LinniaRecords = artifacts.require('./LinniaRecords.sol');
 
-const bs58 = require('bs58');
 const crypto = require('crypto');
 const eutil = require('ethereumjs-util');
-const multihashes = require('multihashes');
 
-import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
-
-const testDataContent = `{"foo":"bar","baz":42}`;
+const testDataContent = '{"foo":"bar","baz":42}';
 const testDataHash = eutil.bufferToHex(eutil.sha3(testDataContent));
 const testDataUri = 'QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM';
 const testMetadata = 'KEYWORDS';
@@ -130,19 +128,19 @@ contract('LinniaRecords', accounts => {
       );
     });
     it('should allow a long dataUri', async () => {
-      const testDataUri = eutil.bufferToHex(
+      const testLongDataUri = eutil.bufferToHex(
         'https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar'
       );
       const tx = await instance.addRecord(
         testDataHash,
         testMetadata,
-        testDataUri,
+        testLongDataUri,
         { from: patient }
       );
       assert.equal(tx.logs.length, 1);
       // check state
       const storedRecord = await instance.records(testDataHash);
-      assert.equal(storedRecord[4], testDataUri);
+      assert.equal(storedRecord[4], testLongDataUri);
     });
   });
   describe('add record by provider', () => {
@@ -374,7 +372,7 @@ contract('LinniaRecords', accounts => {
         )
       );
     });
-    it("should reject sig that doesn't cover metadata hash", async () => {
+    it('should reject sig that doesn\'t cover metadata hash', async () => {
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: patient
       });
