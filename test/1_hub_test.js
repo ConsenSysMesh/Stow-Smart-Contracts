@@ -10,8 +10,8 @@ contract('LinniaHub', accounts => {
 
   describe('constructor', () => {
     it('should set admin correctly', async () => {
-      const instance = await LinniaHub.new();
-      assert.equal(await instance.owner(), accounts[0]);
+      const newInstance = await LinniaHub.new();
+      assert.equal(await newInstance.owner(), accounts[0]);
     });
     it('should initialize users, records addresss to zero', async () => {
       assert.equal(await instance.usersContract(), 0);

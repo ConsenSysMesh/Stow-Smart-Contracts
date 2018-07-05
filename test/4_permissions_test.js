@@ -61,10 +61,10 @@ contract('LinniaPermissions', accounts => {
 
   describe('constructor', () => {
     it('should set hub address correctly', async () => {
-      const instance = await LinniaRecords.new(hub.address, {
+      const newInstance = await LinniaRecords.new(hub.address, {
         from: accounts[0]
       });
-      assert.equal(await instance.hub(), hub.address);
+      assert.equal(await newInstance.hub(), hub.address);
     });
   });
   describe('grant access', () => {
@@ -188,14 +188,12 @@ contract('LinniaPermissions', accounts => {
       await assertRevert(instance.destroy({ from: accounts[1] }));
     });
     it('should allow admin to destroy', async () => {
-      const admin = accounts[0];
       assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroy({ from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
       assert.equal(web3.eth.getCode(instance.address), '0x0');
     });
     it('should allow admin to destroyAndSend', async () => {
-      const admin = accounts[0];
       assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroyAndSend(admin, { from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);

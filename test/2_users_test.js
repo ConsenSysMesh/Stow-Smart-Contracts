@@ -15,24 +15,24 @@ contract('LinniaUsers', accounts => {
   });
   describe('constructor', () => {
     it('should set the deployer as admin', async () => {
-      const instance = await LinniaUsers.new(hub.address);
-      assert.equal(await instance.owner(), accounts[0]);
+      const newInstance = await LinniaUsers.new(hub.address);
+      assert.equal(await newInstance.owner(), accounts[0]);
     });
     it('should set hub address correctly', async () => {
-      const instance = await LinniaUsers.new(hub.address);
-      assert.equal(await instance.hub(), hub.address);
+      const newInstance = await LinniaUsers.new(hub.address);
+      assert.equal(await newInstance.hub(), hub.address);
     });
   });
   describe('change admin', () => {
     it('should allow admin to change admin', async () => {
-      const instance = await LinniaUsers.new(hub.address);
-      await instance.transferOwnership(accounts[1], { from: accounts[0] });
-      assert.equal(await instance.owner(), accounts[1]);
+      const newInstance = await LinniaUsers.new(hub.address);
+      await newInstance.transferOwnership(accounts[1], { from: accounts[0] });
+      assert.equal(await newInstance.owner(), accounts[1]);
     });
     it('should not allow non admin to change admin', async () => {
-      const instance = await LinniaUsers.new(hub.address);
+      const newInstance = await LinniaUsers.new(hub.address);
       await assertRevert(
-        instance.transferOwnership(accounts[1], {
+        newInstance.transferOwnership(accounts[1], {
           from: accounts[1]
         })
       );

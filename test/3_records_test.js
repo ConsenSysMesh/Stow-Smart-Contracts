@@ -45,8 +45,8 @@ contract('LinniaRecords', accounts => {
   });
   describe('constructor', () => {
     it('should set hub address correctly', async () => {
-      const instance = await LinniaRecords.new(hub.address);
-      assert.equal(await instance.hub(), hub.address);
+      const newInstance = await LinniaRecords.new(hub.address);
+      assert.equal(await newInstance.hub(), hub.address);
     });
   });
   describe('recover', () => {
@@ -85,7 +85,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
-      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber).timestamp;
+      const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
       // check state
       const storedRecord = await instance.records(testDataHash);
       assert.equal(storedRecord[0], patient);
@@ -161,7 +161,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
       assert.equal(tx.logs[1].args.attestator, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
-      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber).timestamp;
+      const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
       // check state
       const storedRecord = await instance.records(testDataHash);
       assert.equal(storedRecord[0], patient);
@@ -405,7 +405,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
       // check state
-      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber).timestamp;
+      const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
       const storedRecord = await instance.records(testDataHash);
       assert.equal(storedRecord[0], patient);
       assert.equal(storedRecord[1], testMetaHash);
@@ -433,7 +433,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[1].args.attestator, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
       // check state
-      const timestamp = web3.eth.getBlock(tx.receipt.blockNumber).timestamp;
+      const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
       const storedRecord = await instance.records(testDataHash);
       assert.equal(storedRecord[0], patient);
       assert.equal(storedRecord[1], testMetaHash);
@@ -496,14 +496,12 @@ contract('LinniaRecords', accounts => {
       await assertRevert(instance.destroy({ from: accounts[1] }));
     });
     it('should allow admin to destroy', async () => {
-      const admin = accounts[0];
       assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroy({ from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
       assert.equal(web3.eth.getCode(instance.address), '0x0');
     });
     it('should allow admin to destroyAndSend', async () => {
-      const admin = accounts[0];
       assert.notEqual(web3.eth.getCode(instance.address), '0x0');
       const tx = await instance.destroyAndSend(admin, { from: admin });
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
