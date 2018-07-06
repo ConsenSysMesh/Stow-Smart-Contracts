@@ -67,3 +67,5 @@ typings/
 
 # Solidity-coverage
 coverage.json
+
+reports

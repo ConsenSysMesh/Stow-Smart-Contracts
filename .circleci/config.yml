@@ -34,6 +34,14 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
+      - run:
+          name: "JS linter"
+          command: npm run lint:test
+      - store_test_results:
+          path: reports/junit
+      - store_artifacts:
+          path: reports/junit
+
       # run tests!
       - run:
           command: npm start
