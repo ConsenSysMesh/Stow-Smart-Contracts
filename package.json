@@ -12,7 +12,8 @@
     "migrate": "truffle migrate",
     "test": "truffle test",
     "lint:sol": "solium -d contracts",
-    "coverage": "solidity-coverage"
+    "coverage": "solidity-coverage",
+    "lint:tests": "eslint test --format junit -o reports/junit/js-lint-results.xml"
   },
   "repository": {
     "type": "git",
