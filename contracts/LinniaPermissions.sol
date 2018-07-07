@@ -61,7 +61,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         returns (bool)
     {
         // validate input
-        require(viewer != 0);
+        require(viewer != address(0));
         require(bytes(dataUri).length != 0);
 
         // access must not have already been granted
