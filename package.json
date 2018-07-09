@@ -1,7 +1,8 @@
 {
-  "name": "linnia-smart-contracts",
+  "name": "@linniaprotocol/linnia-smart-contracts",
   "version": "1.0.0",
   "description": "",
+  "private": true,
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
