@@ -74,7 +74,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         returns (bool)
     {
         require(_addRecord(dataHash, owner, metadata, dataUri) == true);
-        if (attestator != 0) {
+        if (attestator != address(0)) {
             require(_addSig(dataHash, attestator));
         }
         return true;
