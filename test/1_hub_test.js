@@ -21,7 +21,7 @@ contract('LinniaHub', accounts => {
   describe('set users contract', () => {
     it('should allow admin to set Users address', async () => {
       const tx = await instance.setUsersContract(42);
-      assert.equal(tx.logs[0].event, 'LogUsersContractSet');
+      assert.equal(tx.logs[0].event, 'LinniaUsersContractSet');
       assert.equal(tx.logs[0].args.from, 0);
       assert.equal(tx.logs[0].args.to, 42);
       assert.equal(await instance.usersContract(), 42);
@@ -33,7 +33,7 @@ contract('LinniaHub', accounts => {
   describe('set Records contract', () => {
     it('should allow admin to set Records address', async () => {
       const tx = await instance.setRecordsContract(42);
-      assert.equal(tx.logs[0].event, 'LogRecordsContractSet');
+      assert.equal(tx.logs[0].event, 'LinniaRecordsContractSet');
       assert.equal(tx.logs[0].args.from, 0);
       assert.equal(tx.logs[0].args.to, 42);
       assert.equal(await instance.recordsContract(), 42);
@@ -47,7 +47,7 @@ contract('LinniaHub', accounts => {
   describe('set Permissions contract', () => {
     it('should allow admin to set Permissions address', async () => {
       const tx = await instance.setPermissionsContract(42);
-      assert.equal(tx.logs[0].event, 'LogPermissionsContractSet');
+      assert.equal(tx.logs[0].event, 'LinniaPermissionsContractSet');
       assert.equal(tx.logs[0].args.from, 0);
       assert.equal(tx.logs[0].args.to, 42);
       assert.equal(await instance.permissionsContract(), 42);
