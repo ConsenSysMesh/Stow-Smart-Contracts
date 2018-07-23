@@ -18,7 +18,7 @@ A contract that keeps a registry of permissions. Permissions include who can vie
 
 ### Prerequisites
 * Node.js
-* Node Package Manager
+* Node Package Manager (npm)
 
 Clone the repository
 ```
