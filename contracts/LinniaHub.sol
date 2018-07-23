@@ -13,9 +13,9 @@ contract LinniaHub is Ownable, Destructible {
     LinniaRecords public recordsContract;
     LinniaPermissions public permissionsContract;
 
-    event LogUsersContractSet(address from, address to);
-    event LogRecordsContractSet(address from, address to);
-    event LogPermissionsContractSet(address from, address to);
+    event LogLinniaUsersContractSet(address from, address to);
+    event LogLinniaRecordsContractSet(address from, address to);
+    event LogLinniaPermissionsContractSet(address from, address to);
 
     constructor() public { }
 
@@ -28,7 +28,7 @@ contract LinniaHub is Ownable, Destructible {
     {
         address prev = address(usersContract);
         usersContract = _usersContract;
-        emit LogUsersContractSet(prev, _usersContract);
+        emit LogLinniaUsersContractSet(prev, _usersContract);
         return true;
     }
 
@@ -39,7 +39,7 @@ contract LinniaHub is Ownable, Destructible {
     {
         address prev = address(recordsContract);
         recordsContract = _recordsContract;
-        emit LogRecordsContractSet(prev, _recordsContract);
+        emit LogLinniaRecordsContractSet(prev, _recordsContract);
         return true;
     }
 
@@ -50,7 +50,7 @@ contract LinniaHub is Ownable, Destructible {
     {
         address prev = address(permissionsContract);
         permissionsContract = _permissionsContract;
-        emit LogPermissionsContractSet(prev, _permissionsContract);
+        emit LogLinniaPermissionsContractSet(prev, _permissionsContract);
         return true;
     }
 }
