@@ -68,7 +68,7 @@ contract('LinniaPermissions', accounts => {
     });
   });
   describe('grant access', () => {
-    it('should allow patient to grant access to their files', async () => {
+    it('should allow patient to grant access to their data', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       const tx = await instance.grantAccess(
         testDataHash1,
@@ -133,7 +133,7 @@ contract('LinniaPermissions', accounts => {
         from: patient1
       });
     });
-    it('should allow owner to revoke access to their files', async () => {
+    it('should allow owner to revoke access to their data', async () => {
       const tx = await instance.revokeAccess(testDataHash1, provider2, {
         from: patient1
       });
@@ -145,7 +145,7 @@ contract('LinniaPermissions', accounts => {
       assert.equal(perm[0], false);
       assert.equal(perm[1], '');
     });
-    it('should not allow non-owner to revoke access to files', async () => {
+    it('should not allow non-owner to revoke access to data', async () => {
       await assertRevert(
         instance.revokeAccess(testDataHash1, provider2, { from: provider1 })
       );
@@ -155,6 +155,21 @@ contract('LinniaPermissions', accounts => {
       await assertRevert(
         instance.revokeAccess(testDataHash1, provider2, { from: patient2 })
       );
+    });
+  });
+  describe('check access', () => {
+    it('should check access to data', async () => {
+      assert.equal(await instance.checkAccess(testDataHash1, provider2, {
+        from: patient1
+      }), false);
+      //grant provider2 to access patient1\'s record1
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
+      await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
+        from: patient1
+      });
+      assert.equal(await instance.checkAccess(testDataHash1, provider2, {
+        from: patient1
+      }), true);
     });
   });
   describe('pausable', () => {

@@ -48,6 +48,17 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
 
     /* External functions */
 
+    /// Check if a viewer has access to a record
+    /// @param dataHash the hash of the unencrypted file
+    /// @param viewer the address being allowed to view the file
+    function checkAccess(bytes32 dataHash, address viewer)
+        view
+        external
+        returns (bool)
+    {
+        return permissions[dataHash][viewer].canAccess;
+    }
+
     /// Give a viewer access to a linnia record
     /// Called by owner of the record.
     /// @param dataHash the data hash of the linnia record
