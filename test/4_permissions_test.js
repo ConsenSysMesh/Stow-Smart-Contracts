@@ -76,7 +76,7 @@ contract('LinniaPermissions', accounts => {
         fakeIpfsHash,
         { from: patient1 }
       );
-      assert.equal(tx.logs[0].event, 'LogAccessGranted');
+      assert.equal(tx.logs[0].event, 'LinniaAccessGranted');
       assert.equal(tx.logs[0].args.dataHash, testDataHash1);
       assert.equal(tx.logs[0].args.owner, patient1);
       assert.equal(tx.logs[0].args.viewer, provider2);
@@ -137,7 +137,7 @@ contract('LinniaPermissions', accounts => {
       const tx = await instance.revokeAccess(testDataHash1, provider2, {
         from: patient1
       });
-      assert.equal(tx.logs[0].event, 'LogAccessRevoked');
+      assert.equal(tx.logs[0].event, 'LinniaAccessRevoked');
       assert.equal(tx.logs[0].args.dataHash, testDataHash1);
       assert.equal(tx.logs[0].args.owner, patient1);
       assert.equal(tx.logs[0].args.viewer, provider2);
@@ -179,7 +179,7 @@ contract('LinniaPermissions', accounts => {
         fakeIpfsHash,
         { from: patient1 }
       );
-      assert.equal(tx3.logs[0].event, 'LogAccessGranted');
+      assert.equal(tx3.logs[0].event, 'LinniaAccessGranted');
     });
   });
   // copy paste from records contract
