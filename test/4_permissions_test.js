@@ -162,7 +162,7 @@ contract('LinniaPermissions', accounts => {
       assert.equal(await instance.checkAccess(testDataHash1, provider2, {
         from: patient1
       }), false);
-      //grant provider2 to access patient1\'s record1
+      // grant provider2 to access patient1\'s record1
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
         from: patient1
