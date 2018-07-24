@@ -48,17 +48,28 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
 
     /* External functions */
 
+    /// Check if a viewer has access to a record
+    /// @param dataHash the hash of the unencrypted file
+    /// @param viewer the address being allowed to view the file
+    function checkAccess(bytes32 dataHash, address viewer)
+    view
+    external
+    returns (bool)
+    {
+        return permissions[dataHash][viewer].canAccess;
+    }
+
     /// Give a viewer access to a linnia record
     /// Called by owner of the record.
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being permissioned to view the data
     /// @param dataUri the ipfs path of the re-encrypted data
     function grantAccess(bytes32 dataHash, address viewer, string dataUri)
-        onlyUser
-        onlyRecordOwnerOf(dataHash)
-        whenNotPaused
-        external
-        returns (bool)
+    onlyUser
+    onlyRecordOwnerOf(dataHash)
+    whenNotPaused
+    external
+    returns (bool)
     {
         // validate input
         require(viewer != address(0));
@@ -69,7 +80,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         permissions[dataHash][viewer] = Permission({
             canAccess: true,
             dataUri: dataUri
-        });
+            });
         emit LogAccessGranted(dataHash, msg.sender, viewer);
         return true;
     }
@@ -79,18 +90,18 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user that has permission to view the data
     function revokeAccess(bytes32 dataHash, address viewer)
-        onlyUser
-        onlyRecordOwnerOf(dataHash)
-        whenNotPaused
-        external
-        returns (bool)
+    onlyUser
+    onlyRecordOwnerOf(dataHash)
+    whenNotPaused
+    external
+    returns (bool)
     {
         // access must have already been grated
         require(permissions[dataHash][viewer].canAccess);
         permissions[dataHash][viewer] = Permission({
             canAccess: false,
             dataUri: ""
-        });
+            });
         emit LogAccessRevoked(dataHash, msg.sender, viewer);
         return true;
     }
