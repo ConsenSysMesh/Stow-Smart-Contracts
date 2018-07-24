@@ -41,7 +41,7 @@ contract('LinniaUsers', accounts => {
   describe('register', () => {
     it('should allow user to self register', async () => {
       const tx = await instance.register({ from: accounts[1] });
-      assert.equal(tx.logs[0].event, 'LogUserRegistered');
+      assert.equal(tx.logs[0].event, 'LinniaUserRegistered');
       assert.equal(tx.logs[0].args.user, accounts[1]);
 
       const storedUser = await instance.users(accounts[1]);
@@ -64,7 +64,7 @@ contract('LinniaUsers', accounts => {
         from: accounts[0]
       });
       // check logs
-      assert.equal(tx.logs[0].event, 'LogProvenanceChanged');
+      assert.equal(tx.logs[0].event, 'LinniaProvenanceChanged');
       assert.equal(tx.logs[0].args.user, accounts[1]);
       assert.equal(tx.logs[0].args.provenance, 42);
       // check state
@@ -115,7 +115,7 @@ contract('LinniaUsers', accounts => {
       const tx2 = await instance.unpause();
       assert.equal(tx2.logs[0].event, 'Unpause');
       const tx3 = await instance.register({ from: accounts[1] });
-      assert.equal(tx3.logs[0].event, 'LogUserRegistered');
+      assert.equal(tx3.logs[0].event, 'LinniaUserRegistered');
     });
   });
   // copy paste from records contract

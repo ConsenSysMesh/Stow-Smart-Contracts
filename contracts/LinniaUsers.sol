@@ -13,8 +13,8 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
         uint provenance;
     }
 
-    event LogUserRegistered(address indexed user);
-    event LogProvenanceChanged(address indexed user, uint provenance);
+    event LinniaUserRegistered(address indexed user);
+    event LinniaProvenanceChanged(address indexed user, uint provenance);
 
     LinniaHub public hub;
     mapping(address => User) public users;
@@ -40,7 +40,7 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
             registerBlocktime: block.number,
             provenance: 0
         });
-        emit LogUserRegistered(msg.sender);
+        emit LinniaUserRegistered(msg.sender);
         return true;
     }
 
@@ -52,7 +52,7 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
     {
         require(isUser(user));
         users[user].provenance = provenance;
-        emit LogProvenanceChanged(user, provenance);
+        emit LinniaProvenanceChanged(user, provenance);
         return true;
     }
 

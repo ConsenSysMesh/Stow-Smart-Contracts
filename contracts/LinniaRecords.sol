@@ -31,10 +31,10 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         uint timestamp;
     }
 
-    event LogRecordAdded(
+    event LinniaRecordAdded(
         bytes32 indexed dataHash, address indexed owner, string metadata
     );
-    event LogRecordSigAdded(
+    event LinniaRecordSigAdded(
         bytes32 indexed dataHash, address indexed attestator, uint irisScore
     );
 
@@ -210,7 +210,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
             timestamp: block.timestamp
         });
         // emit event
-        emit LogRecordAdded(dataHash, owner, metadata);
+        emit LinniaRecordAdded(dataHash, owner, metadata);
         return true;
     }
 
@@ -231,7 +231,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         // update iris score
         record.irisScore = record.irisScore.add(provenanceScore);
         // emit event
-        emit LogRecordSigAdded(dataHash, provider, record.irisScore);
+        emit LinniaRecordSigAdded(dataHash, provider, record.irisScore);
         return true;
     }
 }
