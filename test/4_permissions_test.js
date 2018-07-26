@@ -18,8 +18,8 @@ const testMetadata = 'KEYWORDS';
 
 contract('LinniaPermissions', accounts => {
   const admin = accounts[0];
-  const patient1 = accounts[1];
-  const patient2 = accounts[2];
+  const user1 = accounts[1];
+  const user2 = accounts[2];
   const provider1 = accounts[3];
   const provider2 = accounts[4];
   let hub;
@@ -31,8 +31,8 @@ contract('LinniaPermissions', accounts => {
   before('set up a LinniaUsers contract', async () => {
     const usersInstance = await LinniaUsers.new(hub.address);
     await hub.setUsersContract(usersInstance.address);
-    usersInstance.register({ from: patient1 });
-    usersInstance.register({ from: patient2 });
+    usersInstance.register({ from: user1 });
+    usersInstance.register({ from: user2 });
     usersInstance.register({ from: provider1 });
     usersInstance.register({ from: provider2 });
     usersInstance.setProvenance(provider1, 1, { from: admin });
@@ -41,14 +41,14 @@ contract('LinniaPermissions', accounts => {
   before('set up a LinniaRecords contract', async () => {
     const recordsInstance = await LinniaRecords.new(hub.address);
     await hub.setRecordsContract(recordsInstance.address);
-    // upload 2 records, one for patient1 and one for patient2
+    // upload 2 records, one for user1 and one for user2
     // 1st one is not attested, 2nd one is attested by provider1
     await recordsInstance.addRecord(testDataHash1, testMetadata, testDataUri1, {
-      from: patient1
+      from: user1
     });
     await recordsInstance.addRecordByProvider(
       testDataHash2,
-      patient2,
+      user2,
       testMetadata,
       testDataUri2,
       { from: provider1 }
@@ -68,17 +68,17 @@ contract('LinniaPermissions', accounts => {
     });
   });
   describe('grant access', () => {
-    it('should allow patient to grant access to their data', async () => {
+    it('should allow user to grant access to their data', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       const tx = await instance.grantAccess(
         testDataHash1,
         provider2,
         fakeIpfsHash,
-        { from: patient1 }
+        { from: user1 }
       );
       assert.equal(tx.logs[0].event, 'LinniaAccessGranted');
       assert.equal(tx.logs[0].args.dataHash, testDataHash1);
-      assert.equal(tx.logs[0].args.owner, patient1);
+      assert.equal(tx.logs[0].args.owner, user1);
       assert.equal(tx.logs[0].args.viewer, provider2);
       const perm = await instance.permissions(testDataHash1, provider2);
       assert.equal(perm[0], true);
@@ -98,17 +98,17 @@ contract('LinniaPermissions', accounts => {
       );
       await assertRevert(
         instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
-          from: patient2
+          from: user2
         })
       );
     });
     it('should reject if viewer or data uri is zero', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       await assertRevert(
-        instance.grantAccess(testDataHash1, 0, fakeIpfsHash, { from: patient1 })
+        instance.grantAccess(testDataHash1, 0, fakeIpfsHash, { from: user1 })
       );
       await assertRevert(
-        instance.grantAccess(testDataHash1, provider2, 0, { from: patient1 })
+        instance.grantAccess(testDataHash1, provider2, 0, { from: user1 })
       );
     });
     it(
@@ -116,30 +116,30 @@ contract('LinniaPermissions', accounts => {
       async () => {
         const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
         await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
-          from: patient1
+          from: user1
         });
         await assertRevert(
           instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
-            from: patient1
+            from: user1
           })
         );
       }
     );
   });
   describe('revoke access', () => {
-    beforeEach('grant provider2 to access patient1\'s record1', async () => {
+    beforeEach('grant provider2 to access user1\'s record1', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
-        from: patient1
+        from: user1
       });
     });
     it('should allow owner to revoke access to their data', async () => {
       const tx = await instance.revokeAccess(testDataHash1, provider2, {
-        from: patient1
+        from: user1
       });
       assert.equal(tx.logs[0].event, 'LinniaAccessRevoked');
       assert.equal(tx.logs[0].args.dataHash, testDataHash1);
-      assert.equal(tx.logs[0].args.owner, patient1);
+      assert.equal(tx.logs[0].args.owner, user1);
       assert.equal(tx.logs[0].args.viewer, provider2);
       const perm = await instance.permissions(testDataHash1, provider2);
       assert.equal(perm[0], false);
@@ -153,22 +153,22 @@ contract('LinniaPermissions', accounts => {
         instance.revokeAccess(testDataHash1, provider2, { from: provider2 })
       );
       await assertRevert(
-        instance.revokeAccess(testDataHash1, provider2, { from: patient2 })
+        instance.revokeAccess(testDataHash1, provider2, { from: user2 })
       );
     });
   });
   describe('check access', () => {
     it('should check access to data', async () => {
       assert.equal(await instance.checkAccess(testDataHash1, provider2, {
-        from: patient1
+        from: user1
       }), false);
-      // grant provider2 to access patient1\'s record1
+      // grant provider2 to access user1\'s record1
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
-        from: patient1
+        from: user1
       });
       assert.equal(await instance.checkAccess(testDataHash1, provider2, {
-        from: patient1
+        from: user1
       }), true);
     });
   });
@@ -183,7 +183,7 @@ contract('LinniaPermissions', accounts => {
       assert.equal(tx.logs[0].event, 'Pause');
       await assertRevert(
         instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
-          from: patient1
+          from: user1
         })
       );
       const tx2 = await instance.unpause();
@@ -192,7 +192,7 @@ contract('LinniaPermissions', accounts => {
         testDataHash1,
         provider2,
         fakeIpfsHash,
-        { from: patient1 }
+        { from: user1 }
       );
       assert.equal(tx3.logs[0].event, 'LinniaAccessGranted');
     });
