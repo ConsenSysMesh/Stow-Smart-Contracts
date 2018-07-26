@@ -1,6 +1,6 @@
 {
   "name": "@linniaprotocol/linnia-smart-contracts",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Linnia Smart Contracts",
   "private": true,
   "main": "truffle-config.js",
@@ -14,6 +14,7 @@
     "test": "truffle test",
     "lint:sol": "solium -d contracts",
     "coverage": "solidity-coverage",
+    "prepare": "truffle migrate",
     "lint:tests": "eslint test --format junit -o reports/junit/js-lint-results.xml"
   },
   "repository": {
