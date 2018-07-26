@@ -1,12 +1,12 @@
 {
   "name": "@linniaprotocol/linnia-smart-contracts",
   "version": "1.0.0",
-  "description": "",
+  "description": "Linnia Smart Contracts",
   "private": true,
   "main": "truffle-config.js",
-  "directories": {
-    "test": "test"
-  },
+  "files": [
+    "build/contracts/*"
+  ],
   "scripts": {
     "start": "npm run start:testrpc",
     "start:testrpc": "ganache-cli -p 7545 -i 5777",
@@ -20,20 +20,18 @@
     "type": "git",
     "url": "git+https://github.com/ConsenSys/Linnia-Smart-Contracts.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["Linnia","Ethereum", "Smart Contracts", "Solidity"],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/ConsenSys/Linnia-Smart-Contracts/issues"
   },
-  "homepage": "https://github.com/ConsenSys/Linnia-Smart-Contracts",
+  "homepage": "https://linnia.com",
   "devDependencies": {
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",
     "babel-register": "^6.26.0",
-    "bs58": "^4.0.1",
     "eslint": "^5.0.1",
     "eslint-config-airbnb": "^17.0.0",
     "eslint-config-prettier": "^2.9.0",
