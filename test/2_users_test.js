@@ -1,4 +1,4 @@
-import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
+patientimport assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
