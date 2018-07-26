@@ -27,6 +27,13 @@ jobs:
           - v1-dependencies-
       - run: node -v
       - run: npm --version
+
+      # start testrpc so that prepare runs without errors
+      - run:
+          command: npm start
+          background: true
+      - run: sleep 5
+
       - run: npm ci
 
       - save_cache:
@@ -43,10 +50,6 @@ jobs:
           path: reports/junit
 
       # run tests!
-      - run:
-          command: npm start
-          background: true
-      - run: sleep 5
       - run: npm run coverage
       - run: bash <(curl -s https://codecov.io/bash)
       # Teardown
