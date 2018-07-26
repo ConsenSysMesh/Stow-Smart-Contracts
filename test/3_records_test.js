@@ -81,7 +81,7 @@ contract('LinniaRecords', accounts => {
         { from: patient }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, 'LogRecordAdded');
+      assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
@@ -153,11 +153,11 @@ contract('LinniaRecords', accounts => {
         { from: provider1 }
       );
       assert.equal(tx.logs.length, 2);
-      assert.equal(tx.logs[0].event, 'LogRecordAdded');
+      assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
-      assert.equal(tx.logs[1].event, 'LogRecordSigAdded');
+      assert.equal(tx.logs[1].event, 'LinniaRecordSigAdded');
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
       assert.equal(tx.logs[1].args.attestator, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
@@ -230,7 +230,7 @@ contract('LinniaRecords', accounts => {
         { from: nonUser }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, 'LogRecordSigAdded');
+      assert.equal(tx.logs[0].event, 'LinniaRecordSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.attestator, provider1);
       assert.equal(tx.logs[0].args.irisScore, 1);
@@ -250,7 +250,7 @@ contract('LinniaRecords', accounts => {
         from: provider1
       });
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, 'LogRecordSigAdded');
+      assert.equal(tx.logs[0].event, 'LinniaRecordSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.attestator, provider1);
       assert.equal(tx.logs[0].args.irisScore, 1);
@@ -299,7 +299,7 @@ contract('LinniaRecords', accounts => {
       );
       // check log
       assert.equal(tx1.logs.length, 1);
-      assert.equal(tx1.logs[0].event, 'LogRecordSigAdded');
+      assert.equal(tx1.logs[0].event, 'LinniaRecordSigAdded');
       assert.equal(tx1.logs[0].args.dataHash, testDataHash);
       assert.equal(tx1.logs[0].args.attestator, provider1);
       assert.equal(tx1.logs[0].args.irisScore, 1);
@@ -314,7 +314,7 @@ contract('LinniaRecords', accounts => {
       );
       // check log
       assert.equal(tx2.logs.length, 1);
-      assert.equal(tx2.logs[0].event, 'LogRecordSigAdded');
+      assert.equal(tx2.logs[0].event, 'LinniaRecordSigAdded');
       assert.equal(tx2.logs[0].args.dataHash, testDataHash);
       assert.equal(tx2.logs[0].args.attestator, provider2);
       assert.equal(tx2.logs[0].args.irisScore, 3); // iris should increment
@@ -344,7 +344,7 @@ contract('LinniaRecords', accounts => {
           rsv2.v,
           { from: nonUser }
         );
-        assert.equal(tx.logs[0].event, 'LogRecordSigAdded');
+        assert.equal(tx.logs[0].event, 'LinniaRecordSigAdded');
         assert.equal(tx.logs[0].args.dataHash, testDataHash);
         assert.equal(tx.logs[0].args.attestator, provider2);
         assert.equal(tx.logs[0].args.irisScore, 3);
@@ -400,7 +400,7 @@ contract('LinniaRecords', accounts => {
         { from: admin }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, 'LogRecordAdded');
+      assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
@@ -424,11 +424,11 @@ contract('LinniaRecords', accounts => {
         { from: admin }
       );
       assert.equal(tx.logs.length, 2);
-      assert.equal(tx.logs[0].event, 'LogRecordAdded');
+      assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, patient);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
-      assert.equal(tx.logs[1].event, 'LogRecordSigAdded');
+      assert.equal(tx.logs[1].event, 'LinniaRecordSigAdded');
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
       assert.equal(tx.logs[1].args.attestator, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
@@ -487,7 +487,7 @@ contract('LinniaRecords', accounts => {
         testDataUri,
         { from: patient }
       );
-      assert.equal(tx3.logs[0].event, 'LogRecordAdded');
+      assert.equal(tx3.logs[0].event, 'LinniaRecordAdded');
     });
   });
   // copy paste from records contract

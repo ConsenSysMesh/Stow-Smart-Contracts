@@ -16,10 +16,10 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         string dataUri;
     }
 
-    event LogAccessGranted(bytes32 indexed dataHash, address indexed owner,
+    event LinniaAccessGranted(bytes32 indexed dataHash, address indexed owner,
         address indexed viewer
     );
-    event LogAccessRevoked(bytes32 indexed dataHash, address indexed owner,
+    event LinniaAccessRevoked(bytes32 indexed dataHash, address indexed owner,
         address indexed viewer
     );
 
@@ -81,7 +81,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
             canAccess: true,
             dataUri: dataUri
             });
-        emit LogAccessGranted(dataHash, msg.sender, viewer);
+        emit LinniaAccessGranted(dataHash, msg.sender, viewer);
         return true;
     }
 
@@ -102,7 +102,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
             canAccess: false,
             dataUri: ""
             });
-        emit LogAccessRevoked(dataHash, msg.sender, viewer);
+        emit LinniaAccessRevoked(dataHash, msg.sender, viewer);
         return true;
     }
 }
