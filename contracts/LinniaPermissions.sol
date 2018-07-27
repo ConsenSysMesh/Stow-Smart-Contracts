@@ -75,8 +75,9 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         require(viewer != address(0));
         require(bytes(dataUri).length != 0);
 
+        // TODO, Uncomment this to prevent grant access twice, It is commented for testing purposes
         // access must not have already been granted
-        require(!permissions[dataHash][viewer].canAccess);
+        // require(!permissions[dataHash][viewer].canAccess);
         permissions[dataHash][viewer] = Permission({
             canAccess: true,
             dataUri: dataUri
