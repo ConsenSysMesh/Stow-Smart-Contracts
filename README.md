@@ -1,4 +1,4 @@
-# Linnia Smart Contracts ![Build Status](https://circleci.com/gh/ConsenSys/Linnia-Smart-Contracts.png?circle-token=:circle-token&style=shield) ![Coverage Status](https://codecov.io/gh/ConsenSys/Linnia-Smart-Contracts/branch/master/graph/badge.svg)
+# Linnia Smart Contracts [![NPM Package](https://img.shields.io/npm/v/@linniaprotocol/linnia-smart-contracts.svg?style=flat-square)](https://www.npmjs.com/package/@linniaprotocol/linnia-smart-contracts) ![Build Status](https://circleci.com/gh/ConsenSys/Linnia-Smart-Contracts.png?circle-token=:circle-token&style=shield) ![Coverage Status](https://codecov.io/gh/ConsenSys/Linnia-Smart-Contracts/branch/master/graph/badge.svg)
 ---
 > :warning: WIP
 
