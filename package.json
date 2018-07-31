@@ -1,8 +1,7 @@
 {
   "name": "@linniaprotocol/linnia-smart-contracts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Linnia Smart Contracts",
-  "private": true,
   "main": "truffle-config.js",
   "files": [
     "build/contracts/*"
@@ -21,7 +20,12 @@
     "type": "git",
     "url": "git+https://github.com/ConsenSys/Linnia-Smart-Contracts.git"
   },
-  "keywords": ["Linnia","Ethereum", "Smart Contracts", "Solidity"],
+  "keywords": [
+    "Linnia",
+    "Ethereum",
+    "Smart Contracts",
+    "Solidity"
+  ],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/ConsenSys/Linnia-Smart-Contracts/issues"
