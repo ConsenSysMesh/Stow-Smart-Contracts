@@ -46,6 +46,13 @@ git push origin lp123/bug/fixesTheThing
 
 *IMPORTANT* Please pay attention to the maintainer's feedback, since its a necessary step to keep up with the standards Linnia-Smart-Contracts attains to.
 
+### Linting
+
+Formatting code is done using the following command:
+`npx prettier --single-quote  --write --trailing-comma`
+
+We use eslint.  Please run `npm run lint:sol` and `npm run lint:tests` before sumbitting your PR.
+
 ## All set!
 
 If you have any questions feel free to post them to github.com/Consensys/Linnia-Smart-Contracts/issues.
