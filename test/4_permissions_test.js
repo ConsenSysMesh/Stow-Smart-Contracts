@@ -8,7 +8,7 @@ const crypto = require("crypto")
 const eutil = require("ethereumjs-util")
 const multihashes = require("multihashes")
 
-import expectThrow from "openzeppelin-solidity/test/helpers/expectThrow"
+import assertRevert from "openzeppelin-solidity/test/helpers/assertRevert"
 
 const testDataContent1 = `{"foo":"bar","baz":42}`
 const testDataContent2 = `{"asdf":42}`
@@ -81,31 +81,31 @@ contract("LinniaPermissions", (accounts) => {
     })
     it("should not allow non-owner to grant access", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
-      await expectThrow(
+      await assertRevert(
         instance.grantAccess(testDataHash1, provider2,
           fakeIpfsHash, { from: provider1 })
       )
-      await expectThrow(
+      await assertRevert(
         instance.grantAccess(testDataHash1, provider2,
           fakeIpfsHash, { from: provider2 })
       )
-      await expectThrow(
+      await assertRevert(
         instance.grantAccess(testDataHash1, provider2,
           fakeIpfsHash, { from: patient2 })
       )
     })
     it("should reject if viewer or data uri is zero", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
-      await expectThrow(instance.grantAccess(testDataHash1,
+      await assertRevert(instance.grantAccess(testDataHash1,
         0, fakeIpfsHash, { from: patient1 }))
-      await expectThrow(instance.grantAccess(testDataHash1,
+      await assertRevert(instance.grantAccess(testDataHash1,
         provider2, 0, { from: patient1 }))
     })
     it("should not allow sharing same record twice with same user", async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
       await instance.grantAccess(testDataHash1, provider2,
         fakeIpfsHash, { from: patient1 })
-      await expectThrow(instance.grantAccess(testDataHash1, provider2,
+      await assertRevert(instance.grantAccess(testDataHash1, provider2,
         fakeIpfsHash, { from: patient1 }))
     })
   })
@@ -124,15 +124,54 @@ contract("LinniaPermissions", (accounts) => {
       assert.equal(tx.logs[0].args.viewer, provider2)
       const perm = await instance.permissions(testDataHash1, provider2)
       assert.equal(perm[0], false)
-      assert.equal(perm[1], eutil.bufferToHex(eutil.zeros(32)))
+      assert.equal(perm[1], "")
     })
     it("should not allow non-owner to revoke access to files", async () => {
-      await expectThrow(instance.revokeAccess(testDataHash1,
+      await assertRevert(instance.revokeAccess(testDataHash1,
         provider2, { from: provider1 }))
-      await expectThrow(instance.revokeAccess(testDataHash1,
+      await assertRevert(instance.revokeAccess(testDataHash1,
         provider2, { from: provider2 }))
-      await expectThrow(instance.revokeAccess(testDataHash1,
+      await assertRevert(instance.revokeAccess(testDataHash1,
         provider2, { from: patient2 }))
+    })
+  })
+  describe("pausable", () => {
+    it("should not allow non-admin to pause or unpause", async () => {
+      await assertRevert(instance.pause({ from: accounts[1] }))
+      await assertRevert(instance.unpause({ from: accounts[1] }))
+    })
+    it("should not allow sharing records when paused by admin", async () => {
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32))
+      const tx = await instance.pause()
+      assert.equal(tx.logs[0].event, "Pause")
+      await assertRevert(instance.grantAccess(testDataHash1, provider2,
+        fakeIpfsHash, { from: patient1 }))
+      const tx2 = await instance.unpause()
+      assert.equal(tx2.logs[0].event, "Unpause")
+      const tx3 = await instance.grantAccess(testDataHash1, provider2,
+        fakeIpfsHash, { from: patient1 })
+      assert.equal(tx3.logs[0].event, "LogAccessGranted")
+    })
+  })
+  // copy paste from records contract
+  describe("destructible", () => {
+    it("should not allow non-admin to destroy", async () => {
+      await assertRevert(instance.destroy({ from: accounts[1] }))
+    })
+    it("should allow admin to destroy", async () => {
+      const admin = accounts[0]
+      assert.notEqual(web3.eth.getCode(instance.address), '0x0')
+      const tx = await instance.destroy({from: admin})
+      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`)
+      assert.equal(web3.eth.getCode(instance.address), '0x0')
+    })
+    it("should allow admin to destroyAndSend", async () => {
+      const admin = accounts[0]
+      assert.notEqual(web3.eth.getCode(instance.address), '0x0')
+      const tx = await instance.destroyAndSend(admin, {from: admin})
+      assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`)
+      assert.equal(web3.eth.getCode(instance.address), '0x0')
+      assert.equal(web3.eth.getBalance(instance.address).toNumber(),0)
     })
   })
 })
