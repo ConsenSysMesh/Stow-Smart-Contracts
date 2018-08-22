@@ -1,12 +1,14 @@
-pragma solidity 0.4.23;
+pragma solidity 0.4.24;
 
+import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./LinniaHub.sol";
 import "./LinniaUsers.sol";
 
 
-contract LinniaRecords is Ownable {
+contract LinniaRecords is Ownable, Pausable, Destructible {
     using SafeMath for uint;
 
     // Struct of a linnia record
@@ -24,7 +26,7 @@ contract LinniaRecords is Ownable {
         // calculated iris score
         uint irisScore;
         // ipfs path of the encrypted data
-        bytes32 dataUri;
+        string dataUri;
         // timestamp of the block when the record is added
         uint timestamp;
     }
@@ -65,8 +67,9 @@ contract LinniaRecords is Ownable {
 
     function addRecordByAdmin(
         bytes32 dataHash, address owner, address attestator,
-        string metadata, bytes32 dataUri)
+        string metadata, string dataUri)
         onlyOwner
+        whenNotPaused
         external
         returns (bool)
     {
@@ -84,8 +87,9 @@ contract LinniaRecords is Ownable {
     /// @param metadata plaintext metadata for the record
     /// @param dataUri the ipfs path of the encrypted data
     function addRecord(
-        bytes32 dataHash, string metadata, bytes32 dataUri)
+        bytes32 dataHash, string metadata, string dataUri)
         onlyUser
+        whenNotPaused
         public
         returns (bool)
     {
@@ -101,9 +105,10 @@ contract LinniaRecords is Ownable {
     /// @param metadata plaintext metadata for the record
     /// @param dataUri the ipfs path of the encrypted data
     function addRecordByProvider(
-        bytes32 dataHash, address owner, string metadata, bytes32 dataUri)
+        bytes32 dataHash, address owner, string metadata, string dataUri)
         onlyUser
         hasProvenance(msg.sender)
+        whenNotPaused
         public
         returns (bool)
     {
@@ -120,6 +125,7 @@ contract LinniaRecords is Ownable {
     /// @param dataHash the data hash of the linnia record
     function addSigByProvider(bytes32 dataHash)
         hasProvenance(msg.sender)
+        whenNotPaused
         public
         returns (bool)
     {
@@ -139,6 +145,7 @@ contract LinniaRecords is Ownable {
     /// @param v signature: V
     function addSig(bytes32 dataHash, bytes32 r, bytes32 s, uint8 v)
         public
+        whenNotPaused
         returns (bool)
     {
         // find the root hash of the record
@@ -154,7 +161,7 @@ contract LinniaRecords is Ownable {
         public pure returns (address)
     {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedHash = keccak256(prefix, message);
+        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, message));
         return ecrecover(prefixedHash, v, r, s);
     }
 
@@ -167,7 +174,7 @@ contract LinniaRecords is Ownable {
     function rootHashOf(bytes32 dataHash)
         public view returns (bytes32)
     {
-        return keccak256(dataHash, records[dataHash].metadataHash);
+        return keccak256(abi.encodePacked(dataHash, records[dataHash].metadataHash));
     }
 
     function sigExists(bytes32 dataHash, address provider)
@@ -179,17 +186,17 @@ contract LinniaRecords is Ownable {
     /* Internal functions */
 
     function _addRecord(
-        bytes32 dataHash, address owner, string metadata, bytes32 dataUri)
+        bytes32 dataHash, address owner, string metadata, string dataUri)
         internal
         returns (bool)
     {
         // validate input
-        require(dataHash != 0 && dataUri != 0);
-        bytes32 metadataHash = keccak256(metadata);
+        require(dataHash != 0);
+        require(bytes(dataUri).length != 0);
+        bytes32 metadataHash = keccak256(abi.encodePacked(metadata));
+
         // the file must be new
-        require(
-            records[dataHash].timestamp == 0
-        );
+        require(records[dataHash].timestamp == 0);
         // verify owner
         require(hub.usersContract().isUser(owner) == true);
         // add record
