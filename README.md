@@ -49,6 +49,10 @@ To run tests without coverage
   - Alternatively you can run Ganache GUI at port 7545 with network id 5777
 - Run `npm test`
 
-## Contributing
+## Video to Help You Get Started
+
+[![Video to Get You Started with Linnia Smart Contract](images/getting-started-with-linnia.png)](https://www.youtube.com/watch?v=9RzCvB_Gvvo&t)
+
+# Contributing
 
 Please read [CONTRIBUTING.md](https://github.com/ConsenSys/Linnia-Smart-Contracts/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
