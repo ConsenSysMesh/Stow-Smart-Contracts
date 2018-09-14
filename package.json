@@ -13,7 +13,7 @@
     "test": "truffle test",
     "lint:sol": "solium -d contracts",
     "coverage": "solidity-coverage",
-    "prepare": "truffle migrate",
+    "prepublishOnly": "truffle migrate",
     "lint:tests": "eslint test --format junit -o reports/junit/js-lint-results.xml"
   },
   "repository": {
