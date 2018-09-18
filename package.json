@@ -1,10 +1,11 @@
 {
   "name": "@linniaprotocol/linnia-smart-contracts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Linnia Smart Contracts",
   "main": "truffle-config.js",
   "files": [
-    "build/contracts/*"
+    "build",
+    "contracts"
   ],
   "scripts": {
     "start": "npm run start:testrpc",
