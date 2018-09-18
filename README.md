@@ -55,4 +55,4 @@ To run tests without coverage
 
 # Contributing
 
-Please read [CONTRIBUTING.md](https://github.com/ConsenSys/Linnia-Smart-Contracts/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://github.com/ConsenSys/linnia-resources/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
