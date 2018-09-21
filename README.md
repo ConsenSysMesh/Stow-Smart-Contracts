@@ -13,7 +13,7 @@ A contract that keeps a registry of metadata of uploaded medical records, as wel
 
 # Recieving Tokens when adding Linnia records
 
-When user uploads data, 1 Finney LIN token is transferred from the Linnia admin pool/acct to the user’s address.
+When a person uploads data, 1 Finney LIN token is transferred from the Linnia admin pool/acct to the user’s address.
 Currently no data validation needed.
 
 1 Finney of LIN tokens per upload for now.
