@@ -1,4 +1,5 @@
 import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
+
 const ERC20 = artifacts.require('./ERC20Mock.sol');
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
@@ -31,7 +32,7 @@ contract('LinniaRecords with Reward', accounts => {
   });
   before('set up a LinniaHub contract', async () => {
     hub = await LinniaHub.new({from: admin});
-    token.transfer(hub.address, 100, {from: admin})
+    token.transfer(hub.address, 100, {from: admin});
   });
   before('set up a LinniaUsers contract', async () => {
     const usersInstance = await LinniaUsers.new(hub.address);
