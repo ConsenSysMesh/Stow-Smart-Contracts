@@ -4,6 +4,7 @@ import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./LinniaHub.sol";
 import "./LinniaUsers.sol";
 
@@ -37,6 +38,8 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
     event LinniaRecordSigAdded(
         bytes32 indexed dataHash, address indexed attestator, uint irisScore
     );
+
+    event LinniaReward (bytes32 indexed dataHash, address indexed owner, uint256 value, address tokenContract);
 
     LinniaHub public hub;
     // all linnia records
@@ -96,6 +99,33 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         require(
             _addRecord(dataHash, msg.sender, metadata, dataUri) == true
         );
+        return true;
+    }
+
+    /// Add a record by user without any provider's signatures and get a reward.
+    ///
+    /// @param dataHash the hash of the data
+    /// @param metadata plaintext metadata for the record
+    /// @param dataUri the data uri path of the encrypted data
+    /// @param token the ERC20 token address for the rewarding token
+    function addRecordwithReward (
+        bytes32 dataHash, string metadata, string dataUri, address token)
+        onlyUser
+        whenNotPaused
+        public
+    returns  (bool)
+    {
+        // the amount of tokens to be transferred
+        uint256 reward = 1 finney;
+        require (token != address (0));
+        require (token != address (this));
+        ERC20 tokenInstance = ERC20 (token);
+        require (
+            _addRecord (dataHash, msg.sender, metadata, dataUri) == true
+        );
+        // tokens are provided by the contracts balance
+        require(tokenInstance.transfer (msg.sender, reward));
+        emit LinniaReward (dataHash, msg.sender, reward, token);
         return true;
     }
 

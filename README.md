@@ -11,6 +11,13 @@ A contract that keeps a registry of registered users and their provenance.
 ## Linnia Records
 A contract that keeps a registry of metadata of uploaded medical records, as well as the IRIS score of those records. The metadata makes records easily searchable.
 
+# Recieving Tokens when adding Linnia records
+
+When a person uploads data, 1 Finney LIN token is transferred from the Linnia admin pool/acct to the user’s address.
+Currently no data validation needed.
+
+1 Finney of LIN tokens per upload for now.
+
 ## Linnia Permissions
 A contract that keeps a registry of permissions. Permissions include who can view what data, and where the permissioned copy is stored on IPFS.
 
