@@ -34,7 +34,7 @@ contract ERC20Mock is PausableToken, DetailedERC20 {
     * @param value The amount to be transferred.
     */
     function transfer(address to, uint256 value) public returns (bool) {
-        emit Transfer(address(0), msg.sender, value);
+        super.transfer(to, value);
         return true;
     }
 

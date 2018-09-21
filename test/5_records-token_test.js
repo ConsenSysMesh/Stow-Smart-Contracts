@@ -29,10 +29,10 @@ contract('LinniaRecords with Reward', accounts => {
     token = await ERC20.new({from: admin});
     tokenContractAddress = token.address;
     token.unpause({from: admin});
+
   });
   before('set up a LinniaHub contract', async () => {
     hub = await LinniaHub.new({from: admin});
-    token.transfer(hub.address, 100, {from: admin});
   });
   before('set up a LinniaUsers contract', async () => {
     const usersInstance = await LinniaUsers.new(hub.address);
@@ -49,6 +49,9 @@ contract('LinniaRecords with Reward', accounts => {
   });
   describe('add record by user and receive LIN tokens', () => {
     it('should allow a user to add a new record and receive LIN tokens', async () => {
+      await token.transfer(instance.address, web3.toWei(1000, 'finney'), {from: admin});
+      let userBalance = await token.balanceOf(user);
+      assert.equal(userBalance.toNumber(), 0);
       const tx = await instance.addRecordwithReward(
         testDataHash,
         testMetadata,
@@ -56,8 +59,9 @@ contract('LinniaRecords with Reward', accounts => {
         tokenContractAddress,
         {from: user}
       );
+      userBalance = await token.balanceOf(user);
+      assert.equal(userBalance.toNumber(), web3.toWei(1, 'finney'));
       assert.equal(tx.logs.length, 2);
-
       assert.equal(tx.logs[1].event, 'LinniaReward');
 
       assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
@@ -141,6 +145,8 @@ contract('LinniaRecords with Reward', accounts => {
       );
       const tx2 = await instance.unpause();
       assert.equal(tx2.logs[0].event, 'Unpause');
+
+      await token.transfer(instance.address, web3.toWei(1000 ,'finney'), {from: admin});
       const tx3 = await instance.addRecordwithReward(
         testDataHash,
         testMetadata,
