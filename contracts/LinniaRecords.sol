@@ -96,11 +96,15 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
     returns (uint)
     {
         require(irisProvidersAddress != address(0));
+        require(dataHash != 0);
+
+        Record storage record = records[dataHash];
+        require(record.irisProvidersReports[irisProvidersAddress] == 0);
+
         IrisScoreProviderI currOracle = IrisScoreProviderI(irisProvidersAddress);
         uint val = currOracle.report(dataHash);
         require(val > 0);
 
-        Record storage record = records[dataHash];
         record.irisScore.add(val);
         record.irisProvidersReports[irisProvidersAddress] = val;
         return val;
