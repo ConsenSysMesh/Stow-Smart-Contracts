@@ -7,6 +7,8 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./LinniaHub.sol";
 import "./LinniaUsers.sol";
+import "./interfaces/IrisScoreProviderI.sol";
+
 
 
 contract LinniaRecords is Ownable, Pausable, Destructible {
@@ -30,6 +32,8 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         string dataUri;
         // timestamp of the block when the record is added
         uint timestamp;
+        // scores for the score returned from the domain specific IRIS provider oracles
+        mapping (address => uint)  irisProvidersReports;
     }
 
     event LinniaRecordAdded(
@@ -81,6 +85,25 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
             require(_addSig(dataHash, attestator));
         }
         return true;
+    }
+
+    /// @param dataHash the datahash of the record to be scored
+    /// @param irisProvidersAddress address of the oracle contract
+    function updateIris(bytes32 dataHash, address irisProvidersAddress)
+        external
+        onlyOwner
+        whenNotPaused
+    returns (uint)
+    {
+        require(irisProvidersAddress != address(0));
+        IrisScoreProviderI currOracle = IrisScoreProviderI(irisProvidersAddress);
+        uint val = currOracle.report(dataHash);
+        require(val > 0);
+
+        Record storage record = records[dataHash];
+        record.irisScore.add(val);
+        record.irisProvidersReports[irisProvidersAddress] = val;
+        return val;
     }
 
     /* Public functions */
