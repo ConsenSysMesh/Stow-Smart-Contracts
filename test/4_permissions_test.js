@@ -86,7 +86,7 @@ contract('LinniaPermissions', accounts => {
   describe('grant access', () => {
     it('should allow user to grant access to their data', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
-      const tx = await instance.grantAccessbyOwner(
+      const tx = await instance.grantAccess(
         testDataHash1,
         provider2,
         fakeIpfsHash,
@@ -103,17 +103,17 @@ contract('LinniaPermissions', accounts => {
     it('should not allow non-owner to grant access', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       await assertRevert(
-        instance.grantAccessbyOwner(testDataHash1, provider2, fakeIpfsHash, {
+        instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
           from: provider1
         })
       );
       await assertRevert(
-        instance.grantAccessbyOwner(testDataHash1, provider2, fakeIpfsHash, {
+        instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
           from: provider2
         })
       );
       await assertRevert(
-        instance.grantAccessbyOwner(testDataHash1, provider2, fakeIpfsHash, {
+        instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
           from: user2
         })
       );
@@ -153,10 +153,10 @@ contract('LinniaPermissions', accounts => {
     it('should reject if viewer or data uri is zero', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       await assertRevert(
-        instance.grantAccessbyOwner(testDataHash1, 0, fakeIpfsHash, { from: user1 })
+        instance.grantAccess(testDataHash1, 0, fakeIpfsHash, { from: user1 })
       );
       await assertRevert(
-        instance.grantAccessbyOwner(testDataHash1, provider2, 0, { from: user1 })
+        instance.grantAccess(testDataHash1, provider2, 0, { from: user1 })
       );
     });
     // TODO, This is disabled for testing purposes
@@ -164,11 +164,11 @@ contract('LinniaPermissions', accounts => {
     //   'should not allow sharing same record twice with same user',
     //   async () => {
     //     const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
-    //     await instance.grantAccessbyOwner(testDataHash1, provider2, fakeIpfsHash, {
+    //     await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
     //       from: user1
     //     });
     //     await assertRevert(
-    //       instance.grantAccessbyOwner(testDataHash1, provider2, fakeIpfsHash, {
+    //       instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
     //         from: user1
     //       })
     //     );
@@ -178,12 +178,12 @@ contract('LinniaPermissions', accounts => {
   describe('revoke access', () => {
     beforeEach('grant provider2 to access user1\'s record1', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
-      await instance.grantAccessbyOwner(testDataHash1, provider2, fakeIpfsHash, {
+      await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
         from: user1
       });
     });
     it('should allow owner to revoke access to their data', async () => {
-      const tx = await instance.revokeAccessbyOwner(testDataHash1, provider2, {
+      const tx = await instance.revokeAccess(testDataHash1, provider2, {
         from: user1
       });
       assert.equal(tx.logs[0].event, 'LinniaAccessRevoked');
@@ -196,13 +196,13 @@ contract('LinniaPermissions', accounts => {
     });
     it('should not allow non-owner to revoke access to data', async () => {
       await assertRevert(
-        instance.revokeAccessbyOwner(testDataHash1, provider2, { from: provider1 })
+        instance.revokeAccess(testDataHash1, provider2, { from: provider1 })
       );
       await assertRevert(
-        instance.revokeAccessbyOwner(testDataHash1, provider2, { from: provider2 })
+        instance.revokeAccess(testDataHash1, provider2, { from: provider2 })
       );
       await assertRevert(
-        instance.revokeAccessbyOwner(testDataHash1, provider2, { from: user2 })
+        instance.revokeAccess(testDataHash1, provider2, { from: user2 })
       );
     });
     it('should allow delegate to revoke access to data', async () => {
@@ -238,7 +238,7 @@ contract('LinniaPermissions', accounts => {
       }), false);
       // grant provider2 to access user1\'s record1
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
-      await instance.grantAccessbyOwner(testDataHash1, provider2, fakeIpfsHash, {
+      await instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
         from: user1
       });
       assert.equal(await instance.checkAccess(testDataHash1, provider2, {
@@ -256,13 +256,13 @@ contract('LinniaPermissions', accounts => {
       const tx = await instance.pause();
       assert.equal(tx.logs[0].event, 'Pause');
       await assertRevert(
-        instance.grantAccessbyOwner(testDataHash1, provider2, fakeIpfsHash, {
+        instance.grantAccess(testDataHash1, provider2, fakeIpfsHash, {
           from: user1
         })
       );
       const tx2 = await instance.unpause();
       assert.equal(tx2.logs[0].event, 'Unpause');
-      const tx3 = await instance.grantAccessbyOwner(
+      const tx3 = await instance.grantAccess(
         testDataHash1,
         provider2,
         fakeIpfsHash,

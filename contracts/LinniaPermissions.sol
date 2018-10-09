@@ -86,11 +86,10 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being permissioned to view the data
     /// @param dataUri the ipfs path of the re-encrypted data
-    function grantAccessbyOwner(
+    function grantAccess(
         bytes32 dataHash, address viewer, string dataUri)
         onlyUser
         onlyRecordOwnerOf(dataHash, msg.sender)
-        whenNotPaused
         public
         returns (bool)
     {
@@ -110,7 +109,6 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         bytes32 dataHash, address viewer, address owner, string dataUri)
         onlyDelegate(owner)
         onlyRecordOwnerOf(dataHash, owner)
-        whenNotPaused
         public
         returns (bool)
     {
@@ -125,11 +123,10 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// Called by owner of the record.
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user that has permission to view the data
-    function revokeAccessbyOwner(
+    function revokeAccess(
         bytes32 dataHash, address viewer)
         onlyUser
         onlyRecordOwnerOf(dataHash, msg.sender)
-        whenNotPaused
         public
         returns (bool)
     {
@@ -149,7 +146,6 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         bytes32 dataHash, address viewer, address owner)
         onlyDelegate(owner)
         onlyRecordOwnerOf(dataHash, owner)
-        whenNotPaused
         public
         returns (bool)
     {
