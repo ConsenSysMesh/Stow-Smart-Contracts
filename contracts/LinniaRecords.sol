@@ -110,9 +110,9 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
     /// @param token the ERC20 token address for the rewarding token
     function addRecordwithReward (
         bytes32 dataHash, string metadata, string dataUri, address token)
-    onlyUser
-    whenNotPaused
-    public
+        onlyUser
+        whenNotPaused
+        public
     returns  (bool)
     {
         // the amount of tokens to be transferred
@@ -124,7 +124,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
             _addRecord (dataHash, msg.sender, metadata, dataUri) == true
         );
         // tokens are provided by the contracts balance
-        tokenInstance.transfer (msg.sender, reward);
+        require(tokenInstance.transfer (msg.sender, reward));
         emit LinniaReward (dataHash, msg.sender, reward, token);
         return true;
     }
