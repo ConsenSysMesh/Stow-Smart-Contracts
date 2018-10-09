@@ -21,7 +21,7 @@ contract('LinniaPermissions', accounts => {
   const user1 = accounts[1];
   const user2 = accounts[2];
   const delegate = accounts[5];
-  const non_user = accounts[6];
+  const nonUser = accounts[6];
   const provider1 = accounts[3];
   const provider2 = accounts[4];
   let hub;
@@ -72,7 +72,7 @@ contract('LinniaPermissions', accounts => {
   describe('delegate', () => {
     it('should not let non-user set a delegate', async () => {
       await assertRevert(
-        instance.addDelegate(delegate, {from: non_user})
+        instance.addDelegate(delegate, {from: nonUser})
       );
     });
     it('should set a delegate', async () => {
