@@ -3,6 +3,7 @@ pragma solidity 0.4.24;
 import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./LinniaWhitelistI.sol";
 import "./LinniaHub.sol";
 
 
@@ -44,10 +45,23 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
         return true;
     }
 
-    // setProvenance allows admin to set the provenance of a user
-    function setProvenance(address user, uint provenance)
+     // setExpertScore allows admin to set the expert score of a user from a trusted third party
+    function setExpertScore(LinniaWhitelistI whitelist, address user)
         onlyOwner
         external
+        returns (bool)
+    {
+        uint score = whitelist.expertScoreOf(user);
+        setProvenance(user, score);
+        return true;
+    }
+
+    /* Public functions */
+
+     // setProvenance allows admin to set the provenance of a user
+    function setProvenance(address user, uint provenance)
+        onlyOwner
+        public
         returns (bool)
     {
         require(isUser(user));
@@ -55,8 +69,6 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
         emit LinniaProvenanceChanged(user, provenance);
         return true;
     }
-
-    /* Public functions */
 
     function isUser(address user)
         public
