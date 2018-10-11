@@ -16,7 +16,7 @@ const testDataUri1 = 'QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM';
 const testDataUri2 = 'QmUoCHEZqSuYhr9fV1c2b4gLASG2hPpC2moQXQ6qzy697d';
 const testMetadata = 'KEYWORDS';
 
-contract.only('LinniaPermissions', accounts => {
+contract('LinniaPermissions', accounts => {
   const admin = accounts[0];
   const user1 = accounts[1];
   const user2 = accounts[2];
