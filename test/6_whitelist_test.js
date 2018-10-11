@@ -6,7 +6,7 @@ const Whitelist = artifacts.require('./WhitelistMock.sol');
 
 /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
 
-contract.only('Whitelist', accounts => {
+contract('Whitelist', accounts => {
   let hub;
   let users;
   let instance;
