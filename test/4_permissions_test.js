@@ -207,10 +207,10 @@ contract.only('LinniaPermissions', accounts => {
     });
     it('should allow delegate to revoke access to data', async () => {
       await instance.addDelegate(delegate, {from: user1});
-       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       await instance.grantAccessbyDelegate(testDataHash1, provider2, user1, fakeIpfsHash, {
-          from: delegate
-        })
+        from: delegate
+      });
       const tx = await instance.revokeAccessbyDelegate(testDataHash1, provider2, user1, {
         from: delegate
       });
