@@ -16,13 +16,13 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         string dataUri;
     }
 
-    event LinniaAccessGranted(bytes32 dataHash, address indexed owner,
-        address indexed viewer, address indexed sender
+    event LinniaAccessGranted(bytes32 indexed dataHash, address indexed owner,
+        address indexed viewer, address sender
     );
-    event LinniaAccessRevoked(bytes32 dataHash, address indexed owner,
-        address indexed viewer, address indexed sender
+    event LinniaAccessRevoked(bytes32 indexed dataHash, address indexed owner,
+        address indexed viewer, address sender
     );
-    event LinniaDelegateAdded(address indexed user, address indexed delegate);
+    event LinniaPermissionDelegateAdded(address indexed user, address indexed delegate);
 
     LinniaHub public hub;
     // dataHash => viewer => permission mapping
@@ -32,7 +32,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
 
     /* Modifiers */
     modifier onlyUser() {
-        require(hub.usersContract().isUser(msg.sender) == true);
+        require(hub.usersContract().isUser(msg.sender));
         _;
     }
 
@@ -41,7 +41,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         _;
     }
 
-    modifier onlyDelegate(address owner) {
+    modifier onlyWhenSenderIsDelegate(address owner) {
         require(delegates[owner][msg.sender]);
         _;
     }
@@ -57,8 +57,8 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /* External functions */
 
     /// Check if a viewer has access to a record
-    /// @param dataHash the hash of the unencrypted file
-    /// @param viewer the address being allowed to view the file
+    /// @param dataHash the hash of the unencrypted data
+    /// @param viewer the address being allowed to view the data
 
     function checkAccess(bytes32 dataHash, address viewer)
     view
@@ -76,8 +76,10 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     external
     returns (bool)
     {
+        require(delegate != address(0));
+        require(delegate != msg.sender);
         delegates[msg.sender][delegate] = true;
-        emit LinniaDelegateAdded(msg.sender, delegate);
+        emit LinniaPermissionDelegateAdded(msg.sender, delegate);
         return true;
     }
     
@@ -85,16 +87,16 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// Called by owner of the record.
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being permissioned to view the data
-    /// @param dataUri the ipfs path of the re-encrypted data
+    /// @param dataUri the path of the re-encrypted data
     function grantAccess(
         bytes32 dataHash, address viewer, string dataUri)
         onlyUser
         onlyRecordOwnerOf(dataHash, msg.sender)
-        public
+        external
         returns (bool)
     {
         require(
-            _grantAccess(dataHash, viewer, msg.sender, dataUri) == true
+            _grantAccess(dataHash, viewer, msg.sender, dataUri)
         );
         return true;
     }
@@ -104,22 +106,22 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being permissioned to view the data
     /// @param owner the owner of the linnia record
-    /// @param dataUri the ipfs path of the re-encrypted data
+    /// @param dataUri the path of the re-encrypted data
     function grantAccessbyDelegate(
         bytes32 dataHash, address viewer, address owner, string dataUri)
-        onlyDelegate(owner)
+        onlyWhenSenderIsDelegate(owner)
         onlyRecordOwnerOf(dataHash, owner)
-        public
+        external
         returns (bool)
     {
         require(
-            _grantAccess(dataHash, viewer, owner, dataUri) == true
+            _grantAccess(dataHash, viewer, owner, dataUri)
         );
         return true;
     }
 
     /// Revoke a viewer access to a linnia record
-    /// Note that this does not necessarily remove the file from storage
+    /// Note that this does not necessarily remove the data from storage
     /// Called by owner of the record.
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user that has permission to view the data
@@ -127,31 +129,29 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         bytes32 dataHash, address viewer)
         onlyUser
         onlyRecordOwnerOf(dataHash, msg.sender)
-        public
+        external
         returns (bool)
     {
         require(
-            _revokeAccess(dataHash, viewer, msg.sender) == true
+            _revokeAccess(dataHash, viewer, msg.sender)
         );
         return true;
     }
 
     /// Revoke a viewer access to a linnia record
-    /// Note that this does not necessarily remove the file from storage
+    /// Note that this does not necessarily remove the data from storage
     /// Called by delegate to the owner of the record.
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user that has permission to view the data
     /// @param owner the owner of the linnia record
     function revokeAccessbyDelegate(
         bytes32 dataHash, address viewer, address owner)
-        onlyDelegate(owner)
+        onlyWhenSenderIsDelegate(owner)
         onlyRecordOwnerOf(dataHash, owner)
-        public
+        external
         returns (bool)
     {
-        require(
-            _revokeAccess(dataHash, viewer, owner) == true
-        );
+        require(_revokeAccess(dataHash, viewer, owner));
         return true;
     }
 
@@ -166,6 +166,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     returns (bool)
     {
         // validate input
+        require(owner != address(0));
         require(viewer != address(0));
         require(bytes(dataUri).length != 0);
 
@@ -182,7 +183,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
 
     /// Internal function to revoke a viewer access to a linnia record
     /// Called by external functions
-    /// Note that this does not necessarily remove the file from storage
+    /// Note that this does not necessarily remove the data from storage
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user that has permission to view the data
     /// @param owner the owner of the linnia record
@@ -191,6 +192,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     internal
     returns (bool)
     {
+        require(owner != address(0));
         // access must have already been grated
         require(permissions[dataHash][viewer].canAccess);
         permissions[dataHash][viewer] = Permission({
