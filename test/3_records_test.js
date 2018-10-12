@@ -3,7 +3,7 @@ import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
 const LinniaRecords = artifacts.require('./LinniaRecords.sol');
-const irisScoreProvider = artifacts.require('./mock/irisScoreProviderMock.sol');
+const irisScoreProvider = artifacts.require('./mock/IrisScoreProviderMock.sol');
 
 const crypto = require('crypto');
 const eutil = require('ethereumjs-util');
