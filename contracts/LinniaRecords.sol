@@ -16,7 +16,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
 
     // Struct of a linnia record
     // A linnia record is identified by its data hash, which is
-    // keccak256(data)
+    // keccak256(data + optional nonce)
     struct Record {
         // owner of the record
         address owner;
@@ -32,18 +32,23 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         string dataUri;
         // timestamp of the block when the record is added
         uint timestamp;
-        // scores for the score returned from the domain specific IRIS provider oracles
+        // non zero score returned from the specific IRIS provider oracles
         mapping (address => uint256)  irisProvidersReports;
     }
+
+    event LinnniaUpdateRecordsIris(
+        bytes32 indexed dataHash, address indexed irisProvidersAddress, uint256 val, address indexed sender)
+    ;
 
     event LinniaRecordAdded(
         bytes32 indexed dataHash, address indexed owner, string metadata
     );
+
     event LinniaRecordSigAdded(
         bytes32 indexed dataHash, address indexed attestator, uint irisScore
     );
 
-    event LinniaReward (bytes32 indexed dataHash, address indexed owner, uint256 value, address tokenContract);
+    event LinniaReward(bytes32 indexed dataHash, address indexed owner, uint256 value, address tokenContract);
 
     LinniaHub public hub;
     // all linnia records
@@ -110,6 +115,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         record.irisScore.add(val);
         // keep a record of isis score breakdown
         record.irisProvidersReports[irisProvidersAddress] = val;
+        emit LinnniaUpdateRecordsIris(dataHash, irisProvidersAddress, val, msg.sender);
         return val;
     }
 

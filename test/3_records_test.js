@@ -495,7 +495,15 @@ contract('LinniaRecords', accounts => {
       await irisScoreProviderInstance.setVal(42);
     });
     it('should not allow updating more than once with the same irisScoreProvider', async () => {
-      const tx = await instance.updateIris(testDataHash, irisScoreProviderContractAddress);
+      const tx = await instance.updateIris(testDataHash, irisScoreProviderContractAddress, {from: admin});
+      assert.equal(tx.logs[0].event, 'LinnniaUpdateRecordsIris');
+      assert.equal(JSON.stringify(tx.logs[0].args),
+        JSON.stringify({
+          "dataHash":testDataHash,
+          "irisProvidersAddress":irisScoreProviderContractAddress,
+          "val":"42",
+          "sender":admin
+        }));
       await assertRevert(instance.updateIris(testDataHash, irisScoreProviderContractAddress));
     });
   });
