@@ -3,9 +3,13 @@ import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
 const LinniaRecords = artifacts.require('./LinniaRecords.sol');
+const irisScoreProvider = artifacts.require('./mock/irisScoreProviderMock.sol');
 
 const crypto = require('crypto');
 const eutil = require('ethereumjs-util');
+
+let irisScoreProviderContractAddress;
+let irisScoreProviderInstance;
 
 const testDataContent = '{"foo":"bar","baz":42}';
 const testDataHash = eutil.bufferToHex(eutil.sha3(testDataContent));
@@ -464,6 +468,35 @@ contract('LinniaRecords', accounts => {
           { from: provider1 }
         )
       );
+    });
+  });
+  describe('updateIris', () => {
+    before('set up a irisScoreProvider mock contract', async () => {
+      irisScoreProviderInstance = await irisScoreProvider.new({from: admin});
+      irisScoreProviderContractAddress = irisScoreProviderInstance.address;
+    });
+    it('update record is score with irisScoreProvider', async () => {
+      const resultValue = await instance.updateIris.call(testDataHash, irisScoreProviderContractAddress);
+      assert.equal(resultValue, 42);
+    });
+    it('should not allow datahash of zero', async () => {
+      await assertRevert(instance.updateIris.call(0, irisScoreProviderContractAddress));
+      await assertRevert(instance.updateIris(0, irisScoreProviderContractAddress));
+    });
+    it('should not allow address of zero', async () => {
+      await assertRevert(instance.updateIris.call(testDataHash, 0));
+      await assertRevert(instance.updateIris(testDataHash, 0));
+    });
+    it('should not allow irisScoreProvider to return zero or less', async () => {
+      const resultValue = await instance.updateIris.call(testDataHash, irisScoreProviderContractAddress);
+      assert.equal(resultValue, 42);
+      await irisScoreProviderInstance.setVal(0);
+      await assertRevert(instance.updateIris(testDataHash, irisScoreProviderContractAddress));
+      await irisScoreProviderInstance.setVal(42);
+    });
+    it('should not allow updating more than once with the same irisScoreProvider', async () => {
+      const tx = await instance.updateIris(testDataHash, irisScoreProviderContractAddress);
+      await assertRevert(instance.updateIris(testDataHash, irisScoreProviderContractAddress));
     });
   });
   describe('pausable', () => {
