@@ -5,5 +5,8 @@ contract IrisScoreProviderI {
 
     /// report the IRIS score for the dasaHash records
     /// @param dataHash the hash of the data to be scored
-    function report(bytes32 dataHash) public pure returns (uint);
+    function report(bytes32 dataHash)
+        public
+        view
+        returns (uint256);
 }

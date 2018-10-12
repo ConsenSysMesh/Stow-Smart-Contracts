@@ -33,7 +33,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         // timestamp of the block when the record is added
         uint timestamp;
         // scores for the score returned from the domain specific IRIS provider oracles
-        mapping (address => uint)  irisProvidersReports;
+        mapping (address => uint256)  irisProvidersReports;
     }
 
     event LinniaRecordAdded(
@@ -93,19 +93,22 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         external
         onlyOwner
         whenNotPaused
-    returns (uint)
+        returns (uint256)
     {
         require(irisProvidersAddress != address(0));
         require(dataHash != 0);
 
         Record storage record = records[dataHash];
+        // make sure the irisProviders is only called once
         require(record.irisProvidersReports[irisProvidersAddress] == 0);
 
         IrisScoreProviderI currOracle = IrisScoreProviderI(irisProvidersAddress);
-        uint val = currOracle.report(dataHash);
+        uint256 val = currOracle.report(dataHash);
+        // zero and less values are reverted
         require(val > 0);
 
         record.irisScore.add(val);
+        // keep a record of isis score breakdown
         record.irisProvidersReports[irisProvidersAddress] = val;
         return val;
     }
@@ -140,7 +143,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         onlyUser
         whenNotPaused
         public
-    returns  (bool)
+        returns  (bool)
     {
         // the amount of tokens to be transferred
         uint256 reward = 1 finney;
@@ -265,7 +268,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
             dataUri: dataUri,
             // solium-disable-next-line security/no-block-members
             timestamp: block.timestamp
-        });
+            });
         // emit event
         emit LinniaRecordAdded(dataHash, owner, metadata);
         return true;

@@ -5,8 +5,14 @@ import "../interfaces/IrisScoreProviderI.sol";
 
 contract IrisScoreProviderMock {
 
-    function report(bytes32 dataHash) public pure returns (uint) {
+    uint256 public val = 42;
+
+    function report(bytes32 dataHash) public view returns (uint256) {
         require(dataHash != 0);
-        return 42;
+        return val;
+    }
+
+    function setVal(uint256 newVale) public {
+        val = newVale;
     }
 }
