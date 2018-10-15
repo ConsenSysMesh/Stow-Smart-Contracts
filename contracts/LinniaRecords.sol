@@ -7,6 +7,8 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./LinniaHub.sol";
 import "./LinniaUsers.sol";
+import "./interfaces/IrisScoreProviderI.sol";
+
 
 
 contract LinniaRecords is Ownable, Pausable, Destructible {
@@ -14,7 +16,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
 
     // Struct of a linnia record
     // A linnia record is identified by its data hash, which is
-    // keccak256(data)
+    // keccak256(data + optional nonce)
     struct Record {
         // owner of the record
         address owner;
@@ -30,16 +32,23 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         string dataUri;
         // timestamp of the block when the record is added
         uint timestamp;
+        // non zero score returned from the specific IRIS provider oracles
+        mapping (address => uint256)  irisProvidersReports;
     }
+
+    event LinnniaUpdateRecordsIris(
+        bytes32 indexed dataHash, address indexed irisProvidersAddress, uint256 val, address indexed sender)
+    ;
 
     event LinniaRecordAdded(
         bytes32 indexed dataHash, address indexed owner, string metadata
     );
+
     event LinniaRecordSigAdded(
         bytes32 indexed dataHash, address indexed attestator, uint irisScore
     );
 
-    event LinniaReward (bytes32 indexed dataHash, address indexed owner, uint256 value, address tokenContract);
+    event LinniaReward(bytes32 indexed dataHash, address indexed owner, uint256 value, address tokenContract);
 
     LinniaHub public hub;
     // all linnia records
@@ -83,6 +92,33 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         return true;
     }
 
+    /// @param dataHash the datahash of the record to be scored
+    /// @param irisProvidersAddress address of the oracle contract
+    function updateIris(bytes32 dataHash, address irisProvidersAddress)
+        external
+        onlyOwner
+        whenNotPaused
+        returns (uint256)
+    {
+        require(irisProvidersAddress != address(0));
+        require(dataHash != 0);
+
+        Record storage record = records[dataHash];
+        // make sure the irisProviders is only called once
+        require(record.irisProvidersReports[irisProvidersAddress] == 0);
+
+        IrisScoreProviderI currOracle = IrisScoreProviderI(irisProvidersAddress);
+        uint256 val = currOracle.report(dataHash);
+        // zero and less values are reverted
+        require(val > 0);
+
+        record.irisScore.add(val);
+        // keep a record of isis score breakdown
+        record.irisProvidersReports[irisProvidersAddress] = val;
+        emit LinnniaUpdateRecordsIris(dataHash, irisProvidersAddress, val, msg.sender);
+        return val;
+    }
+
     /* Public functions */
 
     /// Add a record by user without any provider's signatures.
@@ -113,7 +149,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         onlyUser
         whenNotPaused
         public
-    returns  (bool)
+        returns  (bool)
     {
         // the amount of tokens to be transferred
         uint256 reward = 1 finney;
@@ -238,7 +274,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
             dataUri: dataUri,
             // solium-disable-next-line security/no-block-members
             timestamp: block.timestamp
-        });
+            });
         // emit event
         emit LinniaRecordAdded(dataHash, owner, metadata);
         return true;
