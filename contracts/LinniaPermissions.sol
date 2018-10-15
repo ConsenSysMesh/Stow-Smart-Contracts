@@ -61,9 +61,9 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// @param viewer the address being allowed to view the data
 
     function checkAccess(bytes32 dataHash, address viewer)
-    view
-    external
-    returns (bool)
+        view
+        external
+        returns (bool)
     {
         return permissions[dataHash][viewer].canAccess;
     }
@@ -71,10 +71,10 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// Add a delegate for a user's permissions
     /// @param delegate the address of the delegate being added by user
     function addDelegate(address delegate)
-    onlyUser
-    whenNotPaused
-    external
-    returns (bool)
+        onlyUser
+        whenNotPaused
+        external
+        returns (bool)
     {
         require(delegate != address(0));
         require(delegate != msg.sender);
@@ -161,9 +161,9 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// @param viewer the user being permissioned to view the data
     /// @param dataUri the ipfs path of the re-encrypted data
     function _grantAccess(bytes32 dataHash, address viewer, address owner, string dataUri)
-    whenNotPaused
-    internal
-    returns (bool)
+        whenNotPaused
+        internal
+        returns (bool)
     {
         // validate input
         require(owner != address(0));
@@ -188,9 +188,9 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// @param viewer the user that has permission to view the data
     /// @param owner the owner of the linnia record
     function _revokeAccess(bytes32 dataHash, address viewer, address owner)
-    whenNotPaused
-    internal
-    returns (bool)
+        whenNotPaused
+        internal
+        returns (bool)
     {
         require(owner != address(0));
         // access must have already been grated
