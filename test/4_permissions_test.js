@@ -77,10 +77,10 @@ contract('LinniaPermissions', accounts => {
     });
     it('should set a delegate', async () => {
       const tx = await instance.addDelegate(delegate, {from: user1});
-      assert.equal(await instance.delegates.call(user1, delegate), true);
       assert.equal(tx.logs[0].event, 'LinniaPermissionDelegateAdded');
       assert.equal(tx.logs[0].args.user, user1);
       assert.equal(tx.logs[0].args.delegate, delegate);
+      assert.equal(await instance.delegates.call(user1, delegate), true);
     });
   });
   describe('grant access', () => {

@@ -12,7 +12,7 @@ import "./LinniaUsers.sol";
 contract LinniaPermissions is Ownable, Pausable, Destructible {
     struct Permission {
         bool canAccess;
-        // ipfs path of the data, encrypted to the viewer
+        // data path of the data, encrypted to the viewer
         string dataUri;
     }
 
@@ -159,7 +159,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// Called by external functions
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being permissioned to view the data
-    /// @param dataUri the ipfs path of the re-encrypted data
+    /// @param dataUri the data path of the re-encrypted data
     function _grantAccess(bytes32 dataHash, address viewer, address owner, string dataUri)
         whenNotPaused
         internal
