@@ -16,6 +16,7 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
 
     event LinniaUserRegistered(address indexed user);
     event LinniaProvenanceChanged(address indexed user, uint provenance);
+    event LinniaWhitelistScoreAdded(address indexed whitelist);
 
     LinniaHub public hub;
     mapping(address => User) public users;
@@ -52,6 +53,7 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
         returns (bool)
     {
         uint score = whitelist.expertScoreOf(user);
+        emit LinniaWhitelistScoreAdded(whitelist);
         setProvenance(user, score);
         return true;
     }
