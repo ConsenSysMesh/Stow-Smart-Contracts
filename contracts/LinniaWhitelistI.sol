@@ -1,10 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-
-
-contract LinniaWhitelistI is Ownable, Destructible {
+contract LinniaWhitelistI {
 
     event LogExpertScoreUpdated(
     address indexed user,
@@ -12,13 +8,6 @@ contract LinniaWhitelistI is Ownable, Destructible {
     
     mapping(address => uint) public expertScores;
     
-    function expertScoreOf(address user) 
-    public
-    view
-    returns(uint) 
-    {
-        return expertScores[user];
-    }
+    function expertScoreOf(address user) public view returns(uint); 
 
-    function updateScore(address user, uint score) public returns(bool);
 }  

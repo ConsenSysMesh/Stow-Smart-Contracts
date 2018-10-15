@@ -113,7 +113,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         onlyUser
         whenNotPaused
         public
-    returns  (bool)
+        returns  (bool)
     {
         // the amount of tokens to be transferred
         uint256 reward = 1 finney;
