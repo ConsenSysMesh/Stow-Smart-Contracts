@@ -53,8 +53,8 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
         returns (bool)
     {
         uint score = whitelist.expertScoreOf(user);
-        emit LinniaWhitelistScoreAdded(whitelist);
         setProvenance(user, score);
+        emit LinniaWhitelistScoreAdded(whitelist);
         return true;
     }
 

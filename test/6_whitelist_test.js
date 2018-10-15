@@ -6,7 +6,7 @@ const Whitelist = artifacts.require('./WhitelistMock.sol');
 
 /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
 
-contract.only('MockWhitelist', accounts => {
+contract('MockWhitelist', accounts => {
   let hub;
   let users;
   let instance;
@@ -63,11 +63,11 @@ contract.only('MockWhitelist', accounts => {
       // check state
       assert.equal((await users.users(expertUser1))[2], expertScore);
       // check logs
-      assert.equal(tx.logs[0].event, 'LinniaWhitelistScoreAdded');
-      assert.equal(tx.logs[0].args.whitelist, instance.address);
-      assert.equal(tx.logs[1].event, 'LinniaProvenanceChanged');
-      assert.equal(tx.logs[1].args.user, expertUser1);
-      assert.equal(tx.logs[1].args.provenance, expertScore);
+      assert.equal(tx.logs[1].event, 'LinniaWhitelistScoreAdded');
+      assert.equal(tx.logs[1].args.whitelist, instance.address);
+      assert.equal(tx.logs[0].event, 'LinniaProvenanceChanged');
+      assert.equal(tx.logs[0].args.user, expertUser1);
+      assert.equal(tx.logs[0].args.provenance, expertScore);
     });
   });
 });
