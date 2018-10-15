@@ -20,6 +20,8 @@ contract('LinniaPermissions', accounts => {
   const admin = accounts[0];
   const user1 = accounts[1];
   const user2 = accounts[2];
+  const delegate = accounts[5];
+  const nonUser = accounts[6];
   const provider1 = accounts[3];
   const provider2 = accounts[4];
   let hub;
@@ -67,6 +69,20 @@ contract('LinniaPermissions', accounts => {
       assert.equal(await newInstance.hub(), hub.address);
     });
   });
+  describe('delegate', () => {
+    it('should not let non-user set a delegate', async () => {
+      await assertRevert(
+        instance.addDelegate(delegate, {from: nonUser})
+      );
+    });
+    it('should set a delegate', async () => {
+      const tx = await instance.addDelegate(delegate, {from: user1});
+      assert.equal(tx.logs[0].event, 'LinniaPermissionDelegateAdded');
+      assert.equal(tx.logs[0].args.user, user1);
+      assert.equal(tx.logs[0].args.delegate, delegate);
+      assert.equal(await instance.delegates.call(user1, delegate), true);
+    });
+  });
   describe('grant access', () => {
     it('should allow user to grant access to their data', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
@@ -101,6 +117,38 @@ contract('LinniaPermissions', accounts => {
           from: user2
         })
       );
+    });
+    it('should not allow non-delegate to grant access', async () => {
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
+      await assertRevert(
+        instance.grantAccessbyDelegate(testDataHash1, provider2, user1, fakeIpfsHash, {
+          from: user2
+        })
+      );
+      await assertRevert(
+        instance.grantAccessbyDelegate(testDataHash2, provider1, provider2, fakeIpfsHash, {
+          from: user1
+        })
+      );
+    });
+    it('should allow delegate to grant access', async () => {
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
+      await instance.addDelegate(delegate, {from: user1});
+      const tx = await instance.grantAccessbyDelegate(
+        testDataHash1,
+        user2,
+        user1,
+        fakeIpfsHash,
+        { from: delegate }
+      );
+      assert.equal(tx.logs[0].event, 'LinniaAccessGranted');
+      assert.equal(tx.logs[0].args.dataHash, testDataHash1);
+      assert.equal(tx.logs[0].args.owner, user1);
+      assert.equal(tx.logs[0].args.viewer, user2);
+      assert.equal(tx.logs[0].args.sender, delegate);
+      const perm = await instance.permissions(testDataHash1, user2);
+      assert.equal(perm[0], true);
+      assert.equal(perm[1], fakeIpfsHash);
     });
     it('should reject if viewer or data uri is zero', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
@@ -155,6 +203,35 @@ contract('LinniaPermissions', accounts => {
       );
       await assertRevert(
         instance.revokeAccess(testDataHash1, provider2, { from: user2 })
+      );
+    });
+    it('should allow delegate to revoke access to data', async () => {
+      await instance.addDelegate(delegate, {from: user1});
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
+      await instance.grantAccessbyDelegate(testDataHash1, provider2, user1, fakeIpfsHash, {
+        from: delegate
+      });
+      const tx = await instance.revokeAccessbyDelegate(testDataHash1, provider2, user1, {
+        from: delegate
+      });
+      assert.equal(tx.logs[0].event, 'LinniaAccessRevoked');
+      assert.equal(tx.logs[0].args.dataHash, testDataHash1);
+      assert.equal(tx.logs[0].args.owner, user1);
+      assert.equal(tx.logs[0].args.viewer, provider2);
+      assert.equal(tx.logs[0].args.sender, delegate);
+      const perm = await instance.permissions(testDataHash1, provider2);
+      assert.equal(perm[0], false);
+      assert.equal(perm[1], '');
+    });
+    it('should not allow non-delegate to revoke access to data', async () => {
+      await assertRevert(
+        instance.revokeAccessbyDelegate(testDataHash1, provider2, user1, { from: user2 })
+      );
+      await assertRevert(
+        instance.revokeAccessbyDelegate(testDataHash1, provider2, user1, { from: provider2 })
+      );
+      await assertRevert(
+        instance.revokeAccessbyDelegate(testDataHash1, provider2, user1, { from: user1 })
       );
     });
   });

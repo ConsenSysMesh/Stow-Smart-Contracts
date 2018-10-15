@@ -10,6 +10,8 @@ import "openzeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
  */
 
 
+
+
 contract ERC20Mock is PausableToken, DetailedERC20 {
 
     string public name = "Test TOKEN";
