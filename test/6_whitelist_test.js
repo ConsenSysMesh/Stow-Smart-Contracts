@@ -10,8 +10,8 @@ contract.only('MockWhitelist', accounts => {
   let hub;
   let users;
   let instance;
-  let expertScore = 3;
-  let nonOwner = accounts[5];
+  const expertScore = 3;
+  const nonOwner = accounts[5];
   const expertUser1 = accounts[1];
 
   before('set up a LinniaHub contract', async () => {
