@@ -9,6 +9,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
  * @dev Following https://consensys.github.io/smart-contract-best-practices/tokens/
  */
 
+
 contract ERC20Mock is PausableToken, DetailedERC20 {
 
     string public name = "Test TOKEN";
