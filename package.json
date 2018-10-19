@@ -1,6 +1,6 @@
 {
   "name": "@linniaprotocol/linnia-smart-contracts",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Linnia Smart Contracts",
   "main": "truffle-config.js",
   "files": [
