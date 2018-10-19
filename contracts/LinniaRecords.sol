@@ -121,6 +121,14 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         return val;
     }
 
+    function getIrisProvidersReport(bytes32 dataHash, address irisProvider)
+        external
+        view
+        returns (uint256)
+    {
+        return records[dataHash].irisProvidersReports[irisProvider];
+    }
+
     /* Public functions */
 
     /// Add a record by user without any provider's signatures.
