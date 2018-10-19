@@ -476,6 +476,7 @@ contract('LinniaRecords', accounts => {
       irisScoreProviderContractAddress = irisScoreProviderInstance.address;
     });
     it('update record is score with irisScoreProvider', async () => {
+      await instance.addRecord(testDataHash, testMetadata, testDataUri, {from: user});
       const resultValue = await instance.updateIris.call(testDataHash, irisScoreProviderContractAddress);
       assert.equal(resultValue, 42);
     });
@@ -488,13 +489,17 @@ contract('LinniaRecords', accounts => {
       await assertRevert(instance.updateIris(testDataHash, 0));
     });
     it('should not allow irisScoreProvider to return zero or less', async () => {
-      const resultValue = await instance.updateIris.call(testDataHash, irisScoreProviderContractAddress);
-      assert.equal(resultValue, 42);
       await irisScoreProviderInstance.setVal(0);
       await assertRevert(instance.updateIris(testDataHash, irisScoreProviderContractAddress));
       await irisScoreProviderInstance.setVal(42);
     });
     it('should not allow updating more than once with the same irisScoreProvider', async () => {
+      const tx0 = await instance.addRecord(testDataHash, testMetadata, testDataUri, {
+          from: user
+        });
+      const record0 = await instance.records(testDataHash);
+      assert.equal(record0[2], "0");
+
       const tx = await instance.updateIris(testDataHash, irisScoreProviderContractAddress, {from: admin});
       assert.equal(tx.logs[0].event, 'LinnniaUpdateRecordsIris');
       assert.equal(JSON.stringify(tx.logs[0].args),
@@ -504,6 +509,10 @@ contract('LinniaRecords', accounts => {
           'val':'42',
           'sender':admin
         }));
+      const tx1 = await web3.eth.getBlock(tx.receipt.blockNumber);
+      const record = await instance.records(testDataHash);
+      assert.equal(record[3], '42');
+
       await assertRevert(instance.updateIris(testDataHash, irisScoreProviderContractAddress));
     });
   });

@@ -104,6 +104,8 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         require(dataHash != 0);
 
         Record storage record = records[dataHash];
+        require(records[dataHash].timestamp != 0);
+
         // make sure the irisProviders is only called once
         require(record.irisProvidersReports[irisProvidersAddress] == 0);
 
@@ -111,8 +113,8 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         uint256 val = currOracle.report(dataHash);
         // zero and less values are reverted
         require(val > 0);
+        record.irisScore = record.irisScore.add(val);
 
-        record.irisScore.add(val);
         // keep a record of iris score breakdown
         record.irisProvidersReports[irisProvidersAddress] = val;
         emit LinnniaUpdateRecordsIris(dataHash, irisProvidersAddress, val, msg.sender);
