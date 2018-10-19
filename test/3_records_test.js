@@ -512,8 +512,6 @@ contract('LinniaRecords', accounts => {
           'val':'42',
           'sender':admin
         }));
-      const tx1 = await web3.eth.getBlock(tx.receipt.blockNumber);
-      assert.equal(tx1.receipt.status, '0x01');
       const record = await instance.records(testDataHash);
       assert.equal(record[3], '42');
 
