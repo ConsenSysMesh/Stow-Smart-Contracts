@@ -27,7 +27,6 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
 
     event LinniaPolicyChecked(
         bytes32 indexed dataHash,
-        address owner,
         string dataUri,
         address indexed viewer,
         address indexed policy,
@@ -150,7 +149,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         require(dataHash != 0);
         PermissionPolicyI currPolicy = PermissionPolicyI(policy);
         bool isOk = currPolicy.checkPolicy(dataHash, viewer, dataUri);
-        emit LinniaPolicyChecked(dataHash, owner, dataUri, viewer, policy, isOk, msg.sender);
+        emit LinniaPolicyChecked(dataHash, dataUri, viewer, policy, isOk, msg.sender);
 
         require(isOk);
         require(_grantAccess(dataHash, viewer, msg.sender, dataUri));

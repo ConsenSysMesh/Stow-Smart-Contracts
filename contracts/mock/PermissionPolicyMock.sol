@@ -3,7 +3,7 @@ pragma solidity 0.4.24;
 import "../interfaces/PermissionPolicyI.sol";
 
 
-contract /* interface */ PermissionPolicyMock {
+contract /* interface */ PermissionPolicyMock is PermissionPolicyI {
 
     bool public result = true;
 
@@ -18,7 +18,7 @@ contract /* interface */ PermissionPolicyMock {
         return result;
     }
 
-    function setVal(bool newResult) external {
+    function setVal(bool newResult) public {
         result = newResult;
     }
 }

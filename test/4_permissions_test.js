@@ -193,6 +193,19 @@ contract('LinniaPermissions', accounts => {
         permissionPolicyContractAddress,
         { from: user1 }
       );
+
+      const expectedArgs =  {
+        "dataHash": testDataHash1,
+        "dataUri": fakeIpfsHash,
+        "viewer": provider2,
+        "policy": permissionPolicyContractAddress,
+        "isOk": true,
+        "sender": user1
+      };
+
+      assert.equal(tx.logs[0].event, 'LinniaPolicyChecked');
+      assert.equal(JSON.stringify(tx.logs[0].args), JSON.stringify(expectedArgs));
+
       assert.equal(tx.logs[1].event, 'LinniaAccessGranted');
       assert.equal(tx.logs[1].args.dataHash, testDataHash1);
       assert.equal(tx.logs[1].args.owner, user1);
@@ -200,6 +213,20 @@ contract('LinniaPermissions', accounts => {
       const perm = await instance.permissions(testDataHash1, provider2);
       assert.equal(perm[0], true);
       assert.equal(perm[1], fakeIpfsHash);
+    });
+    it('should allow not access when check fails', async () => {
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
+      await permissionPolicyInstance.setVal(false);
+
+      await assertRevert( instance.grantPolicyBasedAccess(
+        testDataHash1,
+        provider2,
+        fakeIpfsHash,
+        permissionPolicyContractAddress,
+        { from: user1 }
+      ));
+
+      await permissionPolicyInstance.setVal(true);
     });
   });
   describe('revoke access', () => {

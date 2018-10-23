@@ -3,7 +3,7 @@ pragma solidity 0.4.24;
 import "../interfaces/IrisScoreProviderI.sol";
 
 
-contract IrisScoreProviderMock {
+contract IrisScoreProviderMock is IrisScoreProviderI{
 
     uint256 public val = 42;
 
