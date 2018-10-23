@@ -49,7 +49,7 @@
     "ganache-cli": "^6.0.3",
     "multihashes": "^0.4.13",
     "solidity-coverage": "0.5.2",
-    "solium": "1.1.7",
+    "solium": "1.1.8",
     "truffle": "4.1.11"
   },
   "dependencies": {

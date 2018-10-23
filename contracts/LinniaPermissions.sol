@@ -7,6 +7,7 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
 import "./LinniaRecords.sol";
 import "./LinniaUsers.sol";
+import "./interfaces/PermissionPolicyI.sol";
 
 
 contract LinniaPermissions is Ownable, Pausable, Destructible {
@@ -23,6 +24,16 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         address indexed viewer, address sender
     );
     event LinniaPermissionDelegateAdded(address indexed user, address indexed delegate);
+
+    event LinniaPolicyChecked(
+        bytes32 indexed dataHash,
+        address owner,
+        string dataUri,
+        address indexed viewer,
+        address indexed policy,
+        bool isOk,
+        address sender
+    );
 
     LinniaHub public hub;
     // dataHash => viewer => permission mapping
@@ -82,11 +93,11 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         emit LinniaPermissionDelegateAdded(msg.sender, delegate);
         return true;
     }
-    
+
     /// Give a viewer access to a linnia record
     /// Called by owner of the record.
     /// @param dataHash the data hash of the linnia record
-    /// @param viewer the user being permissioned to view the data
+    /// @param viewer the user being granted permission to view the data
     /// @param dataUri the path of the re-encrypted data
     function grantAccess(
         bytes32 dataHash, address viewer, string dataUri)
@@ -117,6 +128,32 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         require(
             _grantAccess(dataHash, viewer, owner, dataUri)
         );
+        return true;
+    }
+
+    /// Give a viewer access to a linnia record
+    /// Called by owner of the record.
+    /// @param dataHash the data hash of the linnia record
+    /// @param viewer the user being granted permission to view the data
+    /// @param dataUri the path of the re-encrypted data
+    function grantPolicyBasedAccess(
+        bytes32 dataHash,
+        address viewer,
+        string dataUri,
+        address policy)
+        onlyUser
+        onlyRecordOwnerOf(dataHash, msg.sender)
+        external
+        returns (bool)
+    {
+        require(policy != address(0));
+        require(dataHash != 0);
+        PermissionPolicyI currPolicy = PermissionPolicyI(policy);
+        bool isOk = currPolicy.checkPolicy(dataHash, viewer, dataUri);
+        emit LinniaPolicyChecked(dataHash, owner, dataUri, viewer, policy, isOk, msg.sender);
+
+        require(isOk);
+        require(_grantAccess(dataHash, viewer, msg.sender, dataUri));
         return true;
     }
 
