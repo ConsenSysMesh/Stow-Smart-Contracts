@@ -195,12 +195,12 @@ contract('LinniaPermissions', accounts => {
       );
 
       const expectedArgs =  {
-        "dataHash": testDataHash1,
-        "dataUri": fakeIpfsHash,
-        "viewer": provider2,
-        "policy": permissionPolicyContractAddress,
-        "isOk": true,
-        "sender": user1
+        'dataHash': testDataHash1,
+        'dataUri': fakeIpfsHash,
+        'viewer': provider2,
+        'policy': permissionPolicyContractAddress,
+        'isOk': true,
+        'sender': user1
       };
 
       assert.equal(tx.logs[0].event, 'LinniaPolicyChecked');
