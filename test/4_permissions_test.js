@@ -4,6 +4,10 @@ const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
 const LinniaRecords = artifacts.require('./LinniaRecords.sol');
 const LinniaPermissions = artifacts.require('./LinniaPermissions.sol');
+const permissionPolicy = artifacts.require('./mock/PermissionPolicyMock.sol');
+
+let permissionPolicyContractAddress;
+let permissionPolicyInstance;
 
 const crypto = require('crypto');
 const eutil = require('ethereumjs-util');
@@ -174,6 +178,56 @@ contract('LinniaPermissions', accounts => {
     //     );
     //   }
     // );
+  });
+  describe('grant policy based access', () => {
+    before('set up a permissionPolicy mock contract', async () => {
+      permissionPolicyInstance = await permissionPolicy.new({from: admin});
+      permissionPolicyContractAddress = permissionPolicyInstance.address;
+    });
+    it('should allow user to grant policy based access to their data', async () => {
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
+      const tx = await instance.grantPolicyBasedAccess(
+        testDataHash1,
+        provider2,
+        fakeIpfsHash,
+        [permissionPolicyContractAddress],
+        { from: user1 }
+      );
+
+      const expectedArgs =  {
+        'dataHash': testDataHash1,
+        'dataUri': fakeIpfsHash,
+        'viewer': provider2,
+        'policy': permissionPolicyContractAddress,
+        'isOk': true,
+        'sender': user1
+      };
+
+      assert.equal(tx.logs[0].event, 'LinniaPolicyChecked');
+      assert.equal(JSON.stringify(tx.logs[0].args), JSON.stringify(expectedArgs));
+
+      assert.equal(tx.logs[1].event, 'LinniaAccessGranted');
+      assert.equal(tx.logs[1].args.dataHash, testDataHash1);
+      assert.equal(tx.logs[1].args.owner, user1);
+      assert.equal(tx.logs[1].args.viewer, provider2);
+      const perm = await instance.permissions(testDataHash1, provider2);
+      assert.equal(perm[0], true);
+      assert.equal(perm[1], fakeIpfsHash);
+    });
+    it('should allow not access when check fails', async () => {
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
+      await permissionPolicyInstance.setVal(false);
+
+      await assertRevert( instance.grantPolicyBasedAccess(
+        testDataHash1,
+        provider2,
+        fakeIpfsHash,
+        [permissionPolicyContractAddress],
+        { from: user1 }
+      ));
+
+      await permissionPolicyInstance.setVal(true);
+    });
   });
   describe('revoke access', () => {
     beforeEach('grant provider2 to access user1\'s record1', async () => {
