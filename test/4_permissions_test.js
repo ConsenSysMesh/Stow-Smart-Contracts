@@ -190,7 +190,7 @@ contract('LinniaPermissions', accounts => {
         testDataHash1,
         provider2,
         fakeIpfsHash,
-        permissionPolicyContractAddress,
+        [permissionPolicyContractAddress],
         { from: user1 }
       );
 
@@ -222,7 +222,7 @@ contract('LinniaPermissions', accounts => {
         testDataHash1,
         provider2,
         fakeIpfsHash,
-        permissionPolicyContractAddress,
+        [permissionPolicyContractAddress],
         { from: user1 }
       ));
 

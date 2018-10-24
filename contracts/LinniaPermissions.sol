@@ -139,19 +139,24 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         bytes32 dataHash,
         address viewer,
         string dataUri,
-        address policy)
+        address[] policies)
         onlyUser
         onlyRecordOwnerOf(dataHash, msg.sender)
         external
         returns (bool)
     {
-        require(policy != address(0));
         require(dataHash != 0);
-        PermissionPolicyI currPolicy = PermissionPolicyI(policy);
-        bool isOk = currPolicy.checkPolicy(dataHash, viewer, dataUri);
-        emit LinniaPolicyChecked(dataHash, dataUri, viewer, policy, isOk, msg.sender);
 
-        require(isOk);
+        // check policies and fail on first one that is not ok
+        for (uint i = 0; i < policies.length; i++) {
+            address curPolicy = policies[i];
+            require(curPolicy != address(0));
+            PermissionPolicyI currPolicy = PermissionPolicyI(curPolicy);
+            bool isOk = currPolicy.checkPolicy(dataHash, viewer, dataUri);
+            emit LinniaPolicyChecked(dataHash, dataUri, viewer, curPolicy, isOk, msg.sender);
+            require(isOk);
+        }
+
         require(_grantAccess(dataHash, viewer, msg.sender, dataUri));
         return true;
     }
