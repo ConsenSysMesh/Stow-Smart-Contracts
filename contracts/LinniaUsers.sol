@@ -12,6 +12,7 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
         bool exists;
         uint registerBlocktime;
         uint provenance;
+        uint recordIndex;
     }
 
     event LinniaUserRegistered(address indexed user);
@@ -40,7 +41,8 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
         users[msg.sender] = User({
             exists: true,
             registerBlocktime: block.number,
-            provenance: 0
+            provenance: 0,
+            recordIndex: 0
         });
         emit LinniaUserRegistered(msg.sender);
         return true;
@@ -87,6 +89,26 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
     {
         if (users[user].exists) {
             return users[user].provenance;
+        } else {
+            return 0;
+        }
+    }
+
+    // increment the records index, this is used to generate a new key for every record added
+    function incrementRecordIndexOf(address user)
+        public
+    {
+        users[user].recordIndex += 1; 
+    }
+
+    // returns the record index of user
+    function getRecordIndexOf(address user)
+        public
+        view
+        returns (uint)
+    {
+        if (users[user].exists) {
+            return users[user].recordIndex;
         } else {
             return 0;
         }
