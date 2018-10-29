@@ -504,7 +504,7 @@ contract('LinniaRecords', accounts => {
     });
 
     it('should save those policies for the record', async () => {
-      const tx = await instance.addRecordWithPolicies(
+      await instance.addRecordWithPolicies(
         testDataHash,
         testMetadata,
         testDataUri,
