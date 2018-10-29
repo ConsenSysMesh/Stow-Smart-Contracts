@@ -1,7 +1,7 @@
 pragma solidity 0.4.24;
 
 
-contract /* interface */ PermissionPolicyI {
+contract /* interface */ PolicyI {
 
     /// check permission policy then return true if condition are met
     /// @param viewer the user being granted permission to view the data

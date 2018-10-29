@@ -9,8 +9,6 @@ import "./LinniaHub.sol";
 import "./LinniaUsers.sol";
 import "./interfaces/IrisScoreProviderI.sol";
 
-
-
 contract LinniaRecords is Ownable, Pausable, Destructible {
     using SafeMath for uint;
 
@@ -159,7 +157,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         onlyUser
         whenNotPaused
         public
-        returns  (bool)
+        returns (bool)
     {
         // the amount of tokens to be transferred
         uint256 reward = 1 finney;
@@ -173,6 +171,34 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         require(tokenInstance.transfer (msg.sender, reward));
         emit LinniaReward (dataHash, msg.sender, reward, token);
         return true;
+    }
+
+    /* @dev add a new record that conforms to policies. Restricts future permission by same policies */
+    /* @param dataHash the hash of the record being added */
+    /* @param metadata the metadata of the record being added */
+    /* @param dataUri the location of the encrypted data */
+    /* @param policies the addresses of policy conforming contracts */
+    function addRecordWithPolicies(
+        bytes32 dataHash,
+        string metadata,
+        string dataUri,
+        address[] policies)
+        onlyUser
+        whenNotPaused
+        public
+        returns (bool)
+    {
+
+        /* @dev make sure the record is valid in a vacuum */
+        require(_addRecord(dataHash, msg.sender, metadata, dataUri));
+
+        for (uint i = 0; i < policies.length; i++) {
+            /* @dev make sure the record conforms with each of the policies,then add*/
+            require(hub.policiesContract().addPolicyToRecord(dataHash, policies[i]));
+        }
+
+        return true;
+
     }
 
     /// Add a record by a data provider.
@@ -284,7 +310,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
             dataUri: dataUri,
             // solium-disable-next-line security/no-block-members
             timestamp: block.timestamp
-            });
+        });
         // emit event
         emit LinniaRecordAdded(dataHash, owner, metadata);
         return true;

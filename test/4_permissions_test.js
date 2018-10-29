@@ -3,11 +3,12 @@ import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
 const LinniaRecords = artifacts.require('./LinniaRecords.sol');
+const LinniaPolicies = artifacts.require('./LinniaPolicies.sol');
 const LinniaPermissions = artifacts.require('./LinniaPermissions.sol');
-const permissionPolicy = artifacts.require('./mock/PermissionPolicyMock.sol');
+const Policy = artifacts.require('./mock/PolicyMock.sol');
 
-let permissionPolicyContractAddress;
-let permissionPolicyInstance;
+let policyContractAddress;
+let policyInstance;
 
 const crypto = require('crypto');
 const eutil = require('ethereumjs-util');
@@ -30,9 +31,14 @@ contract('LinniaPermissions', accounts => {
   const provider2 = accounts[4];
   let hub;
   let instance;
+  let policiesInstance;
 
   before('set up a LinniaHub contract', async () => {
     hub = await LinniaHub.new();
+  });
+  beforeEach('set up a LinniaPolicies contract', async () => {
+    policiesInstance = await LinniaPolicies.new(hub.address);
+    await hub.setPoliciesContract(policiesInstance.address);
   });
   before('set up a LinniaUsers contract', async () => {
     const usersInstance = await LinniaUsers.new(hub.address);
@@ -163,6 +169,19 @@ contract('LinniaPermissions', accounts => {
         instance.grantAccess(testDataHash1, provider2, 0, { from: user1 })
       );
     });
+    it('should not grant access if permission does not conform to policy', async () => {
+      const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
+      policyInstance = await Policy.new();
+      policyContractAddress = policyInstance.address;
+      await policiesInstance.addPolicyToRecord(testDataHash1, policyContractAddress, { from: user1 });
+      await policyInstance.setVal(false);
+      assertRevert(instance.grantAccess(
+        testDataHash1,
+        provider2,
+        fakeIpfsHash,
+        { from: user1 }
+      ));
+    });
     // TODO, This is disabled for testing purposes
     // it(
     //   'should not allow sharing same record twice with same user',
@@ -181,8 +200,8 @@ contract('LinniaPermissions', accounts => {
   });
   describe('grant policy based access', () => {
     before('set up a permissionPolicy mock contract', async () => {
-      permissionPolicyInstance = await permissionPolicy.new({from: admin});
-      permissionPolicyContractAddress = permissionPolicyInstance.address;
+      policyInstance = await Policy.new({from: admin});
+      policyContractAddress = policyInstance.address;
     });
     it('should allow user to grant policy based access to their data', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
@@ -190,43 +209,31 @@ contract('LinniaPermissions', accounts => {
         testDataHash1,
         provider2,
         fakeIpfsHash,
-        [permissionPolicyContractAddress],
+        [policyContractAddress],
         { from: user1 }
       );
 
-      const expectedArgs =  {
-        'dataHash': testDataHash1,
-        'dataUri': fakeIpfsHash,
-        'viewer': provider2,
-        'policy': permissionPolicyContractAddress,
-        'isOk': true,
-        'sender': user1
-      };
-
-      assert.equal(tx.logs[0].event, 'LinniaPolicyChecked');
-      assert.equal(JSON.stringify(tx.logs[0].args), JSON.stringify(expectedArgs));
-
-      assert.equal(tx.logs[1].event, 'LinniaAccessGranted');
-      assert.equal(tx.logs[1].args.dataHash, testDataHash1);
-      assert.equal(tx.logs[1].args.owner, user1);
-      assert.equal(tx.logs[1].args.viewer, provider2);
+      assert.equal(tx.logs[0].event, 'LinniaAccessGranted');
+      assert.equal(tx.logs[0].args.dataHash, testDataHash1);
+      assert.equal(tx.logs[0].args.owner, user1);
+      assert.equal(tx.logs[0].args.viewer, provider2);
       const perm = await instance.permissions(testDataHash1, provider2);
       assert.equal(perm[0], true);
       assert.equal(perm[1], fakeIpfsHash);
     });
     it('should allow not access when check fails', async () => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
-      await permissionPolicyInstance.setVal(false);
+      await policyInstance.setVal(false);
 
       await assertRevert( instance.grantPolicyBasedAccess(
         testDataHash1,
         provider2,
         fakeIpfsHash,
-        [permissionPolicyContractAddress],
+        [policyContractAddress],
         { from: user1 }
       ));
 
-      await permissionPolicyInstance.setVal(true);
+      await policyInstance.setVal(true);
     });
   });
   describe('revoke access', () => {

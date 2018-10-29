@@ -3,7 +3,9 @@ import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 const LinniaHub = artifacts.require('./LinniaHub.sol');
 const LinniaUsers = artifacts.require('./LinniaUsers.sol');
 const LinniaRecords = artifacts.require('./LinniaRecords.sol');
+const LinniaPolicies = artifacts.require('./LinniaPolicies.sol');
 const irisScoreProvider = artifacts.require('./mock/IrisScoreProviderMock.sol');
+const Policy = artifacts.require('./mock/PolicyMock.sol');
 
 const crypto = require('crypto');
 const eutil = require('ethereumjs-util');
@@ -470,6 +472,62 @@ contract('LinniaRecords', accounts => {
       );
     });
   });
+  describe('addRecordWithPolicies', () => {
+    let policyInstance;
+    let policiesInstance;
+    let policyContractAddress;
+
+    beforeEach('new policies contract', async () => {
+      policiesInstance = await LinniaPolicies.new(hub.address);
+      await hub.setPoliciesContract(policiesInstance.address);
+    });
+
+    beforeEach('create a new policy', async () => {
+      policyInstance = await Policy.new();
+      policyContractAddress = policyInstance.address;
+    });
+
+    it('should allow you to create a record with policies', async () => {
+      const tx = await instance.addRecordWithPolicies(
+        testDataHash,
+        testMetadata,
+        testDataUri,
+        [policyContractAddress],
+        { from: user }
+      );
+
+      // record exists
+      const storedRecord = await instance.records(testDataHash);
+      assert.equal(storedRecord[0], user);
+      assert.equal(storedRecord[1], testMetaHash);
+      assert.equal(storedRecord[4], testDataUri);
+
+    })
+
+    it('should save those policies for the record', async () => {
+      const tx = await instance.addRecordWithPolicies(
+        testDataHash,
+        testMetadata,
+        testDataUri,
+        [policyContractAddress],
+        { from: user }
+      );
+
+      const policies = await policiesInstance.policiesForRecord(testDataHash);
+      assert.equal(policies[0], policyContractAddress);
+    });
+
+    it('should not upload record if record doesnt pass policy', async () => {
+      await policyInstance.setVal(false);
+      assertRevert(instance.addRecordWithPolicies(
+        testDataHash,
+        testMetadata,
+        testDataUri,
+        [policyContractAddress],
+        { from: user }
+      ));
+    });
+  });
   describe('updateIris', () => {
     before('set up a irisScoreProvider mock contract', async () => {
       irisScoreProviderInstance = await irisScoreProvider.new({from: admin});
@@ -497,7 +555,7 @@ contract('LinniaRecords', accounts => {
       const tx0 = await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: user
       });
-      assert.equal(tx0.receipt.status, '0x01');
+      assert.equal(tx0.receipt.status, '0x1');
       const record0 = await instance.records(testDataHash);
       assert.equal(record0[2], '0');
       const score0 = await instance.getIrisProvidersReport.call(testDataHash, irisScoreProviderContractAddress);

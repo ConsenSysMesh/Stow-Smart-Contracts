@@ -1,9 +1,9 @@
 pragma solidity 0.4.24;
 
-import "../interfaces/PermissionPolicyI.sol";
+import "../interfaces/PolicyI.sol";
 
 
-contract /* interface */ PermissionPolicyMock is PermissionPolicyI {
+contract /* interface */ PolicyMock is PolicyI {
 
     bool public result = true;
 
