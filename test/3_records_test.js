@@ -488,7 +488,7 @@ contract('LinniaRecords', accounts => {
     });
 
     it('should allow you to create a record with policies', async () => {
-      const tx = await instance.addRecordWithPolicies(
+      await instance.addRecordWithPolicies(
         testDataHash,
         testMetadata,
         testDataUri,
@@ -501,8 +501,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(storedRecord[0], user);
       assert.equal(storedRecord[1], testMetaHash);
       assert.equal(storedRecord[4], testDataUri);
-
-    })
+    });
 
     it('should save those policies for the record', async () => {
       const tx = await instance.addRecordWithPolicies(
