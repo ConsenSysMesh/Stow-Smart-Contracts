@@ -554,7 +554,7 @@ contract('LinniaRecords', accounts => {
       const tx0 = await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: user
       });
-      assert.equal(tx0.receipt.status, '0x1');
+      assert.equal(tx0.receipt.status, '0x01');
       const record0 = await instance.records(testDataHash);
       assert.equal(record0[2], '0');
       const score0 = await instance.getIrisProvidersReport.call(testDataHash, irisScoreProviderContractAddress);
