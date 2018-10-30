@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "start": "npm run start:testrpc",
-    "start:testrpc": "ganache-cli -p 7545 -i 5777",
+    "start:testrpc": "ganache-cli -p 7545 -i 5777 -a 61 -m 'drastic outer student holiday hour ordinary reduce absurd clever govern ensure merry keen sound pelican'",
     "migrate": "truffle migrate",
     "test": "truffle test",
     "lint:sol": "solium -d contracts",
@@ -46,11 +46,18 @@
     "eslint-plugin-jsx-a11y": "^6.1.1",
     "eslint-plugin-react": "^7.11.0",
     "ethereumjs-util": "5.2.0",
+    "dotenv": "^6.0.0",
     "ganache-cli": "^6.0.3",
     "multihashes": "^0.4.13",
     "solidity-coverage": "0.5.2",
     "solium": "1.1.8",
-    "truffle": "4.1.11"
+    "truffle": "4.1.11",
+    "truffle-hdwallet-provider": "git+https://github.com/vrotmanh/truffle-hdwallet-provider",
+    "web3": "^1.0.0-beta.34",
+    "ipfs-mini": "^1.1.2",
+    "eth-sig-util": "^2.1.0",
+    "tweetnacl": "^1.0.0",
+    "tweetnacl-util": "^0.15.0"
   },
   "dependencies": {
     "openzeppelin-solidity": "1.10.0"
