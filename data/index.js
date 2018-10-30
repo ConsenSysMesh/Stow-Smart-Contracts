@@ -1,17 +1,20 @@
 const crypto = require('crypto');
 const fs = require('fs');
+const path = require('path');
+const {promisify} = require('util');
+const readdir = promisify(fs.readdir);
 const {ipfs, web3} = require('./config');
 const Linnia = require('@linniaprotocol/linnia-js')
 
-const linniaContractUpgradeHubAddress = '0xb7127ac312677f66e06fcd90b39367e5215d1000'
+const linniaContractUpgradeHubAddress = '0x4c618ac4adeedaa311107ecd0db0d2420f776947'
 const linnia = new Linnia(web3, { linniaContractUpgradeHubAddress });
 
 const userPubKeys = require('./public-encryption-keys').public_encryption_keys;
 
-const data_folder = './data/synthetic_patients_data/';
+const data_folder = path.resolve(path.join(__dirname, '..', 'data/synthetic_patients_data'));
 
-const setupData = async () => {
-fs.readdir(data_folder, (err, files) => {
+const setupData = async (records) => {
+  let files = await readdir(data_folder);
   files = files.map(fname => './synthetic_patients_data/' + fname);
   web3.eth.getAccounts(async (err, accounts) => {
     if (err) {
@@ -19,7 +22,7 @@ fs.readdir(data_folder, (err, files) => {
     } else {
       let accountIndex = 1;
       let keyIndex = 0;
-      const { users, records, permissions } = await linnia.getContractInstances();
+      // const { users, records, permissions } = await linnia.getContractInstances();
       for (const file of files) {
         const data = require(file);
         const nonce = crypto.randomBytes(256);
@@ -70,7 +73,6 @@ fs.readdir(data_folder, (err, files) => {
       }
     }
   });
-});
 
 };
 

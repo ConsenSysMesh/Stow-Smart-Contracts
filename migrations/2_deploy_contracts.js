@@ -3,7 +3,7 @@ const LinniaUsers = artifacts.require("./LinniaUsers.sol");
 const LinniaRecords = artifacts.require("./LinniaRecords.sol");
 const LinniaPermissions = artifacts.require("./LinniaPermissions.sol");
 const {setupRoles} = require('../data/setup-roles.js');
-//const {setupData} = require('../data/index.js');
+const {setupData} = require('../data/index.js');
 
 const isLowerEnvironment = network => network === 'development';
 
@@ -42,13 +42,12 @@ module.exports = (deployer, network, accounts) => {
     return hubInstance.setRecordsContract(LinniaRecords.address)
   }).then(() => {
     return hubInstance.setPermissionsContract(LinniaPermissions.address)
-  })
-  // .then(() => {
-  //     if (isLowerEnvironment(network)){
-  //       return setupRoles(userInstance)
-  //       .then(() => {
-  //       return setupData(recordsInstance)
-  //     })
-  //     }
-  //   })
+  }).then(() => {
+      if (isLowerEnvironment(network)){
+        return setupRoles(userInstance)
+        .then(() => {
+        return setupData(recordsInstance)
+      })
+      }
+    })
 }

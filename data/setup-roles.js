@@ -1,16 +1,16 @@
 const {web3} = require('./config');
 const Linnia = require('@linniaprotocol/linnia-js')
 
-const linniaContractUpgradeHubAddress = '0xb7127ac312677f66e06fcd90b39367e5215d1000'
+const linniaContractUpgradeHubAddress = '0x4c618ac4adeedaa311107ecd0db0d2420f776947'
 const linnia = new Linnia(web3, { linniaContractUpgradeHubAddress });
 
 
-const setupRoles = async () => {
+const setupRoles = async (users) => {
   web3.eth.getAccounts(async (err, accounts) => {
     if (err) {
       console.log(err);
     } else {
-      const { users, records, permissions } = await linnia.getContractInstances();
+      // const { users, records, permissions } = await linnia.getContractInstances();
       let i = 1;
       // 40 User that will have data (1-40)
       while(i < 41) {
