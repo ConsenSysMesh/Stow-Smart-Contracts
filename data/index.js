@@ -3,19 +3,23 @@ const fs = require('fs');
 const {ipfs, web3} = require('./config');
 const Linnia = require('@linniaprotocol/linnia-js')
 
+const linniaContractUpgradeHubAddress = '0xb7127ac312677f66e06fcd90b39367e5215d1000'
+const linnia = new Linnia(web3, { linniaContractUpgradeHubAddress });
+
 const userPubKeys = require('./public-encryption-keys').public_encryption_keys;
 
-const data_folder = 'data/synthetic_patients_data/';
+const data_folder = './data/synthetic_patients_data/';
 
-const setupData = async (records) => {
+const setupData = async () => {
 fs.readdir(data_folder, (err, files) => {
-  files = files.map(fname => data_folder + fname);
+  files = files.map(fname => './synthetic_patients_data/' + fname);
   web3.eth.getAccounts(async (err, accounts) => {
     if (err) {
       console.log(err);
     } else {
       let accountIndex = 1;
       let keyIndex = 0;
+      const { users, records, permissions } = await linnia.getContractInstances();
       for (const file of files) {
         const data = require(file);
         const nonce = crypto.randomBytes(256);
@@ -70,4 +74,7 @@ fs.readdir(data_folder, (err, files) => {
 
 };
 
-module.exports = {setupData};
+setupData();
+
+module.exports = {setupData}
+
