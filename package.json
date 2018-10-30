@@ -48,16 +48,14 @@
     "ethereumjs-util": "5.2.0",
     "dotenv": "^6.0.0",
     "ganache-cli": "^6.0.3",
+    "@linniaprotocol/linnia-js": "^0.3.0",
     "multihashes": "^0.4.13",
     "solidity-coverage": "0.5.2",
     "solium": "1.1.8",
     "truffle": "4.1.11",
     "truffle-hdwallet-provider": "git+https://github.com/vrotmanh/truffle-hdwallet-provider",
     "web3": "^1.0.0-beta.34",
-    "ipfs-mini": "^1.1.2",
-    "eth-sig-util": "^2.1.0",
-    "tweetnacl": "^1.0.0",
-    "tweetnacl-util": "^0.15.0"
+    "ipfs-mini": "^1.1.2"
   },
   "dependencies": {
     "openzeppelin-solidity": "1.10.0"

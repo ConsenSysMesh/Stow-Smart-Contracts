@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const {ipfs, web3} = require('./config');
-const encrypt = require('./utils').encrypt;
+const Linnia = require('@linniaprotocol/linnia-js')
 
 const userPubKeys = require('./public-encryption-keys').public_encryption_keys;
 
@@ -38,7 +38,7 @@ fs.readdir(data_folder, (err, files) => {
         // hash of the plain file
         const hash = web3.utils.sha3(JSON.stringify(data));
         // encrypt the datag
-        const encrypted = await encrypt(
+        const encrypted = await Linnia.util.encrypt(
           userPubKeys[keyIndex],
           JSON.stringify(data),
         );
