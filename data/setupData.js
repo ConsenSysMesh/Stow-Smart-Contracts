@@ -23,8 +23,9 @@ const setupData = async (linnia) => {
         gas: 500000,
       },
     );
-    console.log(tx.logs[0].args.dataHash);
+    console.log(`record:${tx.logs[0].args.dataHash} added for ${account}`);
   });
+  console.log('all records setup')
 };
 
 module.exports = {setupData};

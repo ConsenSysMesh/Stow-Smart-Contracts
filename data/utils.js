@@ -20,7 +20,6 @@ const ipfsPush = async (encrypted) => {
       ipfsErr ? reject(ipfsErr) : resolve(ipfsRed);
     });
   });
-	 console.log(`ipfsHash: ${ipfsHash}`);
 	 return ipfsHash;
 };
 
