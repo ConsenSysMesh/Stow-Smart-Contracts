@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const userPubKeys = require('./public-encryption-keys').public_encryption_keys;
+const userPubKeys = require('./test-encryption-keys').public_encryption_keys;
 const {getAccounts} = require('./utils');
 
 
