@@ -33,6 +33,10 @@
     "semi": [
       "error",
       "always"
+    ],
+    "no-unused-expressions": [
+      "error", 
+      {"allowTernary": true}
     ]
   }
 }
