@@ -2,45 +2,73 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const {promisify} = require('util');
+const Linnia = require('@linniaprotocol/linnia-js');
+
 const readdir = promisify(fs.readdir);
 const {ipfs, web3} = require('./config');
-const Linnia = require('@linniaprotocol/linnia-js')
-
-const linniaContractUpgradeHubAddress = '0x4c618ac4adeedaa311107ecd0db0d2420f776947'
-const linnia = new Linnia(web3, { linniaContractUpgradeHubAddress });
-
 const userPubKeys = require('./public-encryption-keys').public_encryption_keys;
 
-const data_folder = path.resolve(path.join(__dirname, '..', 'data/synthetic_patients_data'));
+const dataFolder = path.resolve(path.join(__dirname, '..', 'data/synthetic_patients_data'));
 
-const setupData = async (records) => {
-  let files = await readdir(data_folder);
-  files = files.map(fname => './synthetic_patients_data/' + fname);
+const setupRoles = async (linnia) => {
+  web3.eth.getAccounts(async (err, accounts) => {
+    if (err) {
+      console.log(err);
+    } else {
+      const { users } = await linnia.getContractInstances();
+      let i = 1;
+      // 40 User that will have data (1-40)
+      while(i < 41) {
+        try{
+          await users.register({ from: accounts[i].toLowerCase(), gas: 500000 });
+        }
+        catch(e){
+          console.log(e);
+        }
+        i++;
+      }
+      // 20 Users without data, with provenance (41-60)
+      while(i < 61) {
+        await users.register({ from: accounts[i].toLowerCase(), gas: 500000 });
+        await users.setProvenance(accounts[i], 1, {
+          from: accounts[0].toLowerCase(),
+          gas: 500000,
+        });
+        i++;
+      }
+      console.log('done');
+    }
+  });
+};
+
+const setupData = async (linnia) => {
+  let files = await readdir(dataFolder);
+  files = files.map(fname => `./synthetic_patients_data/${  fname}`);
   web3.eth.getAccounts(async (err, accounts) => {
     if (err) {
       console.log(err);
     } else {
       let accountIndex = 1;
       let keyIndex = 0;
-      // const { users, records, permissions } = await linnia.getContractInstances();
+      const { records } = await linnia.getContractInstances();
       for (const file of files) {
         const data = require(file);
         const nonce = crypto.randomBytes(256);
         data.nonce = nonce.toString('hex');
-        const patient_name = file.substring(26, file.length - 5);
-        console.log(`${accountIndex}. ${patient_name}`);
+        const patientName = file.substring(26, file.length - 5);
+        console.log(`${accountIndex}. ${patientName}`);
         console.log(`address: ${accounts[accountIndex]}`);
         const provider = Math.floor(Math.random() * 19) + 41;
         const metadata = JSON.stringify({
-            dataFormat: "json",
-            domain: "medical data",
-            storage: "IPFS",
-            encryptionScheme: 'x25519-xsalsa20-poly1305',
-            encryptionPublicKey: userPubKeys[keyIndex],
-            linniajsVersion: "0.2.1",
-            providerName: "Linnia Test Provider",
-            providerEthereumAddress: accounts[provider],
-            keywords: [ "medical", "diabetes", "patient", "test", "data" ],
+          dataFormat: 'json',
+          domain: 'medical data',
+          storage: 'IPFS',
+          encryptionScheme: 'x25519-xsalsa20-poly1305',
+          encryptionPublicKey: userPubKeys[keyIndex],
+          linniajsVersion: '0.2.1',
+          providerName: 'Linnia Test Provider',
+          providerEthereumAddress: accounts[provider],
+          keywords: [ 'medical', 'diabetes', 'patient', 'test', 'data' ],
         });
         // hash of the plain file
         const hash = web3.utils.sha3(JSON.stringify(data));
@@ -51,8 +79,8 @@ const setupData = async (records) => {
         );
         // upload to ipfs
         const ipfsHash = await new Promise((resolve, reject) => {
-          ipfs.add(JSON.stringify(encrypted), (err, ipfsRed) => {
-            err ? reject(err) : resolve(ipfsRed);
+          ipfs.add(JSON.stringify(encrypted), (ipfsErr, ipfsRed) => {
+            ipfsErr ? reject(ipfsErr) : resolve(ipfsRed);
           });
         });
         console.log(`ipfsHash: ${ipfsHash}`);
@@ -76,7 +104,19 @@ const setupData = async (records) => {
 
 };
 
-setupData();
+const setup = async () => {
+  const networkId = await web3.eth.net.getId();
+  if(networkId === 3 || networkId === 4 || networkId === 5777) {
+    const LinniaHub = require('../build/contracts/LinniaHub.json');
+    const linniaContractUpgradeHubAddress = LinniaHub.networks[networkId].address;
+    const linnia = new Linnia(web3, { linniaContractUpgradeHubAddress });
+    setupRoles(linnia);
+    setupData(linnia);
+  }
+  
+};
 
-module.exports = {setupData}
+setup();
+
+
 
