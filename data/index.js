@@ -54,6 +54,7 @@ const setupData = async (linnia) => {
         console.log(`${accountIndex}. ${patientName}`);
         console.log(`address: ${accounts[accountIndex]}`);
         const provider = Math.floor(Math.random() * 19) + 41;
+        const year = 2018 - keyIndex;
         const metadata = JSON.stringify({
           dataFormat: 'json',
           domain: 'medical data',
@@ -64,6 +65,7 @@ const setupData = async (linnia) => {
           providerName: 'Linnia Test Provider',
           providerEthereumAddress: accounts[provider],
           keywords: [ 'medical', 'diabetes', 'patient', 'test', 'data' ],
+          timeframe: `${year}-06-07T10:30,${year}-06-08T10:30`,
         });
         // hash of the plain file
         const hash = web3.utils.sha3(JSON.stringify(data));
