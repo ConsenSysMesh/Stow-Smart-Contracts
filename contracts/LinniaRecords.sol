@@ -9,8 +9,6 @@ import "./LinniaHub.sol";
 import "./LinniaUsers.sol";
 import "./interfaces/IrisScoreProviderI.sol";
 
-
-
 contract LinniaRecords is Ownable, Pausable, Destructible {
     using SafeMath for uint;
 
@@ -55,6 +53,9 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
     // dataHash => record mapping
     mapping(bytes32 => Record) public records;
 
+    /* @dev dataHash of record => policies for the record */
+    mapping(bytes32 => address[]) public policies;
+
     /* Modifiers */
 
     modifier onlyUser() {
@@ -64,6 +65,11 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
 
     modifier hasProvenance(address user) {
         require(hub.usersContract().provenanceOf(user) > 0);
+        _;
+    }
+
+    modifier onlyRecordOwnerOf(bytes32 dataHash) {
+        require(recordOwnerOf(dataHash) == msg.sender);
         _;
     }
 
@@ -148,6 +154,57 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         return true;
     }
 
+    /* @dev allows a record owner to add a policy to a record as long as it conforms */
+    /* @param dataHash the record the owner is adding a policy to */
+    /* @param policy an address of a contract that conforms to the policy interface to add */
+    function addPolicyToRecord(bytes32 dataHash, address policy)
+        whenNotPaused
+        onlyUser
+        onlyRecordOwnerOf(dataHash)
+        public
+        returns (bool)
+    {
+
+        /* @dev original record must be policy complaint to work */
+        require(hub.policiesContract().policyIsValid(
+            dataHash,
+            msg.sender,
+            records[dataHash].dataUri,
+            policy
+        ));
+
+        policies[dataHash].push(policy);
+
+        return true;
+    }
+
+    /* @dev allows an owner to remove a policy from a record */
+    /* @param dataHash the dataHash of the record being policied */
+    /* @param policy the address of the policy to remove */
+    function removePolicyFromRecord(bytes32 dataHash, address policy)
+        onlyUser
+        onlyRecordOwnerOf(dataHash)
+        whenNotPaused
+        external
+        returns (bool)
+    {
+        /* @dev search through the policies for the record */
+        for (uint i = 0; i < policies[dataHash].length; i++) {
+            /* @dev if one is found */
+            if (policies[dataHash][i] == policy) {
+                /* @dev remove the policy by shifting everything over and shortening array */
+                while (i < policies[dataHash].length - 1) {
+                    policies[dataHash][i] = policies[dataHash][i + 1];
+                    i++;
+                }
+
+                policies[dataHash].length--;
+            }
+        }
+
+        return true;
+    }
+
     /// Add a record by user without any provider's signatures and get a reward.
     ///
     /// @param dataHash the hash of the data
@@ -159,7 +216,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         onlyUser
         whenNotPaused
         public
-        returns  (bool)
+        returns (bool)
     {
         // the amount of tokens to be transferred
         uint256 reward = 1 finney;
@@ -173,6 +230,37 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         require(tokenInstance.transfer (msg.sender, reward));
         emit LinniaReward (dataHash, msg.sender, reward, token);
         return true;
+    }
+
+    function policiesForRecord(bytes32 dataHash) view returns (address[]) {
+        return policies[dataHash];
+    }
+
+    /* @dev add a new record that conforms to policies. Restricts future permission by same policies */
+    /* @param dataHash the hash of the record being added */
+    /* @param metadata the metadata of the record being added */
+    /* @param dataUri the location of the encrypted data */
+    /* @param policies the addresses of policy conforming contracts */
+    function addRecordWithPolicies(
+        bytes32 dataHash,
+        string metadata,
+        string dataUri,
+        address[] newPolicies)
+        onlyUser
+        whenNotPaused
+        public
+        returns (bool)
+    {
+
+        require(_addRecord(dataHash, msg.sender, metadata, dataUri));
+
+        for (uint i = 0; i < newPolicies.length; i++) {
+            /* @dev make sure the record conforms with each of the policies,then add*/
+            require(addPolicyToRecord(dataHash, newPolicies[i]));
+        }
+
+        return true;
+
     }
 
     /// Add a record by a data provider.
@@ -284,7 +372,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
             dataUri: dataUri,
             // solium-disable-next-line security/no-block-members
             timestamp: block.timestamp
-            });
+        });
         // emit event
         emit LinniaRecordAdded(dataHash, owner, metadata);
         return true;

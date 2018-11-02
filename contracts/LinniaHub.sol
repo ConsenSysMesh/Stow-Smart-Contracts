@@ -6,15 +6,18 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaUsers.sol";
 import "./LinniaRecords.sol";
 import "./LinniaPermissions.sol";
+import "./LinniaPolicies.sol";
 
 
 contract LinniaHub is Ownable, Destructible {
     LinniaUsers public usersContract;
     LinniaRecords public recordsContract;
+    LinniaPolicies public policiesContract;
     LinniaPermissions public permissionsContract;
 
     event LinniaUsersContractSet(address from, address to);
     event LinniaRecordsContractSet(address from, address to);
+    event LinniaPoliciesContractSet(address from, address to);
     event LinniaPermissionsContractSet(address from, address to);
 
     constructor() public { }
@@ -40,6 +43,17 @@ contract LinniaHub is Ownable, Destructible {
         address prev = address(recordsContract);
         recordsContract = _recordsContract;
         emit LinniaRecordsContractSet(prev, _recordsContract);
+        return true;
+    }
+
+    function setPoliciesContract(LinniaPolicies _policiesContract)
+        onlyOwner
+        external
+        returns (bool)
+    {
+        address prev = address(policiesContract);
+        policiesContract = _policiesContract;
+        emit LinniaPoliciesContractSet(prev, _policiesContract);
         return true;
     }
 

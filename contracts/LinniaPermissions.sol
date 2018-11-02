@@ -7,7 +7,6 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./LinniaHub.sol";
 import "./LinniaRecords.sol";
 import "./LinniaUsers.sol";
-import "./interfaces/PermissionPolicyI.sol";
 
 
 contract LinniaPermissions is Ownable, Pausable, Destructible {
@@ -24,15 +23,6 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         address indexed viewer, address sender
     );
     event LinniaPermissionDelegateAdded(address indexed user, address indexed delegate);
-
-    event LinniaPolicyChecked(
-        bytes32 indexed dataHash,
-        string dataUri,
-        address indexed viewer,
-        address indexed policy,
-        bool isOk,
-        address sender
-    );
 
     LinniaHub public hub;
     // dataHash => viewer => permission mapping
@@ -146,17 +136,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         returns (bool)
     {
         require(dataHash != 0);
-
-        // check policies and fail on first one that is not ok
-        for (uint i = 0; i < policies.length; i++) {
-            address curPolicy = policies[i];
-            require(curPolicy != address(0));
-            PermissionPolicyI currPolicy = PermissionPolicyI(curPolicy);
-            bool isOk = currPolicy.checkPolicy(dataHash, viewer, dataUri);
-            emit LinniaPolicyChecked(dataHash, dataUri, viewer, curPolicy, isOk, msg.sender);
-            require(isOk);
-        }
-
+        require(hub.policiesContract().policiesAreValid(dataHash, viewer, dataUri, policies));
         require(_grantAccess(dataHash, viewer, msg.sender, dataUri));
         return true;
     }
@@ -214,10 +194,12 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         // TODO, Uncomment this to prevent grant access twice, It is commented for testing purposes
         // access must not have already been granted
         // require(!permissions[dataHash][viewer].canAccess);
+        require(hub.policiesContract().followsExistingPolicies(dataHash, viewer, dataUri));
+
         permissions[dataHash][viewer] = Permission({
             canAccess: true,
             dataUri: dataUri
-            });
+        });
         emit LinniaAccessGranted(dataHash, owner, viewer, msg.sender);
         return true;
     }
