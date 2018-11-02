@@ -625,7 +625,6 @@ contract('LinniaRecords', accounts => {
   describe('addPolicyToRecord', () => {
     let policyInstance;
     let policiesInstance;
-    let policyContractAddress;
 
     beforeEach('new policies contract', async () => {
       policiesInstance = await LinniaPolicies.new(hub.address);
@@ -634,7 +633,6 @@ contract('LinniaRecords', accounts => {
 
     beforeEach('create a new policy', async () => {
       policyInstance = await Policy.new();
-      policyContractAddress = policyInstance.address;
     });
 
     beforeEach('upload a record', async () => {
@@ -663,7 +661,6 @@ contract('LinniaRecords', accounts => {
   describe('removePolicyFromRecord', () => {
     let policyInstance;
     let policiesInstance;
-    let policyContractAddress;
 
     beforeEach('new policies contract', async () => {
       policiesInstance = await LinniaPolicies.new(hub.address);
@@ -672,7 +669,6 @@ contract('LinniaRecords', accounts => {
 
     beforeEach('create a new policy', async () => {
       policyInstance = await Policy.new();
-      policyContractAddress = policyInstance.address;
     });
 
     beforeEach('upload a record', async () => {
