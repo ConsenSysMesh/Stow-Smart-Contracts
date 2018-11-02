@@ -53,6 +53,9 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
     // dataHash => record mapping
     mapping(bytes32 => Record) public records;
 
+    /* @dev dataHash of record => policies for the record */
+    mapping(bytes32 => address[]) public policies;
+
     /* Modifiers */
 
     modifier onlyUser() {
@@ -62,6 +65,11 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
 
     modifier hasProvenance(address user) {
         require(hub.usersContract().provenanceOf(user) > 0);
+        _;
+    }
+
+    modifier onlyRecordOwnerOf(bytes32 dataHash) {
+        require(recordOwnerOf(dataHash) == msg.sender);
         _;
     }
 
@@ -146,6 +154,57 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         return true;
     }
 
+    /* @dev allows a record owner to add a policy to a record as long as it conforms */
+    /* @param dataHash the record the owner is adding a policy to */
+    /* @param policy an address of a contract that conforms to the policy interface to add */
+    function addPolicyToRecord(bytes32 dataHash, address policy)
+        whenNotPaused
+        onlyUser
+        onlyRecordOwnerOf(dataHash)
+        public
+        returns (bool)
+    {
+
+        /* @dev original record must be policy complaint to work */
+        require(hub.policiesContract().policyIsValid(
+            dataHash,
+            msg.sender,
+            records[dataHash].dataUri,
+            policy
+        ));
+
+        policies[dataHash].push(policy);
+
+        return true;
+    }
+
+    /* @dev allows an owner to remove a policy from a record */
+    /* @param dataHash the dataHash of the record being policied */
+    /* @param policy the address of the policy to remove */
+    function removePolicyFromRecord(bytes32 dataHash, address policy)
+        onlyUser
+        onlyRecordOwnerOf(dataHash)
+        whenNotPaused
+        external
+        returns (bool)
+    {
+        /* @dev search through the policies for the record */
+        for (uint i = 0; i < policies[dataHash].length; i++) {
+            /* @dev if one is found */
+            if (policies[dataHash][i] == policy) {
+                /* @dev remove the policy by shifting everything over and shortening array */
+                while (i < policies[dataHash].length - 1) {
+                    policies[dataHash][i] = policies[dataHash][i + 1];
+                    i++;
+                }
+
+                policies[dataHash].length--;
+            }
+        }
+
+        return true;
+    }
+
     /// Add a record by user without any provider's signatures and get a reward.
     ///
     /// @param dataHash the hash of the data
@@ -173,6 +232,10 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         return true;
     }
 
+    function policiesForRecord(bytes32 dataHash) view returns (address[]) {
+        return policies[dataHash];
+    }
+
     /* @dev add a new record that conforms to policies. Restricts future permission by same policies */
     /* @param dataHash the hash of the record being added */
     /* @param metadata the metadata of the record being added */
@@ -182,19 +245,18 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         bytes32 dataHash,
         string metadata,
         string dataUri,
-        address[] policies)
+        address[] newPolicies)
         onlyUser
         whenNotPaused
         public
         returns (bool)
     {
 
-        /* @dev make sure the record is valid in a vacuum */
         require(_addRecord(dataHash, msg.sender, metadata, dataUri));
 
-        for (uint i = 0; i < policies.length; i++) {
+        for (uint i = 0; i < newPolicies.length; i++) {
             /* @dev make sure the record conforms with each of the policies,then add*/
-            require(hub.policiesContract().addPolicyToRecord(dataHash, policies[i]));
+            require(addPolicyToRecord(dataHash, newPolicies[i]));
         }
 
         return true;

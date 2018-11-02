@@ -45,7 +45,7 @@ contract('LinniaPolicies', accounts => {
 
   describe('followsExistingPolicies', () => {
     it('should return true if new permission conforms to record policies', async () => {
-      await policies.addPolicyToRecord(testDataHash, policy.address);
+      await records.addPolicyToRecord(testDataHash, policy.address);
       const doesConform = await policies.followsExistingPolicies(
         testDataHash,
         accounts[0],
@@ -54,7 +54,7 @@ contract('LinniaPolicies', accounts => {
       assert(doesConform);
     });
     it('should revert if it doesnt follow existing policies', async () => {
-      await policies.addPolicyToRecord(testDataHash, policy.address);
+      await records.addPolicyToRecord(testDataHash, policy.address);
       await policy.setVal(false);
       assertRevert(policies.followsExistingPolicies(
         testDataHash,
@@ -109,34 +109,6 @@ contract('LinniaPolicies', accounts => {
         testDataUri,
         policy.address
       ));
-    });
-  });
-  describe('addPolicyToRecord', () => {
-    it('should allow a user to add a policy to her record', async () => {
-      await policies.addPolicyToRecord(testDataHash, policy.address);
-      const recordPolicies = await policies.policiesForRecord(testDataHash);
-      assert.equal(policy.address, recordPolicies[0]);
-    });
-    it('should not allow a user to add a policy to someone elses record', async () => {
-      assertRevert(policies.addPolicyToRecord(testDataHash, policy.address, { from: accounts[2] }));
-    });
-    it('should not let a user add a non conforming policy to record', async () => {
-      await policy.setVal(false);
-      assertRevert(policies.addPolicyToRecord(testDataHash, policy.address));
-      const recordPolicies = await policies.policiesForRecord(testDataHash);
-      assert.equal(recordPolicies.length, 0);
-    });
-  });
-  describe('removePolicyFromRecord', () => {
-    it('should remove a policy from a record you own', async () => {
-      await policies.addPolicyToRecord(testDataHash, policy.address);
-      await policies.removePolicyFromRecord(testDataHash, policy.address);
-      const recordPolicies = await policies.policiesForRecord(testDataHash);
-      assert.equal(recordPolicies.length, 0);
-    });
-    it('should not let a non owner remove a policy', async () => {
-      await policies.addPolicyToRecord(testDataHash, policy.address);
-      assertRevert(policies.addPolicyToRecord(testDataHash, policy.address, { from: accounts[1] }));
     });
   });
 });

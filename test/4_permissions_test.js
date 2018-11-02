@@ -32,6 +32,7 @@ contract('LinniaPermissions', accounts => {
   let hub;
   let instance;
   let policiesInstance;
+  let recordsInstance;
 
   before('set up a LinniaHub contract', async () => {
     hub = await LinniaHub.new();
@@ -50,8 +51,8 @@ contract('LinniaPermissions', accounts => {
     usersInstance.setProvenance(provider1, 1, { from: admin });
     usersInstance.setProvenance(provider2, 1, { from: admin });
   });
-  before('set up a LinniaRecords contract', async () => {
-    const recordsInstance = await LinniaRecords.new(hub.address);
+  beforeEach('set up a LinniaRecords contract', async () => {
+    recordsInstance = await LinniaRecords.new(hub.address);
     await hub.setRecordsContract(recordsInstance.address);
     // upload 2 records, one for user1 and one for user2
     // 1st one is not attested, 2nd one is attested by provider1
@@ -173,7 +174,7 @@ contract('LinniaPermissions', accounts => {
       const fakeIpfsHash = eutil.bufferToHex(crypto.randomBytes(32));
       policyInstance = await Policy.new();
       policyContractAddress = policyInstance.address;
-      await policiesInstance.addPolicyToRecord(testDataHash1, policyContractAddress, { from: user1 });
+      await recordsInstance.addPolicyToRecord(testDataHash1, policyContractAddress, { from: user1 });
       await policyInstance.setVal(false);
       assertRevert(instance.grantAccess(
         testDataHash1,

@@ -39,6 +39,7 @@ contract('LinniaRecords', accounts => {
   before('set up a LinniaUsers contract', async () => {
     const usersInstance = await LinniaUsers.new(hub.address);
     await hub.setUsersContract(usersInstance.address);
+    usersInstance.register({ from: admin });
     usersInstance.register({ from: user });
     usersInstance.register({ from: provider1 });
     usersInstance.register({ from: provider2 });
@@ -512,7 +513,7 @@ contract('LinniaRecords', accounts => {
         { from: user }
       );
 
-      const policies = await policiesInstance.policiesForRecord(testDataHash);
+      const policies = await instance.policiesForRecord(testDataHash);
       assert.equal(policies[0], policyContractAddress);
     });
 
@@ -619,6 +620,77 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs.length, 0, `did not expect logs but got ${tx.logs}`);
       assert.equal(web3.eth.getCode(instance.address), '0x0');
       assert.equal(web3.eth.getBalance(instance.address).toNumber(), 0);
+    });
+  });
+  describe('addPolicyToRecord', () => {
+    let policyInstance;
+    let policiesInstance;
+    let policyContractAddress;
+
+    beforeEach('new policies contract', async () => {
+      policiesInstance = await LinniaPolicies.new(hub.address);
+      await hub.setPoliciesContract(policiesInstance.address);
+    });
+
+    beforeEach('create a new policy', async () => {
+      policyInstance = await Policy.new();
+      policyContractAddress = policyInstance.address;
+    });
+
+    beforeEach('upload a record', async () => {
+      await instance.addRecord(
+        testDataHash,
+        testMetadata,
+        testDataUri
+      );
+    });
+
+    it('should allow a user to add a policy to her record', async () => {
+      await instance.addPolicyToRecord(testDataHash, policyInstance.address);
+      const recordPolicies = await instance.policiesForRecord(testDataHash);
+      assert.equal(policyInstance.address, recordPolicies[0]);
+    });
+    it('should not allow a user to add a policy to someone elses record', async () => {
+      assertRevert(instance.addPolicyToRecord(testDataHash, policyInstance.address, { from: accounts[2] }));
+    });
+    it('should not let a user add a non conforming policy to record', async () => {
+      await policyInstance.setVal(false);
+      assertRevert(instance.addPolicyToRecord(testDataHash, policyInstance.address));
+      const recordPolicies = await instance.policiesForRecord(testDataHash);
+      assert.equal(recordPolicies.length, 0);
+    });
+  });
+  describe('removePolicyFromRecord', () => {
+    let policyInstance;
+    let policiesInstance;
+    let policyContractAddress;
+
+    beforeEach('new policies contract', async () => {
+      policiesInstance = await LinniaPolicies.new(hub.address);
+      await hub.setPoliciesContract(policiesInstance.address);
+    });
+
+    beforeEach('create a new policy', async () => {
+      policyInstance = await Policy.new();
+      policyContractAddress = policyInstance.address;
+    });
+
+    beforeEach('upload a record', async () => {
+      await instance.addRecord(
+        testDataHash,
+        testMetadata,
+        testDataUri
+      );
+    });
+    it('should remove a policy from a record you own', async () => {
+      await instance.addPolicyToRecord(testDataHash, policyInstance.address);
+      await instance.removePolicyFromRecord(testDataHash, policyInstance.address);
+      const recordPolicies = await instance.policiesForRecord(testDataHash);
+      assert.equal(recordPolicies.length, 0);
+    });
+    it('should not let a non owner remove a policy', async () => {
+      await instance.addPolicyToRecord(testDataHash, policyInstance.address);
+      assertRevert(instance.removePolicyFromRecord(testDataHash, policyInstance.address, { from: accounts[1] }));
     });
   });
 });

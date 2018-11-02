@@ -22,9 +22,6 @@ import "./interfaces/PolicyI.sol";
 
 contract LinniaPolicies is Pausable, Destructible {
 
-    /* @dev dataHash of record => policies for the record */
-    mapping(bytes32 => address[]) public recordPolicies;
-
     LinniaHub public hub;
 
     event LinniaPolicyChecked(
@@ -43,11 +40,6 @@ contract LinniaPolicies is Pausable, Destructible {
 
     /* Fallback function */
     function () public { }
-
-    modifier onlyRecordOwnerOf(bytes32 dataHash) {
-        require(hub.recordsContract().recordOwnerOf(dataHash) == msg.sender);
-        _;
-    }
 
     modifier onlyUser() {
         require(hub.usersContract().isUser(msg.sender) == true);
@@ -91,12 +83,8 @@ contract LinniaPolicies is Pausable, Destructible {
             dataHash,
             viewer,
             dataUri,
-            recordPolicies[dataHash]
+            hub.recordsContract().policiesForRecord(dataHash)
         );
-    }
-
-    function policiesForRecord(bytes32 dataHash) view returns (address[]) {
-        return recordPolicies[dataHash];
     }
 
     /* @dev checks an array of policies to make sure they are valid */
@@ -117,60 +105,6 @@ contract LinniaPolicies is Pausable, Destructible {
         bool isOk = currPolicy.checkPolicy(dataHash, viewer, dataUri);
         emit LinniaPolicyChecked(dataHash, dataUri, viewer, policy, isOk, msg.sender);
         require(isOk);
-        return true;
-    }
-
-    /* @dev allows a record owner to add a policy to a record as long as it conforms */
-    /* @param dataHash the record the owner is adding a policy to */
-    /* @param policy an address of a contract that conforms to the policy interface to add */
-    function addPolicyToRecord(bytes32 dataHash, address policy)
-        whenNotPaused
-        external
-        returns (bool)
-    {
-        /* @dev get the dataUri and the owner address from the records contract */
-        (address owner, , , , string memory dataUri, ) = hub.recordsContract().records(dataHash);
-
-        /* @dev only the owner of the record or the contract itself */
-        require(msg.sender == address(hub.recordsContract()) || msg.sender == owner);
-
-        /* @dev original record must be policy complaint to work */
-        require(policyIsValid(
-            dataHash,
-            msg.sender,
-            dataUri,
-            policy
-        ));
-
-        recordPolicies[dataHash].push(policy);
-
-        return true;
-    }
-
-    /* @dev allows an owner to remove a policy from a record */
-    /* @param dataHash the dataHash of the record being policied */
-    /* @param policy the address of the policy to remove */
-    function removePolicyFromRecord(bytes32 dataHash, address policy)
-        onlyUser
-        onlyRecordOwnerOf(dataHash)
-        whenNotPaused
-        external
-        returns (bool)
-    {
-        /* @dev search through the policies for the record */
-        for (uint i = 0; i < recordPolicies[dataHash].length; i++) {
-            /* @dev if one is found */
-            if (recordPolicies[dataHash][i] == policy) {
-                /* @dev remove the policy by shifting everything over and shortening array */
-                while (i < recordPolicies[dataHash].length - 1) {
-                    recordPolicies[dataHash][i] = recordPolicies[dataHash][i + 1];
-                    i++;
-                }
-
-                recordPolicies[dataHash].length--;
-            }
-        }
-
         return true;
     }
 }
