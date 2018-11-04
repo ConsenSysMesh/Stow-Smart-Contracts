@@ -8,28 +8,20 @@ const ipfsPort = process.env.LINNIA_IPFS_PORT;
 const protocol = process.env.LINNIA_IPFS_PROTOCOL;
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
-const privKeys = require('../test-private-keys').private_keys;
 
 // If ropsten, set the owner private key
 if (providerHost === 'ropsten') {
+  const privKeys = require('../test-private-keys').private_keys;
   privKeys[0] = process.env.LINNIA_ETH_INFURA_ROPSTEN_HUB_OWNER_PRIVATE_KEY;
 }
 
 // If rinkeby, set the owner private key
 if (providerHost === 'rinkeby') {
+  const privKeys = require('../test-private-keys').private_keys;
   privKeys[0] = process.env.LINNIA_ETH_INFURA_RINKEBY_HUB_OWNER_PRIVATE_KEY;
 }
 
 const networks = {
-  localhost: {
-    provider() {
-      return new HDWalletProvider(
-        privKeys,
-        `http://localhost:${process.env.LINNIA_ETH_PORT}`,
-      );
-    },
-    network_id: '*',
-  },
   ropsten: {
     provider() {
       return new HDWalletProvider(

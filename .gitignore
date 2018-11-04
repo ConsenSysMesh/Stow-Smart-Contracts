@@ -65,7 +65,7 @@ typings/
 .env
 
 #private-keys.json
-private-keys.json
+test-private-keys.json
 
 # next.js build output
 .next
