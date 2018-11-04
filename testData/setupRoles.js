@@ -5,9 +5,11 @@ const setupRoles = async (linnia) => {
   const { users } = await linnia.getContractInstances();
   accounts.forEach(async (account,i) => {
   	if(i>0 && i<41){
+      // add users to smart contracts
   		await users.register({ from: accounts[i].toLowerCase(), gas: 500000 });
   	}
   	else{
+      //add user to smart contracts and then add provenance so they are providers
   		await users.register({ from: accounts[i].toLowerCase(), gas: 500000 });
   		await users.setProvenance(accounts[i], 1, {
   		  from: accounts[0].toLowerCase(),

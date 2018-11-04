@@ -8,11 +8,15 @@ const setupData = async (linnia) => {
   const { records } = await linnia.getContractInstances();
   files.forEach(async (file, i) => {
     const data = require(file);
+    // set up metadata and keys
     const {nonce, metadata, provider, publicKey, account} = await setupMetadata(i, i+1);
     data.nonce = nonce.toString('hex');
     const hash = web3.utils.sha3(JSON.stringify(data));
+    // encrypt file
     const encrypted = await encrypt(publicKey,JSON.stringify(data));
+    // push file to ipfs
     const ipfsHash = await ipfsPush(encrypted);
+    // add record to smart contract
     const tx = await records.addRecordByProvider(
       hash,
       account,

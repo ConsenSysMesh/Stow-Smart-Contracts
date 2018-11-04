@@ -34,7 +34,7 @@ const networks = {
     provider() {
       return new HDWalletProvider(
         privKeys,
-        `https://ropsten.infura.io/${process.env.LINNIA_ETH_INFURA_ROPSTEN_KEY}`,
+        `https://ropsten.infura.io/${process.env.LINNIA_ETH_INFURA_KEY}`,
       );
     },
     network_id: 3,
@@ -43,7 +43,7 @@ const networks = {
     provider() {
       return new HDWalletProvider(
         privKeys,
-        `https://rinkeby.infura.io/${process.env.LINNIA_ETH_INFURA_ROPSTEN_KEY}`,
+        `https://rinkeby.infura.io/${process.env.LINNIA_ETH_INFURA_KEY}`,
       );
     },
     network_id: 4,
