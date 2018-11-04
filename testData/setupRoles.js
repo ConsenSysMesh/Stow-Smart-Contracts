@@ -5,7 +5,7 @@ const setupRoles = async (linnia) => {
   const { users } = await linnia.getContractInstances();
   accounts.forEach(async (account,i) => {
   	if(i>0 && i<41){
-      // add users to smart contracts
+      // adding 2/3 of users to smart contracts as plain users
   		await users.register({ from: accounts[i].toLowerCase(), gas: 500000 });
   	}
   	else{
