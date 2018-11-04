@@ -11,7 +11,7 @@
     "start": "npm run start:testrpc",
     "start:testrpc": "ganache-cli -p 7545 -i 5777 -a 61 -m 'drastic outer student holiday hour ordinary reduce absurd clever govern ensure merry keen sound pelican'",
     "migrate": "truffle migrate",
-    "migrate:dev": "truffle migrate --reset && node data/index.js",
+    "migrate:dev": "truffle migrate --reset && node testData/index.js",
     "test": "truffle test",
     "lint:sol": "solium -d contracts",
     "coverage": "solidity-coverage",

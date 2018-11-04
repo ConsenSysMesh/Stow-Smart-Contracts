@@ -24,7 +24,7 @@ const ipfsPush = async (encrypted) => {
 };
 
 const getFiles = async () => {
-  const dataFolder = path.resolve(path.join(__dirname, '..', 'data/synthetic_patients_data'));
+  const dataFolder = path.resolve(path.join(__dirname, '..', 'testData/synthetic_patients_data'));
   let files = await readdir(dataFolder);
   	files = files.map(fname => `./synthetic_patients_data/${  fname}`);
   	return files;
