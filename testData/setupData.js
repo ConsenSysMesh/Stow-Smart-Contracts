@@ -6,8 +6,8 @@ const {encrypt, ipfsPush, getFiles} = require('./utils');
 const setupData = async (linnia) => {
   const files = await getFiles();
   const { records } = await linnia.getContractInstances();
-  files.forEach(async (file, i) => {
-    const data = require(file);
+  for(let i=0; i<files.length; i++) {
+    const data = require(files[i]);
     // set up metadata and keys
     const {nonce, metadata, provider, publicKey, account} = await setupMetadata(i, i+1);
     data.nonce = nonce.toString('hex');
@@ -28,7 +28,8 @@ const setupData = async (linnia) => {
       },
     );
     console.log(`record:${tx.logs[0].args.dataHash} added for ${account}`);
-  });
+  }
+    console.log('done setting up records!')
 };
 
 module.exports = {setupData};

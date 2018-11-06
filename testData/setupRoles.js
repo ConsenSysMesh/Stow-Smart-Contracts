@@ -9,7 +9,7 @@ const setupRoles = async (linnia) => {
   		await users.register({ from: accounts[i].toLowerCase(), gas: 500000 });
   	}
   	else{
-      //add user to smart contracts and then add provenance so they are providers
+      // add user to smart contracts and then add provenance so they are providers
   		await users.register({ from: accounts[i].toLowerCase(), gas: 500000 });
   		await users.setProvenance(accounts[i], 1, {
   		  from: accounts[0].toLowerCase(),
@@ -17,7 +17,7 @@ const setupRoles = async (linnia) => {
   		});
   	}
   });
-  console.log('done setting up accounts');
+  console.log('done setting up accounts!');
 };
 
 module.exports ={setupRoles};
