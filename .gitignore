@@ -64,6 +64,9 @@ typings/
 # dotenv environment variables file
 .env
 
+#private-keys.json
+test-private-keys.json
+
 # next.js build output
 .next
 

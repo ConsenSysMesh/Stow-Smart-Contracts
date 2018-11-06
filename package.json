@@ -9,8 +9,9 @@
   ],
   "scripts": {
     "start": "npm run start:testrpc",
-    "start:testrpc": "ganache-cli -p 7545 -i 5777",
+    "start:testrpc": "ganache-cli -p 7545 -i 5777 -a 61 -m 'drastic outer student holiday hour ordinary reduce absurd clever govern ensure merry keen sound mountain'",
     "migrate": "truffle migrate",
+    "migrate:dev": "truffle migrate --reset && node testData/index.js",
     "test": "truffle test",
     "lint:sol": "solium -d contracts",
     "coverage": "solidity-coverage",
@@ -53,6 +54,11 @@
     "truffle": "4.1.11"
   },
   "dependencies": {
-    "openzeppelin-solidity": "1.10.0"
+    "@linniaprotocol/linnia-js": "^0.3.0",
+    "dotenv": "^6.0.0",
+    "openzeppelin-solidity": "1.10.0",
+    "truffle-hdwallet-provider": "git+https://github.com/vrotmanh/truffle-hdwallet-provider",
+    "web3": "^1.0.0-beta.34",
+    "ipfs-mini": "^1.1.2"
   }
 }

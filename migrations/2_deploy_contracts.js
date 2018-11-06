@@ -1,11 +1,11 @@
-const LinniaHub = artifacts.require("./LinniaHub.sol")
-const LinniaUsers = artifacts.require("./LinniaUsers.sol")
-const LinniaRecords = artifacts.require("./LinniaRecords.sol")
-const LinniaPermissions = artifacts.require("./LinniaPermissions.sol")
+const LinniaHub = artifacts.require("./LinniaHub.sol");
+const LinniaUsers = artifacts.require("./LinniaUsers.sol");
+const LinniaRecords = artifacts.require("./LinniaRecords.sol");
+const LinniaPermissions = artifacts.require("./LinniaPermissions.sol");
 
 module.exports = (deployer, network, accounts) => {
-  const adminAddress = accounts[0]
-  let hubInstance
+  const adminAddress = accounts[0];
+  let hubInstance;
   // deploy the hub
   deployer.deploy(LinniaHub).then(() => {
     return LinniaHub.deployed()
@@ -21,7 +21,7 @@ module.exports = (deployer, network, accounts) => {
     return deployer.deploy(LinniaPermissions, hubInstance.address)
   }).then(() => {
     // set all the addresses in the hub
-    return hubInstance.setUsersContract(LinniaUsers.address)
+    return  hubInstance.setUsersContract(LinniaUsers.address)
   }).then(() => {
     return hubInstance.setRecordsContract(LinniaRecords.address)
   }).then(() => {
