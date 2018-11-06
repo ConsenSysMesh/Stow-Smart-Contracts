@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "start": "npm run start:testrpc",
-    "start:testrpc": "ganache-cli -p 7545 -i 5777 -a 61 -m 'drastic outer student holiday hour ordinary reduce absurd clever govern ensure merry keen sound pelican'",
+    "start:testrpc": "ganache-cli -p 7545 -i 5777 -a 61 -m 'drastic outer student holiday hour ordinary reduce absurd clever govern ensure merry keen sound mountain'",
     "migrate": "truffle migrate",
     "migrate:dev": "truffle migrate --reset && node testData/index.js",
     "test": "truffle test",
