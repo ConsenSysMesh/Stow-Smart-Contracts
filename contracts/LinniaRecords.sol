@@ -22,9 +22,9 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         address owner;
         // hash of the plaintext metadata
         bytes32 metadataHash;
-        // attestator signatures
+        // attester signatures
         mapping (address => bool) sigs;
-        // count of attestator sigs
+        // count of attester sigs
         uint sigCount;
         // calculated iris score
         uint irisScore;
@@ -45,7 +45,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
     );
 
     event LinniaRecordSigAdded(
-        bytes32 indexed dataHash, address indexed attestator, uint irisScore
+        bytes32 indexed dataHash, address indexed attester, uint irisScore
     );
 
     event LinniaReward(bytes32 indexed dataHash, address indexed owner, uint256 value, address tokenContract);
@@ -78,7 +78,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
     /* External functions */
 
     function addRecordByAdmin(
-        bytes32 dataHash, address owner, address attestator,
+        bytes32 dataHash, address owner, address attester,
         string metadata, string dataUri)
         onlyOwner
         whenNotPaused
@@ -86,8 +86,8 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         returns (bool)
     {
         require(_addRecord(dataHash, owner, metadata, dataUri) == true);
-        if (attestator != address(0)) {
-            require(_addSig(dataHash, attestator));
+        if (attester != address(0)) {
+            require(_addSig(dataHash, attester));
         }
         return true;
     }
