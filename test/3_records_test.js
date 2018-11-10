@@ -163,7 +163,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[0].args.metadata, testMetadata);
       assert.equal(tx.logs[1].event, 'LinniaRecordSigAdded');
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
-      assert.equal(tx.logs[1].args.attestator, provider1);
+      assert.equal(tx.logs[1].args.attester, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
       const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
       // check state
@@ -236,7 +236,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs.length, 1);
       assert.equal(tx.logs[0].event, 'LinniaRecordSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
-      assert.equal(tx.logs[0].args.attestator, provider1);
+      assert.equal(tx.logs[0].args.attester, provider1);
       assert.equal(tx.logs[0].args.irisScore, 1);
       // check state
       const storedRecord = await instance.records(testDataHash);
@@ -256,7 +256,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs.length, 1);
       assert.equal(tx.logs[0].event, 'LinniaRecordSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
-      assert.equal(tx.logs[0].args.attestator, provider1);
+      assert.equal(tx.logs[0].args.attester, provider1);
       assert.equal(tx.logs[0].args.irisScore, 1);
       // check state
       const storedRecord = await instance.records(testDataHash);
@@ -305,7 +305,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx1.logs.length, 1);
       assert.equal(tx1.logs[0].event, 'LinniaRecordSigAdded');
       assert.equal(tx1.logs[0].args.dataHash, testDataHash);
-      assert.equal(tx1.logs[0].args.attestator, provider1);
+      assert.equal(tx1.logs[0].args.attester, provider1);
       assert.equal(tx1.logs[0].args.irisScore, 1);
       // have provider2 sign it
       const rsv2 = eutil.fromRpcSig(web3.eth.sign(provider2, testRootHash));
@@ -320,7 +320,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx2.logs.length, 1);
       assert.equal(tx2.logs[0].event, 'LinniaRecordSigAdded');
       assert.equal(tx2.logs[0].args.dataHash, testDataHash);
-      assert.equal(tx2.logs[0].args.attestator, provider2);
+      assert.equal(tx2.logs[0].args.attester, provider2);
       assert.equal(tx2.logs[0].args.irisScore, 3); // iris should increment
       // check state
       const storedRecord = await instance.records(testDataHash);
@@ -350,7 +350,7 @@ contract('LinniaRecords', accounts => {
         );
         assert.equal(tx.logs[0].event, 'LinniaRecordSigAdded');
         assert.equal(tx.logs[0].args.dataHash, testDataHash);
-        assert.equal(tx.logs[0].args.attestator, provider2);
+        assert.equal(tx.logs[0].args.attester, provider2);
         assert.equal(tx.logs[0].args.irisScore, 3);
         // check state
         const storedRecord = await instance.records(testDataHash);
@@ -434,7 +434,7 @@ contract('LinniaRecords', accounts => {
       assert.equal(tx.logs[0].args.metadata, testMetadata);
       assert.equal(tx.logs[1].event, 'LinniaRecordSigAdded');
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
-      assert.equal(tx.logs[1].args.attestator, provider1);
+      assert.equal(tx.logs[1].args.attester, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
       // check state
       const { timestamp } = web3.eth.getBlock(tx.receipt.blockNumber);
