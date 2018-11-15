@@ -3,7 +3,7 @@ const {getAccounts} = require('./utils');
 const setupRoles = async (linnia) => {
   const accounts = await getAccounts();
   const { users } = await linnia.getContractInstances();
-  const array = accounts.map((account,i) => {
+  const userPromises = accounts.map((account,i) => {
     if(i>0 && i<41){
       // adding 2/3 of users to smart contracts as plain users
       return users.register({ from: accounts[i].toLowerCase(), gas: 500000 });
@@ -19,7 +19,7 @@ const setupRoles = async (linnia) => {
     }
   });
 
-  await Promise.all(array);
+  await Promise.all(userPromises);
 
   console.log('done setting up accounts!');
 };
