@@ -15,7 +15,7 @@ const setupData = async (linnia) => {
     // encrypt file
     const encrypted = await encrypt(publicKey,JSON.stringify(data));
     // push file to ipfs
-    ipfsHash = await ipfsPush(encrypted);
+    const ipfsHash = await ipfsPush(encrypted);
     // add record to smart contract
     const tx = await records.addRecordByProvider(
       hash,
