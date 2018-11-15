@@ -6,7 +6,7 @@ Smart Contracts for Linnia
 
 # DEPLOYED CONTACTS
 
-Stow Addresses: [Located Here](https://github.com/ConsenSys/stow-addresses)
+All addresses for protocal located: [Here](https://github.com/ConsenSys/stow-addresses)
 
 # Overview
 ## Linnia Users
