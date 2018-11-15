@@ -6,9 +6,9 @@ Smart Contracts for Linnia
 
 # DEPLOYED CONTACTS
 
-Ropsten: [0x76305411d861ecc48153336be8b8c255e1aec823](https://ropsten.etherscan.io/address/0x76305411d861ecc48153336be8b8c255e1aec823)
+- Ropsten: [0xfae15fe388a0c0c04d9614f6a8b4f81142bfc87b](https://ropsten.etherscan.io/address/0xfae15fe388a0c0c04d9614f6a8b4f81142bfc87b)
 
-Rinkeby: [0x35f62f70652f4e38a82d2697d22e8fa5c05103ee](https://rinkeby.etherscan.io/address/0x35f62f70652f4e38a82d2697d22e8fa5c05103ee)
+- All addresses for protocal located: [Here](https://github.com/ConsenSys/stow-addresses)
 
 # Overview
 ## Linnia Users

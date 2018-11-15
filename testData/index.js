@@ -9,10 +9,10 @@ const setup = async () => {
     const LinniaHub = require('../build/contracts/LinniaHub.json');
     const linniaContractUpgradeHubAddress = LinniaHub.networks[networkId].address;
     const linnia = new Linnia(web3, { linniaContractUpgradeHubAddress });
-    setupRoles(linnia);
-    setupData(linnia);
+    await setupRoles(linnia);
+    await setupData(linnia);
   }
-  
+
 };
 
 setup();
