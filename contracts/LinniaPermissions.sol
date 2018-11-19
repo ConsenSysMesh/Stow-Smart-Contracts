@@ -13,8 +13,8 @@ import "./interfaces/PermissionPolicyI.sol";
 contract LinniaPermissions is Ownable, Pausable, Destructible {
     struct Permission {
         bool canAccess;
-        // data path of the data, encrypted to the viewer
-        string dataUri;
+        // IPFS hash of the encrypted key to decrypt the record
+        string keyUri;
     }
 
     event LinniaAccessGranted(bytes32 indexed dataHash, address indexed owner,
@@ -27,8 +27,8 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
 
     event LinniaPolicyChecked(
         bytes32 indexed dataHash,
-        string dataUri,
         address indexed viewer,
+        string keyUri,
         address indexed policy,
         bool isOk,
         address sender
@@ -97,16 +97,16 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// Called by owner of the record.
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being granted permission to view the data
-    /// @param dataUri the path of the re-encrypted data
+    /// @param keyUri IPFS hash of the encrypted key to decrypt the record
     function grantAccess(
-        bytes32 dataHash, address viewer, string dataUri)
+        bytes32 dataHash, address viewer, string keyUri)
         onlyUser
         onlyRecordOwnerOf(dataHash, msg.sender)
         external
         returns (bool)
     {
         require(
-            _grantAccess(dataHash, viewer, msg.sender, dataUri)
+            _grantAccess(dataHash, viewer, msg.sender, keyUri)
         );
         return true;
     }
@@ -116,16 +116,16 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being permissioned to view the data
     /// @param owner the owner of the linnia record
-    /// @param dataUri the path of the re-encrypted data
+    /// @param keyUri IPFS hash of the encrypted key to decrypt the record
     function grantAccessbyDelegate(
-        bytes32 dataHash, address viewer, address owner, string dataUri)
+        bytes32 dataHash, address viewer, address owner, string keyUri)
         onlyWhenSenderIsDelegate(owner)
         onlyRecordOwnerOf(dataHash, owner)
         external
         returns (bool)
     {
         require(
-            _grantAccess(dataHash, viewer, owner, dataUri)
+            _grantAccess(dataHash, viewer, owner, keyUri)
         );
         return true;
     }
@@ -134,11 +134,11 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// Called by owner of the record.
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being granted permission to view the data
-    /// @param dataUri the path of the re-encrypted data
+    /// @param keyUri IPFS hash of the encrypted key to decrypt the record
     function grantPolicyBasedAccess(
         bytes32 dataHash,
         address viewer,
-        string dataUri,
+        string keyUri,
         address[] policies)
         onlyUser
         onlyRecordOwnerOf(dataHash, msg.sender)
@@ -152,12 +152,12 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
             address curPolicy = policies[i];
             require(curPolicy != address(0));
             PermissionPolicyI currPolicy = PermissionPolicyI(curPolicy);
-            bool isOk = currPolicy.checkPolicy(dataHash, viewer, dataUri);
-            emit LinniaPolicyChecked(dataHash, dataUri, viewer, curPolicy, isOk, msg.sender);
+            bool isOk = currPolicy.checkPolicy(dataHash, viewer, keyUri);
+            emit LinniaPolicyChecked(dataHash, viewer, keyUri, curPolicy, isOk, msg.sender);
             require(isOk);
         }
 
-        require(_grantAccess(dataHash, viewer, msg.sender, dataUri));
+        require(_grantAccess(dataHash, viewer, msg.sender, keyUri));
         return true;
     }
 
@@ -200,8 +200,8 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     /// Called by external functions
     /// @param dataHash the data hash of the linnia record
     /// @param viewer the user being permissioned to view the data
-    /// @param dataUri the data path of the re-encrypted data
-    function _grantAccess(bytes32 dataHash, address viewer, address owner, string dataUri)
+    /// @param keyUri IPFS hash of the encrypted key to decrypt the record
+    function _grantAccess(bytes32 dataHash, address viewer, address owner, string keyUri)
         whenNotPaused
         internal
         returns (bool)
@@ -209,14 +209,14 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         // validate input
         require(owner != address(0));
         require(viewer != address(0));
-        require(bytes(dataUri).length != 0);
+        require(bytes(keyUri).length != 0);
 
         // TODO, Uncomment this to prevent grant access twice, It is commented for testing purposes
         // access must not have already been granted
         // require(!permissions[dataHash][viewer].canAccess);
         permissions[dataHash][viewer] = Permission({
             canAccess: true,
-            dataUri: dataUri
+            keyUri: keyUri
             });
         emit LinniaAccessGranted(dataHash, owner, viewer, msg.sender);
         return true;
@@ -238,7 +238,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         require(permissions[dataHash][viewer].canAccess);
         permissions[dataHash][viewer] = Permission({
             canAccess: false,
-            dataUri: ""
+            keyUri: ""
             });
         emit LinniaAccessRevoked(dataHash, owner, viewer, msg.sender);
         return true;

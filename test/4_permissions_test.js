@@ -196,8 +196,8 @@ contract('LinniaPermissions', accounts => {
 
       const expectedArgs =  {
         'dataHash': testDataHash1,
-        'dataUri': fakeIpfsHash,
         'viewer': provider2,
+        'keyUri': fakeIpfsHash,
         'policy': permissionPolicyContractAddress,
         'isOk': true,
         'sender': user1

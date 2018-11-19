@@ -497,12 +497,11 @@ contract('LinniaRecords', accounts => {
       const tx0 = await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: user
       });
-      assert.equal(tx0.receipt.status, '0x01');
+      assert.equal(parseInt(tx0.receipt.status, 16), 1);
       const record0 = await instance.records(testDataHash);
       assert.equal(record0[2], '0');
       const score0 = await instance.getIrisProvidersReport.call(testDataHash, irisScoreProviderContractAddress);
       assert.equal(score0.toString(), '0');
-
       const tx = await instance.updateIris(testDataHash, irisScoreProviderContractAddress, {from: admin});
       assert.equal(tx.logs[0].event, 'LinnniaUpdateRecordsIris');
       assert.equal(JSON.stringify(tx.logs[0].args),
