@@ -98,7 +98,6 @@ contract('LinniaRecords', accounts => {
       assert.equal(storedRecord[3], 0); // iris score
       assert.equal(storedRecord[4], testDataUri);
       assert.equal(storedRecord[5], timestamp);
-      assert.equal(storedRecord[6], 0); // index
     });
     it('should not allow user to add same record twice', async () => {
       await instance.addRecord(testDataHash, testMetadata, testDataUri, {

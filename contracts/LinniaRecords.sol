@@ -32,8 +32,6 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         string dataUri;
         // timestamp of the block when the record is added
         uint timestamp;
-        // salt, used to generate the encryption keys
-        uint salt;
         // non zero score returned from the specific IRIS provider oracles
         mapping (address => uint256)  irisProvidersReports;
     }
@@ -277,8 +275,6 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         require(records[dataHash].timestamp == 0);
         // verify owner
         require(hub.usersContract().isUser(owner) == true);
-        // get record index
-        uint salt = hub.usersContract().getRecordIndexOf(owner);
         // add record
         records[dataHash] = Record({
             owner: owner,
@@ -287,11 +283,8 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
             irisScore: 0,
             dataUri: dataUri,
             // solium-disable-next-line security/no-block-members
-            timestamp: block.timestamp,
-            salt: salt
+            timestamp: block.timestamp
             });
-        // increment index for next record
-        hub.usersContract().incrementRecordIndexOf(owner);
         // emit event
         emit LinniaRecordAdded(dataHash, owner, metadata);
         return true;
