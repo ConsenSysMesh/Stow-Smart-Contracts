@@ -3,25 +3,25 @@ pragma solidity 0.4.24;
 import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./LinniaWhitelistI.sol";
-import "./LinniaHub.sol";
+import "./StowWhitelistI.sol";
+import "./StowHub.sol";
 
 
-contract LinniaUsers is Ownable, Pausable, Destructible {
+contract StowUsers is Ownable, Pausable, Destructible {
     struct User {
         bool exists;
         uint registerBlocktime;
         uint provenance;
     }
 
-    event LinniaUserRegistered(address indexed user);
-    event LinniaProvenanceChanged(address indexed user, uint provenance);
-    event LinniaWhitelistScoreAdded(address indexed whitelist);
+    event StowUserRegistered(address indexed user);
+    event StowProvenanceChanged(address indexed user, uint provenance);
+    event StowWhitelistScoreAdded(address indexed whitelist);
 
-    LinniaHub public hub;
+    StowHub public hub;
     mapping(address => User) public users;
 
-    constructor(LinniaHub _hub) public {
+    constructor(StowHub _hub) public {
         hub = _hub;
     }
 
@@ -30,7 +30,7 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
 
     /* External functions */
 
-    // register allows any user to self register on Linnia
+    // register allows any user to self register on Stow
     function register()
         whenNotPaused
         external
@@ -42,19 +42,19 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
             registerBlocktime: block.number,
             provenance: 0
         });
-        emit LinniaUserRegistered(msg.sender);
+        emit StowUserRegistered(msg.sender);
         return true;
     }
 
      // setExpertScore allows admin to set the expert score of a user from a trusted third party
-    function setExpertScore(LinniaWhitelistI whitelist, address user)
+    function setExpertScore(StowWhitelistI whitelist, address user)
         onlyOwner
         external
         returns (bool)
     {
         uint score = whitelist.expertScoreOf(user);
         setProvenance(user, score);
-        emit LinniaWhitelistScoreAdded(whitelist);
+        emit StowWhitelistScoreAdded(whitelist);
         return true;
     }
 
@@ -68,7 +68,7 @@ contract LinniaUsers is Ownable, Pausable, Destructible {
     {
         require(isUser(user));
         users[user].provenance = provenance;
-        emit LinniaProvenanceChanged(user, provenance);
+        emit StowProvenanceChanged(user, provenance);
         return true;
     }
 

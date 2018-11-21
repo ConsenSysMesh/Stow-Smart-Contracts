@@ -4,28 +4,28 @@ import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-import "./LinniaHub.sol";
-import "./LinniaRecords.sol";
-import "./LinniaUsers.sol";
+import "./StowHub.sol";
+import "./StowRecords.sol";
+import "./StowUsers.sol";
 import "./interfaces/PermissionPolicyI.sol";
 
 
-contract LinniaPermissions is Ownable, Pausable, Destructible {
+contract StowPermissions is Ownable, Pausable, Destructible {
     struct Permission {
         bool canAccess;
         // data path of the data, encrypted to the viewer
         string dataUri;
     }
 
-    event LinniaAccessGranted(bytes32 indexed dataHash, address indexed owner,
+    event StowAccessGranted(bytes32 indexed dataHash, address indexed owner,
         address indexed viewer, address sender
     );
-    event LinniaAccessRevoked(bytes32 indexed dataHash, address indexed owner,
+    event StowAccessRevoked(bytes32 indexed dataHash, address indexed owner,
         address indexed viewer, address sender
     );
-    event LinniaPermissionDelegateAdded(address indexed user, address indexed delegate);
+    event StowPermissionDelegateAdded(address indexed user, address indexed delegate);
 
-    event LinniaPolicyChecked(
+    event StowPolicyChecked(
         bytes32 indexed dataHash,
         string dataUri,
         address indexed viewer,
@@ -34,7 +34,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         address sender
     );
 
-    LinniaHub public hub;
+    StowHub public hub;
     // dataHash => viewer => permission mapping
     mapping(bytes32 => mapping(address => Permission)) public permissions;
     // user => delegate => bool mapping
@@ -57,7 +57,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
     }
 
     /* Constructor */
-    constructor(LinniaHub _hub) public {
+    constructor(StowHub _hub) public {
         hub = _hub;
     }
 
@@ -89,13 +89,13 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         require(delegate != address(0));
         require(delegate != msg.sender);
         delegates[msg.sender][delegate] = true;
-        emit LinniaPermissionDelegateAdded(msg.sender, delegate);
+        emit StowPermissionDelegateAdded(msg.sender, delegate);
         return true;
     }
 
-    /// Give a viewer access to a linnia record
+    /// Give a viewer access to a stow record
     /// Called by owner of the record.
-    /// @param dataHash the data hash of the linnia record
+    /// @param dataHash the data hash of the stow record
     /// @param viewer the user being granted permission to view the data
     /// @param dataUri the path of the re-encrypted data
     function grantAccess(
@@ -111,11 +111,11 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         return true;
     }
 
-    /// Give a viewer access to a linnia record
+    /// Give a viewer access to a stow record
     /// Called by delegate to the owner of the record.
-    /// @param dataHash the data hash of the linnia record
+    /// @param dataHash the data hash of the stow record
     /// @param viewer the user being permissioned to view the data
-    /// @param owner the owner of the linnia record
+    /// @param owner the owner of the stow record
     /// @param dataUri the path of the re-encrypted data
     function grantAccessbyDelegate(
         bytes32 dataHash, address viewer, address owner, string dataUri)
@@ -130,9 +130,9 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         return true;
     }
 
-    /// Give a viewer access to a linnia record
+    /// Give a viewer access to a stow record
     /// Called by owner of the record.
-    /// @param dataHash the data hash of the linnia record
+    /// @param dataHash the data hash of the stow record
     /// @param viewer the user being granted permission to view the data
     /// @param dataUri the path of the re-encrypted data
     function grantPolicyBasedAccess(
@@ -153,7 +153,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
             require(curPolicy != address(0));
             PermissionPolicyI currPolicy = PermissionPolicyI(curPolicy);
             bool isOk = currPolicy.checkPolicy(dataHash, viewer, dataUri);
-            emit LinniaPolicyChecked(dataHash, dataUri, viewer, curPolicy, isOk, msg.sender);
+            emit StowPolicyChecked(dataHash, dataUri, viewer, curPolicy, isOk, msg.sender);
             require(isOk);
         }
 
@@ -161,10 +161,10 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         return true;
     }
 
-    /// Revoke a viewer access to a linnia record
+    /// Revoke a viewer access to a stow record
     /// Note that this does not necessarily remove the data from storage
     /// Called by owner of the record.
-    /// @param dataHash the data hash of the linnia record
+    /// @param dataHash the data hash of the stow record
     /// @param viewer the user that has permission to view the data
     function revokeAccess(
         bytes32 dataHash, address viewer)
@@ -179,12 +179,12 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         return true;
     }
 
-    /// Revoke a viewer access to a linnia record
+    /// Revoke a viewer access to a stow record
     /// Note that this does not necessarily remove the data from storage
     /// Called by delegate to the owner of the record.
-    /// @param dataHash the data hash of the linnia record
+    /// @param dataHash the data hash of the stow record
     /// @param viewer the user that has permission to view the data
-    /// @param owner the owner of the linnia record
+    /// @param owner the owner of the stow record
     function revokeAccessbyDelegate(
         bytes32 dataHash, address viewer, address owner)
         onlyWhenSenderIsDelegate(owner)
@@ -196,9 +196,9 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
         return true;
     }
 
-    /// Internal function to give a viewer access to a linnia record
+    /// Internal function to give a viewer access to a stow record
     /// Called by external functions
-    /// @param dataHash the data hash of the linnia record
+    /// @param dataHash the data hash of the stow record
     /// @param viewer the user being permissioned to view the data
     /// @param dataUri the data path of the re-encrypted data
     function _grantAccess(bytes32 dataHash, address viewer, address owner, string dataUri)
@@ -218,16 +218,16 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
             canAccess: true,
             dataUri: dataUri
             });
-        emit LinniaAccessGranted(dataHash, owner, viewer, msg.sender);
+        emit StowAccessGranted(dataHash, owner, viewer, msg.sender);
         return true;
     }
 
-    /// Internal function to revoke a viewer access to a linnia record
+    /// Internal function to revoke a viewer access to a stow record
     /// Called by external functions
     /// Note that this does not necessarily remove the data from storage
-    /// @param dataHash the data hash of the linnia record
+    /// @param dataHash the data hash of the stow record
     /// @param viewer the user that has permission to view the data
-    /// @param owner the owner of the linnia record
+    /// @param owner the owner of the stow record
     function _revokeAccess(bytes32 dataHash, address viewer, address owner)
         whenNotPaused
         internal
@@ -240,7 +240,7 @@ contract LinniaPermissions is Ownable, Pausable, Destructible {
             canAccess: false,
             dataUri: ""
             });
-        emit LinniaAccessRevoked(dataHash, owner, viewer, msg.sender);
+        emit StowAccessRevoked(dataHash, owner, viewer, msg.sender);
         return true;
     }
 }

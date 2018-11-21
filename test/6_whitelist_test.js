@@ -1,7 +1,7 @@
 import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 
-const LinniaHub = artifacts.require('./LinniaHub.sol');
-const LinniaUsers = artifacts.require('./LinniaUsers.sol');
+const StowHub = artifacts.require('./StowHub.sol');
+const StowUsers = artifacts.require('./StowUsers.sol');
 const Whitelist = artifacts.require('./WhitelistMock.sol');
 
 /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
@@ -14,11 +14,11 @@ contract('MockWhitelist', accounts => {
   const nonOwner = accounts[5];
   const expertUser1 = accounts[1];
 
-  before('set up a LinniaHub contract', async () => {
-    hub = await LinniaHub.new();
+  before('set up a StowHub contract', async () => {
+    hub = await StowHub.new();
   });
-  beforeEach('deploy a new LinniaUsers contract', async () => {
-    users = await LinniaUsers.new(hub.address);
+  beforeEach('deploy a new StowUsers contract', async () => {
+    users = await StowUsers.new(hub.address);
     await hub.setUsersContract(users.address);
   });
   beforeEach('deploy a new Whitelist contract', async () => {
@@ -63,9 +63,9 @@ contract('MockWhitelist', accounts => {
       // check state
       assert.equal((await users.users(expertUser1))[2], expertScore);
       // check logs
-      assert.equal(tx.logs[1].event, 'LinniaWhitelistScoreAdded');
+      assert.equal(tx.logs[1].event, 'StowWhitelistScoreAdded');
       assert.equal(tx.logs[1].args.whitelist, instance.address);
-      assert.equal(tx.logs[0].event, 'LinniaProvenanceChanged');
+      assert.equal(tx.logs[0].event, 'StowProvenanceChanged');
       assert.equal(tx.logs[0].args.user, expertUser1);
       assert.equal(tx.logs[0].args.provenance, expertScore);
     });

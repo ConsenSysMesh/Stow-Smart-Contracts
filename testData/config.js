@@ -2,10 +2,10 @@ require('dotenv').load();
 const IPFS = require('ipfs-mini');
 const Web3 = require('web3');
 
-const providerHost = process.env.LINNIA_ETH_PROVIDER;
-const ipfsProvider = process.env.LINNIA_IPFS_HOST;
-const ipfsPort = process.env.LINNIA_IPFS_PORT;
-const protocol = process.env.LINNIA_IPFS_PROTOCOL;
+const providerHost = process.env.STOW_ETH_PROVIDER;
+const ipfsProvider = process.env.STOW_IPFS_HOST;
+const ipfsPort = process.env.STOW_IPFS_PORT;
+const protocol = process.env.STOW_IPFS_PROTOCOL;
 
 const HDWalletProvider = require('truffle-hdwallet-provider');
 
@@ -14,13 +14,13 @@ let privKeys;
 // If ropsten, set the owner private key
 if (providerHost === 'ropsten') {
   privKeys = require('../test-private-keys').private_keys;
-  privKeys[0] = process.env.LINNIA_ETH_INFURA_ROPSTEN_HUB_OWNER_PRIVATE_KEY;
+  privKeys[0] = process.env.STOW_ETH_INFURA_ROPSTEN_HUB_OWNER_PRIVATE_KEY;
 }
 
 // If rinkeby, set the owner private key
 if (providerHost === 'rinkeby') {
   privKeys = require('../test-private-keys').private_keys;
-  privKeys[0] = process.env.LINNIA_ETH_INFURA_RINKEBY_HUB_OWNER_PRIVATE_KEY;
+  privKeys[0] = process.env.STOW_ETH_INFURA_RINKEBY_HUB_OWNER_PRIVATE_KEY;
 }
 
 const networks = {
@@ -28,7 +28,7 @@ const networks = {
     provider() {
       return new HDWalletProvider(
         privKeys,
-        `https://ropsten.infura.io/${process.env.LINNIA_ETH_INFURA_KEY}`,
+        `https://ropsten.infura.io/${process.env.STOW_ETH_INFURA_KEY}`,
       );
     },
     network_id: 3,
@@ -37,7 +37,7 @@ const networks = {
     provider() {
       return new HDWalletProvider(
         privKeys,
-        `https://rinkeby.infura.io/${process.env.LINNIA_ETH_INFURA_KEY}`,
+        `https://rinkeby.infura.io/${process.env.STOW_ETH_INFURA_KEY}`,
       );
     },
     network_id: 4,

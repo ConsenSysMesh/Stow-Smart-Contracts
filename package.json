@@ -1,7 +1,7 @@
 {
-  "name": "@linniaprotocol/linnia-smart-contracts",
+  "name": "@stowprotocol/stow-smart-contracts",
   "version": "0.1.8",
-  "description": "Linnia Smart Contracts",
+  "description": "Stow Smart Contracts",
   "main": "truffle-config.js",
   "files": [
     "build",
@@ -20,19 +20,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ConsenSys/Linnia-Smart-Contracts.git"
+    "url": "git+https://github.com/ConsenSys/Stow-Smart-Contracts.git"
   },
   "keywords": [
-    "Linnia",
+    "Stow",
     "Ethereum",
     "Smart Contracts",
     "Solidity"
   ],
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ConsenSys/Linnia-Smart-Contracts/issues"
+    "url": "https://github.com/ConsenSys/Stow-Smart-Contracts/issues"
   },
-  "homepage": "https://linnia.com",
+  "homepage": "https://stow.com",
   "devDependencies": {
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
