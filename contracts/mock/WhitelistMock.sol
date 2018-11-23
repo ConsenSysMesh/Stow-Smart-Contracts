@@ -1,12 +1,12 @@
 pragma solidity ^0.4.24;
 
-import "../LinniaWhitelistI.sol";
+import "../StowWhitelistI.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Destructible.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-contract WhitelistMock is  LinniaWhitelistI, Ownable, Destructible {
-	
+contract WhitelistMock is  StowWhitelistI, Ownable, Destructible {
+
     function updateScore(address user, uint score)
     	public
     	onlyOwner
@@ -17,12 +17,12 @@ contract WhitelistMock is  LinniaWhitelistI, Ownable, Destructible {
         return true;
     }
 
-    function expertScoreOf(address user) 
+    function expertScoreOf(address user)
     	public
     	view
-    	returns(uint) 
+    	returns(uint)
     {
         return expertScores[user];
     }
-  
+
 }

@@ -1,9 +1,9 @@
 import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 
 const ERC20 = artifacts.require('./ERC20Mock.sol');
-const LinniaHub = artifacts.require('./LinniaHub.sol');
-const LinniaUsers = artifacts.require('./LinniaUsers.sol');
-const LinniaRecords = artifacts.require('./LinniaRecords.sol');
+const StowHub = artifacts.require('./StowHub.sol');
+const StowUsers = artifacts.require('./StowUsers.sol');
+const StowRecords = artifacts.require('./StowRecords.sol');
 
 const eutil = require('ethereumjs-util');
 
@@ -14,7 +14,7 @@ const testMetadata = 'KEYWORDS';
 const testMetaHash = eutil.bufferToHex(eutil.sha3(testMetadata));
 
 
-contract('LinniaRecords with Reward', accounts => {
+contract('StowRecords with Reward', accounts => {
   const admin = accounts[0];
   const user = accounts[1];
   const provider1 = accounts[2];
@@ -31,11 +31,11 @@ contract('LinniaRecords with Reward', accounts => {
     token.unpause({from: admin});
 
   });
-  before('set up a LinniaHub contract', async () => {
-    hub = await LinniaHub.new({from: admin});
+  before('set up a StowHub contract', async () => {
+    hub = await StowHub.new({from: admin});
   });
-  before('set up a LinniaUsers contract', async () => {
-    const usersInstance = await LinniaUsers.new(hub.address);
+  before('set up a StowUsers contract', async () => {
+    const usersInstance = await StowUsers.new(hub.address);
     await hub.setUsersContract(usersInstance.address);
     usersInstance.register({from: user});
     usersInstance.register({from: provider1});
@@ -43,12 +43,12 @@ contract('LinniaRecords with Reward', accounts => {
     usersInstance.setProvenance(provider1, 1);
     usersInstance.setProvenance(provider2, 2);
   });
-  beforeEach('deploy a new LinniaRecords contract', async () => {
-    instance = await LinniaRecords.new(hub.address);
+  beforeEach('deploy a new StowRecords contract', async () => {
+    instance = await StowRecords.new(hub.address);
     await hub.setRecordsContract(instance.address);
   });
-  describe('add record by user and receive LIN tokens', () => {
-    it('should allow a user to add a new record and receive LIN tokens', async () => {
+  describe('add record by user and receive STOW tokens', () => {
+    it('should allow a user to add a new record and receive STOW tokens', async () => {
       await token.transfer(instance.address, web3.toWei(1000, 'finney'), {from: admin});
       let userBalance = await token.balanceOf(user);
       assert.equal(userBalance.toNumber(), 0);
@@ -62,9 +62,9 @@ contract('LinniaRecords with Reward', accounts => {
       userBalance = await token.balanceOf(user);
       assert.equal(userBalance.toNumber(), web3.toWei(1, 'finney'));
       assert.equal(tx.logs.length, 2);
-      assert.equal(tx.logs[1].event, 'LinniaReward');
+      assert.equal(tx.logs[1].event, 'StowReward');
 
-      assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
+      assert.equal(tx.logs[0].event, 'StowRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, user);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
@@ -154,7 +154,7 @@ contract('LinniaRecords with Reward', accounts => {
         tokenContractAddress,
         {from: user}
       );
-      assert.equal(tx3.logs[0].event, 'LinniaRecordAdded');
+      assert.equal(tx3.logs[0].event, 'StowRecordAdded');
     });
   });
 });

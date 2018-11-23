@@ -1,7 +1,7 @@
 pragma solidity 0.4.24;
 
 
-contract LinniaWhitelistI {
+contract StowWhitelistI {
 
     event LogExpertScoreUpdated(address indexed user, uint indexed score);
 

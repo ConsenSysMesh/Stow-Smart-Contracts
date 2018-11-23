@@ -1,8 +1,8 @@
 const {getAccounts} = require('./utils');
 
-const setupRoles = async (linnia) => {
+const setupRoles = async (stow) => {
   const accounts = await getAccounts();
-  const { users } = await linnia.getContractInstances();
+  const { users } = await stow.getContractInstances();
   const userPromises = accounts.map((account,i) => {
     if(i>0 && i<41){
       // adding 2/3 of users to smart contracts as plain users
