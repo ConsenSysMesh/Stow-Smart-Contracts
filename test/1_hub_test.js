@@ -1,16 +1,16 @@
 import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 
-const LinniaHub = artifacts.require('./LinniaHub.sol');
+const StowHub = artifacts.require('./StowHub.sol');
 
-contract('LinniaHub', accounts => {
+contract('StowHub', accounts => {
   let instance;
-  beforeEach('deploy a new LinniaHub contract', async () => {
-    instance = await LinniaHub.new();
+  beforeEach('deploy a new StowHub contract', async () => {
+    instance = await StowHub.new();
   });
 
   describe('constructor', () => {
     it('should set admin correctly', async () => {
-      const newInstance = await LinniaHub.new();
+      const newInstance = await StowHub.new();
       assert.equal(await newInstance.owner(), accounts[0]);
     });
     it('should initialize users, records addresss to zero', async () => {
@@ -21,7 +21,7 @@ contract('LinniaHub', accounts => {
   describe('set users contract', () => {
     it('should allow admin to set Users address', async () => {
       const tx = await instance.setUsersContract(42);
-      assert.equal(tx.logs[0].event, 'LinniaUsersContractSet');
+      assert.equal(tx.logs[0].event, 'StowUsersContractSet');
       assert.equal(tx.logs[0].args.from, 0);
       assert.equal(tx.logs[0].args.to, 42);
       assert.equal(await instance.usersContract(), 42);
@@ -33,7 +33,7 @@ contract('LinniaHub', accounts => {
   describe('set Records contract', () => {
     it('should allow admin to set Records address', async () => {
       const tx = await instance.setRecordsContract(42);
-      assert.equal(tx.logs[0].event, 'LinniaRecordsContractSet');
+      assert.equal(tx.logs[0].event, 'StowRecordsContractSet');
       assert.equal(tx.logs[0].args.from, 0);
       assert.equal(tx.logs[0].args.to, 42);
       assert.equal(await instance.recordsContract(), 42);
@@ -47,7 +47,7 @@ contract('LinniaHub', accounts => {
   describe('set Permissions contract', () => {
     it('should allow admin to set Permissions address', async () => {
       const tx = await instance.setPermissionsContract(42);
-      assert.equal(tx.logs[0].event, 'LinniaPermissionsContractSet');
+      assert.equal(tx.logs[0].event, 'StowPermissionsContractSet');
       assert.equal(tx.logs[0].args.from, 0);
       assert.equal(tx.logs[0].args.to, 42);
       assert.equal(await instance.permissionsContract(), 42);

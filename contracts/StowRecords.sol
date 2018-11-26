@@ -5,17 +5,17 @@ import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "./LinniaHub.sol";
-import "./LinniaUsers.sol";
+import "./StowHub.sol";
+import "./StowUsers.sol";
 import "./interfaces/IrisScoreProviderI.sol";
 
 
 
-contract LinniaRecords is Ownable, Pausable, Destructible {
+contract StowRecords is Ownable, Pausable, Destructible {
     using SafeMath for uint;
 
-    // Struct of a linnia record
-    // A linnia record is identified by its data hash, which is
+    // Struct of a stow record
+    // A stow record is identified by its data hash, which is
     // keccak256(data + optional nonce)
     struct Record {
         // owner of the record
@@ -36,22 +36,22 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         mapping (address => uint256)  irisProvidersReports;
     }
 
-    event LinnniaUpdateRecordsIris(
+    event StowUpdateRecordsIris(
         bytes32 indexed dataHash, address indexed irisProvidersAddress, uint256 val, address indexed sender)
     ;
 
-    event LinniaRecordAdded(
+    event StowRecordAdded(
         bytes32 indexed dataHash, address indexed owner, string metadata
     );
 
-    event LinniaRecordSigAdded(
+    event StowRecordSigAdded(
         bytes32 indexed dataHash, address indexed attester, uint irisScore
     );
 
-    event LinniaReward(bytes32 indexed dataHash, address indexed owner, uint256 value, address tokenContract);
+    event StowReward(bytes32 indexed dataHash, address indexed owner, uint256 value, address tokenContract);
 
-    LinniaHub public hub;
-    // all linnia records
+    StowHub public hub;
+    // all stow records
     // dataHash => record mapping
     mapping(bytes32 => Record) public records;
 
@@ -68,7 +68,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
     }
 
     /* Constructor */
-    constructor(LinniaHub _hub) public {
+    constructor(StowHub _hub) public {
         hub = _hub;
     }
 
@@ -117,7 +117,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
 
         // keep a record of iris score breakdown
         record.irisProvidersReports[irisProvidersAddress] = val;
-        emit LinnniaUpdateRecordsIris(dataHash, irisProvidersAddress, val, msg.sender);
+        emit StowUpdateRecordsIris(dataHash, irisProvidersAddress, val, msg.sender);
         return val;
     }
 
@@ -171,7 +171,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         );
         // tokens are provided by the contracts balance
         require(tokenInstance.transfer (msg.sender, reward));
-        emit LinniaReward (dataHash, msg.sender, reward, token);
+        emit StowReward (dataHash, msg.sender, reward, token);
         return true;
     }
 
@@ -195,10 +195,10 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         return true;
     }
 
-    /// Add a provider's signature to a linnia record,
+    /// Add a provider's signature to a stow record,
     /// i.e. adding an attestation
     /// This function is only callable by a provider
-    /// @param dataHash the data hash of the linnia record
+    /// @param dataHash the data hash of the stow record
     function addSigByProvider(bytes32 dataHash)
         hasProvenance(msg.sender)
         whenNotPaused
@@ -209,13 +209,13 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         return true;
     }
 
-    /// Add a provider's signature to a linnia record
+    /// Add a provider's signature to a stow record
     /// i.e. adding an attestation
     /// This function can be called by anyone. As long as the signatures are
     /// indeed from a provider, the sig will be added to the record.
     /// The signature should cover the root hash, which is
     /// hash(hash(data), hash(metadata))
-    /// @param dataHash the data hash of a linnia record
+    /// @param dataHash the data hash of a stow record
     /// @param r signature: R
     /// @param s signature: S
     /// @param v signature: V
@@ -286,7 +286,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
             timestamp: block.timestamp
             });
         // emit event
-        emit LinniaRecordAdded(dataHash, owner, metadata);
+        emit StowRecordAdded(dataHash, owner, metadata);
         return true;
     }
 
@@ -307,7 +307,7 @@ contract LinniaRecords is Ownable, Pausable, Destructible {
         // update iris score
         record.irisScore = record.irisScore.add(provenanceScore);
         // emit event
-        emit LinniaRecordSigAdded(dataHash, provider, record.irisScore);
+        emit StowRecordSigAdded(dataHash, provider, record.irisScore);
         return true;
     }
 }

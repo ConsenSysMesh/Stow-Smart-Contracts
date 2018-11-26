@@ -1,36 +1,36 @@
 import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 
-const LinniaHub = artifacts.require('./LinniaHub.sol');
-const LinniaUsers = artifacts.require('./LinniaUsers.sol');
+const StowHub = artifacts.require('./StowHub.sol');
+const StowUsers = artifacts.require('./StowUsers.sol');
 
-contract('LinniaUsers', accounts => {
+contract('StowUsers', accounts => {
   let hub;
   let instance;
-  before('set up a LinniaHub contract', async () => {
-    hub = await LinniaHub.new();
+  before('set up a StowHub contract', async () => {
+    hub = await StowHub.new();
   });
-  beforeEach('deploy a new LinniaUsers contract', async () => {
-    instance = await LinniaUsers.new(hub.address);
+  beforeEach('deploy a new StowUsers contract', async () => {
+    instance = await StowUsers.new(hub.address);
     await hub.setUsersContract(instance.address);
   });
   describe('constructor', () => {
     it('should set the deployer as admin', async () => {
-      const newInstance = await LinniaUsers.new(hub.address);
+      const newInstance = await StowUsers.new(hub.address);
       assert.equal(await newInstance.owner(), accounts[0]);
     });
     it('should set hub address correctly', async () => {
-      const newInstance = await LinniaUsers.new(hub.address);
+      const newInstance = await StowUsers.new(hub.address);
       assert.equal(await newInstance.hub(), hub.address);
     });
   });
   describe('change admin', () => {
     it('should allow admin to change admin', async () => {
-      const newInstance = await LinniaUsers.new(hub.address);
+      const newInstance = await StowUsers.new(hub.address);
       await newInstance.transferOwnership(accounts[1], { from: accounts[0] });
       assert.equal(await newInstance.owner(), accounts[1]);
     });
     it('should not allow non admin to change admin', async () => {
-      const newInstance = await LinniaUsers.new(hub.address);
+      const newInstance = await StowUsers.new(hub.address);
       await assertRevert(
         newInstance.transferOwnership(accounts[1], {
           from: accounts[1]
@@ -41,7 +41,7 @@ contract('LinniaUsers', accounts => {
   describe('register', () => {
     it('should allow user to self register', async () => {
       const tx = await instance.register({ from: accounts[1] });
-      assert.equal(tx.logs[0].event, 'LinniaUserRegistered');
+      assert.equal(tx.logs[0].event, 'StowUserRegistered');
       assert.equal(tx.logs[0].args.user, accounts[1]);
 
       const storedUser = await instance.users(accounts[1]);
@@ -64,7 +64,7 @@ contract('LinniaUsers', accounts => {
         from: accounts[0]
       });
       // check logs
-      assert.equal(tx.logs[0].event, 'LinniaProvenanceChanged');
+      assert.equal(tx.logs[0].event, 'StowProvenanceChanged');
       assert.equal(tx.logs[0].args.user, accounts[1]);
       assert.equal(tx.logs[0].args.provenance, 42);
       // check state
@@ -115,7 +115,7 @@ contract('LinniaUsers', accounts => {
       const tx2 = await instance.unpause();
       assert.equal(tx2.logs[0].event, 'Unpause');
       const tx3 = await instance.register({ from: accounts[1] });
-      assert.equal(tx3.logs[0].event, 'LinniaUserRegistered');
+      assert.equal(tx3.logs[0].event, 'StowUserRegistered');
     });
   });
   // copy paste from records contract

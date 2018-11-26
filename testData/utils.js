@@ -1,13 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const {promisify} = require('util');
-const Linnia = require('@linniaprotocol/linnia-js');
+// const Stow = require('@stowprotocol/stow-js');
+const Stow = require('@linniaprotocol/linnia-js');
 
 const readdir = promisify(fs.readdir);
 const {ipfs, web3} = require('./config');
 
 const encrypt = async (publicKey, data) => {
-  const encrypted = await Linnia.util.encrypt(
+  const encrypted = await Stow.util.encrypt(
     publicKey,
     data,
   );

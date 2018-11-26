@@ -1,8 +1,8 @@
 import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 
-const LinniaHub = artifacts.require('./LinniaHub.sol');
-const LinniaUsers = artifacts.require('./LinniaUsers.sol');
-const LinniaRecords = artifacts.require('./LinniaRecords.sol');
+const StowHub = artifacts.require('./StowHub.sol');
+const StowUsers = artifacts.require('./StowUsers.sol');
+const StowRecords = artifacts.require('./StowRecords.sol');
 const irisScoreProvider = artifacts.require('./mock/IrisScoreProviderMock.sol');
 
 const crypto = require('crypto');
@@ -22,7 +22,7 @@ const testRootHash = eutil.bufferToHex(
   )
 );
 
-contract('LinniaRecords', accounts => {
+contract('StowRecords', accounts => {
   const admin = accounts[0];
   const user = accounts[1];
   const provider1 = accounts[2];
@@ -31,11 +31,11 @@ contract('LinniaRecords', accounts => {
   let hub;
   let instance;
 
-  before('set up a LinniaHub contract', async () => {
-    hub = await LinniaHub.new();
+  before('set up a StowHub contract', async () => {
+    hub = await StowHub.new();
   });
-  before('set up a LinniaUsers contract', async () => {
-    const usersInstance = await LinniaUsers.new(hub.address);
+  before('set up a StowUsers contract', async () => {
+    const usersInstance = await StowUsers.new(hub.address);
     await hub.setUsersContract(usersInstance.address);
     usersInstance.register({ from: user });
     usersInstance.register({ from: provider1 });
@@ -43,13 +43,13 @@ contract('LinniaRecords', accounts => {
     usersInstance.setProvenance(provider1, 1);
     usersInstance.setProvenance(provider2, 2);
   });
-  beforeEach('deploy a new LinniaRecords contract', async () => {
-    instance = await LinniaRecords.new(hub.address);
+  beforeEach('deploy a new StowRecords contract', async () => {
+    instance = await StowRecords.new(hub.address);
     await hub.setRecordsContract(instance.address);
   });
   describe('constructor', () => {
     it('should set hub address correctly', async () => {
-      const newInstance = await LinniaRecords.new(hub.address);
+      const newInstance = await StowRecords.new(hub.address);
       assert.equal(await newInstance.hub(), hub.address);
     });
   });
@@ -85,7 +85,7 @@ contract('LinniaRecords', accounts => {
         { from: user }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
+      assert.equal(tx.logs[0].event, 'StowRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, user);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
@@ -157,11 +157,11 @@ contract('LinniaRecords', accounts => {
         { from: provider1 }
       );
       assert.equal(tx.logs.length, 2);
-      assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
+      assert.equal(tx.logs[0].event, 'StowRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, user);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
-      assert.equal(tx.logs[1].event, 'LinniaRecordSigAdded');
+      assert.equal(tx.logs[1].event, 'StowRecordSigAdded');
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
       assert.equal(tx.logs[1].args.attester, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
@@ -234,7 +234,7 @@ contract('LinniaRecords', accounts => {
         { from: nonUser }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, 'LinniaRecordSigAdded');
+      assert.equal(tx.logs[0].event, 'StowRecordSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.attester, provider1);
       assert.equal(tx.logs[0].args.irisScore, 1);
@@ -254,7 +254,7 @@ contract('LinniaRecords', accounts => {
         from: provider1
       });
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, 'LinniaRecordSigAdded');
+      assert.equal(tx.logs[0].event, 'StowRecordSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.attester, provider1);
       assert.equal(tx.logs[0].args.irisScore, 1);
@@ -303,7 +303,7 @@ contract('LinniaRecords', accounts => {
       );
       // check log
       assert.equal(tx1.logs.length, 1);
-      assert.equal(tx1.logs[0].event, 'LinniaRecordSigAdded');
+      assert.equal(tx1.logs[0].event, 'StowRecordSigAdded');
       assert.equal(tx1.logs[0].args.dataHash, testDataHash);
       assert.equal(tx1.logs[0].args.attester, provider1);
       assert.equal(tx1.logs[0].args.irisScore, 1);
@@ -318,7 +318,7 @@ contract('LinniaRecords', accounts => {
       );
       // check log
       assert.equal(tx2.logs.length, 1);
-      assert.equal(tx2.logs[0].event, 'LinniaRecordSigAdded');
+      assert.equal(tx2.logs[0].event, 'StowRecordSigAdded');
       assert.equal(tx2.logs[0].args.dataHash, testDataHash);
       assert.equal(tx2.logs[0].args.attester, provider2);
       assert.equal(tx2.logs[0].args.irisScore, 3); // iris should increment
@@ -348,7 +348,7 @@ contract('LinniaRecords', accounts => {
           rsv2.v,
           { from: nonUser }
         );
-        assert.equal(tx.logs[0].event, 'LinniaRecordSigAdded');
+        assert.equal(tx.logs[0].event, 'StowRecordSigAdded');
         assert.equal(tx.logs[0].args.dataHash, testDataHash);
         assert.equal(tx.logs[0].args.attester, provider2);
         assert.equal(tx.logs[0].args.irisScore, 3);
@@ -404,7 +404,7 @@ contract('LinniaRecords', accounts => {
         { from: admin }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
+      assert.equal(tx.logs[0].event, 'StowRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, user);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
@@ -428,11 +428,11 @@ contract('LinniaRecords', accounts => {
         { from: admin }
       );
       assert.equal(tx.logs.length, 2);
-      assert.equal(tx.logs[0].event, 'LinniaRecordAdded');
+      assert.equal(tx.logs[0].event, 'StowRecordAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, user);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
-      assert.equal(tx.logs[1].event, 'LinniaRecordSigAdded');
+      assert.equal(tx.logs[1].event, 'StowRecordSigAdded');
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
       assert.equal(tx.logs[1].args.attester, provider1);
       assert.equal(tx.logs[1].args.irisScore, 1);
@@ -497,14 +497,15 @@ contract('LinniaRecords', accounts => {
       const tx0 = await instance.addRecord(testDataHash, testMetadata, testDataUri, {
         from: user
       });
-      assert.equal(tx0.receipt.status, '0x01');
+      // sometimes retuns 0x01 -- not sure why
+      assert.equal(parseInt(tx0.receipt.status, 16), 1);
       const record0 = await instance.records(testDataHash);
       assert.equal(record0[2], '0');
       const score0 = await instance.getIrisProvidersReport.call(testDataHash, irisScoreProviderContractAddress);
       assert.equal(score0.toString(), '0');
 
       const tx = await instance.updateIris(testDataHash, irisScoreProviderContractAddress, {from: admin});
-      assert.equal(tx.logs[0].event, 'LinnniaUpdateRecordsIris');
+      assert.equal(tx.logs[0].event, 'StowUpdateRecordsIris');
       assert.equal(JSON.stringify(tx.logs[0].args),
         JSON.stringify({
           'dataHash':testDataHash,
@@ -542,7 +543,7 @@ contract('LinniaRecords', accounts => {
         testDataUri,
         { from: user }
       );
-      assert.equal(tx3.logs[0].event, 'LinniaRecordAdded');
+      assert.equal(tx3.logs[0].event, 'StowRecordAdded');
     });
   });
   // copy paste from records contract

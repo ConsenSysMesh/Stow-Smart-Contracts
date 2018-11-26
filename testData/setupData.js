@@ -3,9 +3,9 @@ const {setupMetadata} = require('./setupMetadata');
 const {encrypt, ipfsPush, getFiles} = require('./utils');
 
 
-const setupData = async (linnia) => {
+const setupData = async (stow) => {
   const files = await getFiles();
-  const { records } = await linnia.getContractInstances();
+  const { records } = await stow.getContractInstances();
   for(let i=0; i<files.length; i++) {
     const data = require(files[i]);
     // set up metadata and keys
