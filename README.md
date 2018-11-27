@@ -8,7 +8,7 @@ Smart Contracts for Stow
 
 - Ropsten: [0xfae15fe388a0c0c04d9614f6a8b4f81142bfc87b](https://ropsten.etherscan.io/address/0xfae15fe388a0c0c04d9614f6a8b4f81142bfc87b)
 
-- All addresses for protocal located: [Here](https://github.com/ConsenSys/stow-addresses)
+- All addresses for protocol located: [Here](https://github.com/ConsenSys/stow-addresses)
 
 # Overview
 ## Stow Users
